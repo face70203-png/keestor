@@ -41,12 +41,14 @@ router.post('/create-checkout-session', auth, async (req, res) => {
     });
     await order.save();
 
+    const frontendUrl = process.env.FRONTEND_URL ? (process.env.FRONTEND_URL.startsWith('http') ? process.env.FRONTEND_URL : `https://${process.env.FRONTEND_URL}`) : 'http://localhost:3000';
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       line_items,
       mode: 'payment',
-      success_url: `${process.env.FRONTEND_URL}/dashboard?session_id={CHECKOUT_SESSION_ID}&order_id=${order._id}`,
-      cancel_url: `${process.env.FRONTEND_URL}/cart?canceled=true`,
+      success_url: `${frontendUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}&order_id=${order._id}`,
+      cancel_url: `${frontendUrl}/cart?canceled=true`,
       metadata: { orderId: order._id.toString(), itemData: JSON.stringify(items) },
     });
 
