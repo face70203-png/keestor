@@ -311,11 +311,3 @@ export default function Dashboard() {
     </Suspense>
   );
 }
-
-export default function Dashboard() {
-  return (
-    <Suspense fallback={<div className="text-center mt-20 font-bold text-slate-500">Loading Dashboard...</div>}>
-      <DashboardContent />
-    </Suspense>
-  );
-}
