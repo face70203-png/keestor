@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Wallet, CreditCard, ShieldCheck, Ticket } from "lucide-react";
@@ -7,7 +7,9 @@ import { useToast } from "../context/ToastContext";
 import { useCart } from "../context/CartContext";
 import Link from "next/link";
 
-export default function CheckoutGateway() {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { cart, clearCart } = useCart();
@@ -31,7 +33,7 @@ export default function CheckoutGateway() {
        
        try {
            // Fetch Wallet Balance
-           const wRes = await axios.get("http://localhost:5000/api/wallet/balance", { headers: { Authorization: `Bearer ${token}` }});
+           const wRes = await axios.get(`${API_BASE_URL}/api/wallet/balance`, { headers: { Authorization: `Bearer ${token}` }});
            setWalletBalance(wRes.data.walletBalance);
 
            // Resolve items
@@ -42,7 +44,7 @@ export default function CheckoutGateway() {
                setItems(cart);
                setTotal(cart.reduce((sum, item) => sum + (item.price * item.quantity), 0));
            } else if (productId) {
-               const pRes = await axios.get("http://localhost:5000/api/products");
+               const pRes = await axios.get(`${API_BASE_URL}/api/products`);
                const prod = pRes.data.find(p => p._id === productId);
                if (prod) {
                    setItems([{ ...prod, quantity: 1 }]);
@@ -60,7 +62,7 @@ export default function CheckoutGateway() {
        }
     };
     fetchCheckoutData();
-  }, [searchParams, cart]);
+  }, [searchParams, cart, router]);
 
   const finalTotal = promoApplied ? total * (1 - (discountVal / 100)) : total;
 
@@ -69,7 +71,7 @@ export default function CheckoutGateway() {
       const token = localStorage.getItem("token");
       try {
           const payload = { items: items.map(i => ({ productId: i._id, quantity: i.quantity })), promoCode: promoApplied ? promoCode : null };
-          const res = await axios.post("http://localhost:5000/api/orders/pay-wallet", payload, {
+          const res = await axios.post(`${API_BASE_URL}/api/orders/pay-wallet`, payload, {
               headers: { Authorization: `Bearer ${token}` }
           });
           if (res.data.success) {
@@ -89,7 +91,7 @@ export default function CheckoutGateway() {
       const token = localStorage.getItem("token");
       try {
           const payload = { items: items.map(i => ({ productId: i._id, quantity: i.quantity })) };
-          const res = await axios.post("http://localhost:5000/api/orders/create-checkout-session", payload, {
+          const res = await axios.post(`${API_BASE_URL}/api/orders/create-checkout-session`, payload, {
               headers: { Authorization: `Bearer ${token}` }
           });
           if (res.data.url) window.location.href = res.data.url;
@@ -103,7 +105,7 @@ export default function CheckoutGateway() {
   const applyPromo = async () => {
       if(!promoCode) return;
       try {
-          const res = await axios.post("http://localhost:5000/api/coupons/validate", { code: promoCode });
+          const res = await axios.post(`${API_BASE_URL}/api/coupons/validate`, { code: promoCode });
           setDiscountVal(res.data.discountPercent);
           setPromoApplied(true);
           addToast(`${res.data.discountPercent}% Discount Applied!`, "success");
@@ -224,5 +226,13 @@ export default function CheckoutGateway() {
             </div>
         </div>
     </div>
+  );
+}
+
+export default function CheckoutGateway() {
+  return (
+    <Suspense fallback={<div className="py-20 text-center font-bold text-slate-500">Loading Checkout...</div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }

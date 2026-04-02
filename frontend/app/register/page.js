@@ -1,12 +1,14 @@
 "use client";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { User, Lock, Mail, Users } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
-export default function Register() {
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+function RegisterContent() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,7 +24,7 @@ export default function Register() {
     setError("");
     try {
       const ref = searchParams.get("ref");
-      await axios.post("http://localhost:5000/api/auth/register", { username, email, password, ref });
+      await axios.post(`${API_BASE_URL}/api/auth/register`, { username, email, password, ref });
       alert("Welcome! A 6-digit confirmation code has been sent to your email. Please login to verify.");
       router.push("/login");
     } catch (err) {
@@ -98,5 +100,13 @@ export default function Register() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Register() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-[80vh] font-bold text-slate-500">Loading Registration...</div>}>
+      <RegisterContent />
+    </Suspense>
   );
 }

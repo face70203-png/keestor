@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { KeyRound, Package, Wallet, CheckCircle, Clock, Settings, Ticket, Link as LinkIcon, Send } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 function DashboardContent() {
   const [orders, setOrders] = useState([]);
   const [tickets, setTickets] = useState([]);
@@ -22,10 +24,10 @@ function DashboardContent() {
   const fetchData = async (token) => {
       try {
           const [wRes, pRes, oRes, tRes] = await Promise.all([
-             axios.get("http://localhost:5000/api/wallet/balance", { headers: { Authorization: `Bearer ${token}` } }),
-             axios.get("http://localhost:5000/api/users/me", { headers: { Authorization: `Bearer ${token}` } }),
-             axios.get("http://localhost:5000/api/orders/my-orders", { headers: { Authorization: `Bearer ${token}` } }),
-             axios.get("http://localhost:5000/api/tickets/my-tickets", { headers: { Authorization: `Bearer ${token}` } })
+             axios.get(`${API_BASE_URL}/api/wallet/balance`, { headers: { Authorization: `Bearer ${token}` } }),
+             axios.get(`${API_BASE_URL}/api/users/me`, { headers: { Authorization: `Bearer ${token}` } }),
+             axios.get(`${API_BASE_URL}/api/orders/my-orders`, { headers: { Authorization: `Bearer ${token}` } }),
+             axios.get(`${API_BASE_URL}/api/tickets/my-tickets`, { headers: { Authorization: `Bearer ${token}` } })
           ]);
           setWalletBalance(wRes.data.walletBalance || 0);
           setProfile(pRes.data);
@@ -47,7 +49,7 @@ function DashboardContent() {
        const amount = searchParams.get('amount');
        if (topup_session_id && amount) {
            try {
-              await axios.post("http://localhost:5000/api/wallet/verify-topup", { session_id: topup_session_id, amount }, {
+              await axios.post(`${API_BASE_URL}/api/wallet/verify-topup`, { session_id: topup_session_id, amount }, {
                  headers: { Authorization: `Bearer ${token}` }
               });
               alert("Funds successfully added to KeeWallet!");
@@ -63,7 +65,7 @@ function DashboardContent() {
       e.preventDefault();
       const token = localStorage.getItem("token");
       try {
-          await axios.post("http://localhost:5000/api/tickets", { subject: ticketSub, message: ticketMsg }, { headers: { Authorization: `Bearer ${token}` } });
+          await axios.post(`${API_BASE_URL}/api/tickets`, { subject: ticketSub, message: ticketMsg }, { headers: { Authorization: `Bearer ${token}` } });
           alert("Ticket Submitted successfully!");
           setTicketSub(""); setTicketMsg("");
           fetchData(token);
@@ -72,7 +74,7 @@ function DashboardContent() {
 
   if (loading || !profile) return <div className="text-center mt-20 font-bold text-slate-500">Authenticating Vault...</div>;
 
-  const refLink = `http://localhost:3000/register?ref=${profile.referralCode}`;
+  const refLink = `${typeof window !== "undefined" ? window.location.origin : ""}/register?ref=${profile.referralCode}`;
 
   return (
     <div className="py-10 max-w-6xl mx-auto">
@@ -243,9 +245,9 @@ function DashboardContent() {
                                         if(!reply) return;
                                         try {
                                            const token = localStorage.getItem('token');
-                                           await axios.put(`http://localhost:5000/api/tickets/${t._id}/user-reply`, { reply }, { headers:{ Authorization: `Bearer ${token}` }});
+                                           await axios.put(`${API_BASE_URL}/api/tickets/${t._id}/user-reply`, { reply }, { headers:{ Authorization: `Bearer ${token}` }});
                                            alert("Reply sent!");
-                                           const wRes = await axios.get("http://localhost:5000/api/tickets/my-tickets", { headers: { Authorization: `Bearer ${token}` }});
+                                           const wRes = await axios.get(`${API_BASE_URL}/api/tickets/my-tickets`, { headers: { Authorization: `Bearer ${token}` }});
                                            setTickets(wRes.data);
                                         } catch(e) { alert("Failed to send reply"); }
                                     }} className="text-sm font-bold text-slate-500 hover:text-primary transition-colors bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg">
@@ -272,7 +274,7 @@ function DashboardContent() {
                      </div>
                      <button onClick={async () => {
                          try {
-                             await axios.put("http://localhost:5000/api/auth/toggle-2fa", {}, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
+                             await axios.put(`${API_BASE_URL}/api/auth/toggle-2fa`, {}, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
                              alert("2FA setting updated successfully! (Refresh to see status)");
                              const token = localStorage.getItem("token");
                              if(token) fetchData(token);
@@ -299,6 +301,14 @@ function DashboardContent() {
           </div>
       )}
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={<div className="text-center mt-20 font-bold text-slate-500">Loading Dashboard...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
 

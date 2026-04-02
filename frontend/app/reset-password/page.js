@@ -6,6 +6,8 @@ import { KeyRound, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "../context/ToastContext";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 function ResetContent() {
     const searchParams = useSearchParams();
     const token = searchParams.get('token');
@@ -21,7 +23,7 @@ function ResetContent() {
         if (password !== confirm) return addToast("Passwords do not match", "error");
         setLoading(true);
         try {
-            await axios.post("http://localhost:5000/api/auth/reset-password", { token, newPassword: password });
+            await axios.post(`${API_BASE_URL}/api/auth/reset-password`, { token, newPassword: password });
             addToast("Password physically reset! Access restored.", "success");
             router.push("/login");
         } catch(err) {

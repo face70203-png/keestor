@@ -6,6 +6,8 @@ import { Wallet, ShieldCheck, Zap } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 import Link from "next/link";
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function TopUpGateway() {
   const [customAmount, setCustomAmount] = useState("");
   const [loading, setLoading] = useState(false);
@@ -21,7 +23,7 @@ export default function TopUpGateway() {
       }
 
       try {
-          const res = await axios.post("http://localhost:5000/api/wallet/create-topup-session", 
+          const res = await axios.post(`${API_BASE_URL}/api/wallet/create-topup-session`, 
             { amount: parseFloat(amount) }, 
             { headers: { Authorization: `Bearer ${token}` }}
           );
