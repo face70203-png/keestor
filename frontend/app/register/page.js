@@ -29,11 +29,15 @@ function RegisterContent() {
     setError("");
     try {
       const ref = searchParams.get("ref");
-      await axios.post(`${API_BASE_URL}/api/auth/register`, { username, email, password, ref, captchaToken });
-      alert("Welcome! A 6-digit confirmation code has been sent to your email. Please login to verify.");
-      router.push("/login");
+      const res = await axios.post(`${API_BASE_URL}/api/auth/register`, { username, email, password, ref, captchaToken });
+      
+      if (res.status === 201 || res.data) {
+          alert("Welcome! A 6-digit confirmation code has been sent to your email. Please login to verify.");
+          router.push("/login");
+      }
     } catch (err) {
-      setError(err.response?.data?.error || "Registration failed");
+      console.error("Registration Error:", err);
+      setError(err.response?.data?.error || "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }
