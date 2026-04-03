@@ -23,7 +23,8 @@ const verifyRecaptcha = async (token) => {
                 params: {
                     secret: secret,
                     response: token
-                }
+                },
+                timeout: 5000 // 5-second timeout to prevent hanging
             }
         );
         
@@ -83,15 +84,11 @@ router.post('/register', async (req, res) => {
     await user.save();
 
     // Send Verification Email
-    try {
-        await sendEmail({
+        sendEmail({
             email: user.email,
             subject: 'Verify your KeeStore Email',
             message: `<h1>Welcome to KeeStore!</h1><p>Your verification code is: <b style="font-size:24px; color: #3b82f6;">${verificationCode}</b></p>`
-        });
-    } catch(e) {
-        console.error("Email could not be sent:", e);
-    }
+        }).catch(e => console.error("Background Email Error (Register):", e.message));
 
     res.status(201).json({ message: 'User registered. Check your email for verification code.', userId: user._id });
   } catch (error) {
@@ -178,7 +175,7 @@ router.post('/login', async (req, res) => {
         user.lastOtpSent = Date.now();
         await user.save();
         
-        await sendEmail({ email: user.email, subject: 'Verify your KeeStore Email', message: `<p>Your verification code is: <b>${verificationCode}</b></p>` }).catch(console.error);
+        sendEmail({ email: user.email, subject: 'Verify your KeeStore Email', message: `<p>Your verification code is: <b>${verificationCode}</b></p>` }).catch(e => console.error("Background Email Error (Login Verify):", e.message));
         
         return res.json({ requiresEmailVerification: true, userId: user._id });
     }
@@ -196,11 +193,11 @@ router.post('/login', async (req, res) => {
         user.lastOtpSent = Date.now();
         await user.save();
 
-        await sendEmail({
+        sendEmail({
             email: user.email,
             subject: 'KeeStore Login Authorization (2FA)',
             message: `<p>A login attempt was made. Your authorization code is: <b style="font-size:24px; color: #ef4444;">${twoFaCode}</b></p><p>Valid for 10 minutes.</p>`
-        }).catch(console.error);
+        }).catch(e => console.error("Background Email Error (2FA):", e.message));
 
         return res.json({ requires2FA: true, userId: user._id });
     }
@@ -256,11 +253,15 @@ router.put('/toggle-2fa', auth, async (req, res) => {
 // Forgot Password
 router.post('/forgot-password', async (req, res) => {
     try {
-        const { email } = req.body;
+        const { email, captchaToken } = req.body;
         if (!email) return res.status(400).json({ error: 'Please provide an email' });
 
+        // 🛡️ Verify CAPTCHA
+        if (!await verifyRecaptcha(captchaToken)) {
+            return res.status(400).json({ error: 'CAPTCHA verification failed. Please try again.' });
+        }
+
         const user = await User.findOne({ email });
-        // Security best practice: don't reveal if user exists, but here the user wanted direct help
         if (!user) return res.status(404).json({ error: 'No user with that email' });
 
         const resetToken = crypto.randomBytes(20).toString('hex');
@@ -272,16 +273,26 @@ router.post('/forgot-password', async (req, res) => {
         const frontendUrl = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`;
         const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
-        await sendEmail({
-            email: user.email,
-            subject: 'KeeStore Password Reset Request',
-            message: `<h1>Password Reset</h1><p>Click the link below to reset your password. Valid for 10 minutes:</p><a href="${resetUrl}" style="background:#3b82f6;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;">Reset Password Now</a>`
-        });
+        // 📧 Attempt Email Dispatch
+        try {
+            await sendEmail({
+                email: user.email,
+                subject: 'KeeStore Password Reset Request',
+                message: `<h1>Password Reset</h1><p>You requested a password reset. Click the button below to proceed:</p><a href="${resetUrl}" style="background:#3b82f6;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;">Reset Password Now</a>`
+            });
+        } catch (emailError) {
+            console.error("Email Delivery Failed:", emailError.message);
+            // Even if email fails, we don't want to crash. 
+            // However, we must inform the user that the recovery could not be sent.
+            return res.status(500).json({ error: 'Failed to send recovery email. Please check your SMTP settings.' });
+        }
 
-        res.json({ success: true, message: 'Email sent successfully' });
+        return res.json({ success: true, message: 'Email sent successfully' });
     } catch(e) {
-        console.error("Forgot Password Error:", e);
-        res.status(500).json({ error: 'Server error while sending reset email.' });
+        console.error("Forgot Password Internal Error:", e.message);
+        if (!res.headersSent) {
+            return res.status(500).json({ error: 'Internal Server Error during password recovery.' });
+        }
     }
 });
 

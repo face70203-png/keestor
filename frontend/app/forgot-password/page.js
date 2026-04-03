@@ -5,24 +5,39 @@ import { useRouter } from "next/navigation";
 import { KeyRound, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "../context/ToastContext";
+import ReCAPTCHA from "react-google-recaptcha";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6Ld5DaQsAAAAAKWShozrkpaUz-tUeztmvMXXG-U5";
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
+    const [captchaToken, setCaptchaToken] = useState(null);
     const [status, setStatus] = useState("idle"); // idle, loading, success, error
     const { addToast } = useToast();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        console.log("Starting submission for password recovery...");
+        
+        if (!captchaToken) {
+            console.log("Error: CAPTCHA not verified.");
+            return addToast("Please verify the CAPTCHA.", "error");
+        }
+
         setStatus("loading");
         try {
-            await axios.post(`${API_BASE_URL}/api/auth/forgot-password`, { email });
+            console.log("Sending request to backend...");
+            await axios.post(`${API_BASE_URL}/api/auth/forgot-password`, { email, captchaToken });
+            console.log("Request successful.");
             setStatus("success");
             addToast("Recovery email dispatched!", "success");
         } catch (err) {
+            console.error("Submission failed:", err);
             setStatus("error");
-            addToast(err.response?.data?.error || "Error seding email", "error");
+            addToast(err.response?.data?.error || "Error sending email. Please try again.", "error");
+        } finally {
+            console.log("Submission process finished.");
         }
     };
 
@@ -58,6 +73,14 @@ export default function ForgotPasswordPage() {
                               className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" 
                             />
                         </div>
+
+                        <div className="flex justify-center my-2">
+                             <ReCAPTCHA
+                                 sitekey={RECAPTCHA_SITE_KEY}
+                                 onChange={(token) => setCaptchaToken(token)}
+                             />
+                        </div>
+
                         <button type="submit" disabled={status==='loading'} className="w-full bg-slate-900 hover:bg-black shadow-lg text-white font-black py-4 rounded-xl transition-all disabled:opacity-50 mt-2">
                            {status==='loading' ? "Processing Node..." : "Send Reset Link"}
                         </button>
