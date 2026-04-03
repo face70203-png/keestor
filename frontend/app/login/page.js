@@ -8,7 +8,7 @@ import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const RECAPTCHA_SITE_KEY = "6LdGBaQsAAAAAII2E4z_bJiBltTK0FH1KtmL_saN";
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6Ld5DaQsAAAAAKWShozrkpaUz-tUeztmvMXXG-U5";
 
 export default function Login() {
   const [email, setEmail] = useState("");
