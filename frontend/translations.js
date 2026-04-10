@@ -62,16 +62,74 @@ export const translations = {
       msgPlaceholder: "Your Message...",
       sendBtn: "Send Message"
     },
+    cart: {
+      emptyTitle: "Your Cart is Empty",
+      emptyDesc: "Looks like you haven't added any digital assets yet.",
+      browse: "Browse Store",
+      title: "Shopping Cart",
+      summary: "Order Summary",
+      items: "Items",
+      total: "Total",
+      checkout: "Secure Checkout",
+      processing: "Processing..."
+    },
     dashboard: {
       welcome: "Hello",
       balance: "Wallet Balance",
-      topUp: "Top Up",
-      assets: "My Assets",
-      billing: "Transaction Ledger",
-      affiliate: "Affiliate Hub",
-      support: "Support Tickets",
-      settings: "Profile Settings",
-      copy: "Copy"
+      topUp: "Top Up Balance",
+      adminBtn: "Master Admin",
+      signOut: "Sign Out",
+      tabs: {
+        assets: "My Assets",
+        billing: "Transaction Ledger",
+        affiliate: "Affiliate Hub",
+        support: "Support Tickets"
+      },
+      assets: {
+        emptyTitle: "No Assets Yet",
+        emptyDesc: "Head to the store to claim your first digital asset.",
+        purchased: "Purchased",
+        processing: "Processing delivery...",
+        copy: "Copy"
+      },
+      billing: {
+        title: "Billing History",
+        empty: "No recent transactions to display.",
+        colRef: "Ref No.",
+        colQty: "Items Qty",
+        colDate: "Date",
+        colTotal: "Total Amount"
+      },
+      affiliate: {
+        title: "Affiliate Growth Hub",
+        desc1: "Invite friends, communities, or your followers to KeeStore. If they sign up via your unique link, you receive",
+        desc2: "in your KeeWallet instantly!",
+        label: "Your Unique Referral Link",
+        btn: "Copy Link"
+      },
+      support: {
+        newTitle: "Open New Ticket",
+        subject: "Subject",
+        subPlaceholder: "Ex: Need help installing Script",
+        msg: "Message",
+        msgPlaceholder: "Describe your issue...",
+        btnSubmit: "Submit Request",
+        activeTitle: "My Active Tickets",
+        empty: "No tickets found.",
+        you: "You",
+        admin: "Admin",
+        reply: "Reply to Admin"
+      },
+      settings: {
+        title: "Profile & Security Settings",
+        tfa: "Two-Factor Authentication (2FA)",
+        tfaDesc: "Protect your digital vault with email-based secondary authorization code upon login.",
+        enable: "Enable 2FA",
+        disable: "Disable 2FA",
+        user: "Username",
+        email: "Email Address",
+        reset: "Request Password Reset"
+      }
     }
   },
   ar: {
@@ -137,16 +195,74 @@ export const translations = {
       msgPlaceholder: "رسالتك...",
       sendBtn: "إرسال الرسالة"
     },
+    cart: {
+      emptyTitle: "سلة المشتريات فارغة",
+      emptyDesc: "يبدو أنك لم تضف أي أصول رقمية حتى الآن.",
+      browse: "تصفح المتجر",
+      title: "سلة المشتريات",
+      summary: "ملخص الطلب",
+      items: "العناصر",
+      total: "الإجمالي",
+      checkout: "إتمام الدفع الآمن",
+      processing: "جاري المعالجة..."
+    },
     dashboard: {
       welcome: "أهلاً بك",
       balance: "رصيد المحفظة",
       topUp: "شحن الرصيد",
-      assets: "ممتلكاتي",
-      billing: "سجل المعاملات",
-      affiliate: "نظام التسويق",
-      support: "تذاكر الدعم",
-      settings: "إعدادات الملف",
-      copy: "نسخ"
+      adminBtn: "الإدارة الرئيسية",
+      signOut: "تسجيل الخروج",
+      tabs: {
+        assets: "ممتلكاتي",
+        billing: "سجل المعاملات",
+        affiliate: "نظام التسويق",
+        support: "تذاكر الدعم"
+      },
+      assets: {
+        emptyTitle: "لا توجد أصول حتى الآن",
+        emptyDesc: "تصفح المتجر لتحصل على أول أصل رقمي لك.",
+        purchased: "تاريخ الشراء",
+        processing: "جاري توصيل المفاتيح...",
+        copy: "نسخ"
+      },
+      billing: {
+        title: "سجل المعاملات",
+        empty: "لا توجد معاملات حديثة لعرضها.",
+        colRef: "رقم المرجع",
+        colQty: "كمية العناصر",
+        colDate: "التاريخ",
+        colTotal: "المبلغ الإجمالي"
+      },
+      affiliate: {
+        title: "مركز التسويق بالعمولة",
+        desc1: "قم بدعوة أصدقائك أو مجتمعك إلى KeeStore. إذا سجلوا عبر رابطك، ستحصل على",
+        desc2: "في محفظتك فوراً!",
+        label: "رابط الإحالة الخاص بك",
+        btn: "نسخ الرابط"
+      },
+      support: {
+        newTitle: "فتح تذكرة جديدة",
+        subject: "الموضوع",
+        subPlaceholder: "مثال: أحتاج مساعدة في تثبيت السكربت",
+        msg: "الرسالة",
+        msgPlaceholder: "صف مشكلتك هنا...",
+        btnSubmit: "إرسال الطلب",
+        activeTitle: "تذاكري النشطة",
+        empty: "لا توجد تذاكر حالياً.",
+        you: "أنت",
+        admin: "الإدارة",
+        reply: "الرد على الإدارة"
+      },
+      settings: {
+        title: "إعدادات الحساب والأمان",
+        tfa: "المصادقة الثنائية (2FA)",
+        tfaDesc: "قم بحماية خزنتك الرقمية برمز تحقق آمن يُرسل لبريدك عند الدخول.",
+        enable: "تفعيل 2FA",
+        disable: "تعطيل 2FA",
+        user: "اسم المستخدم",
+        email: "البريد الإلكتروني",
+        reset: "طلب إعادة تعيين كلمة المرور"
+      }
     }
   }
 };

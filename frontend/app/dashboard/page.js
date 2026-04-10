@@ -4,6 +4,8 @@ import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { KeyRound, Package, Wallet, CheckCircle, Clock, Settings, Ticket, Link as LinkIcon, Send } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
+import { useLanguage } from "../context/LanguageContext";
+import { translations } from "../../translations";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -16,6 +18,8 @@ function DashboardContent() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { lang } = useLanguage();
+  const t = translations[lang].dashboard;
 
   // Support Ticket Form
   const [ticketSub, setTicketSub] = useState("");
@@ -45,6 +49,7 @@ function DashboardContent() {
 
        fetchData(token);
 
+       // Handle Wallet Top-ups
        const topup_session_id = searchParams.get('topup_session_id');
        const amount = searchParams.get('amount');
        if (topup_session_id && amount) {
@@ -56,6 +61,22 @@ function DashboardContent() {
               router.replace('/dashboard');
               fetchData(token);
            } catch (e) {}
+       }
+
+       // Handle Product Purchases via Stripe Checkout
+       const session_id = searchParams.get('session_id');
+       const order_id = searchParams.get('order_id');
+       if (session_id && order_id) {
+           try {
+              await axios.post(`${API_BASE_URL}/api/orders/verify-session`, { session_id, order_id }, {
+                 headers: { Authorization: `Bearer ${token}` }
+              });
+              alert("Payment successful! Your assets are now available in your Vault.");
+              router.replace('/dashboard');
+              fetchData(token);
+           } catch (e) {
+              console.error("Order verification failed:", e);
+           }
        }
     };
     if (user) initData();
@@ -84,34 +105,33 @@ function DashboardContent() {
         </div>
         
         <div className="text-center md:text-left flex-grow">
-            <h1 className="text-4xl font-bold mb-2 text-slate-900">Hello, {profile.username}</h1>
-            <p className="text-slate-500 mb-4">Welcome to your personal digital library. Manage your keys and licenses here.</p>
+            <h1 className="text-4xl font-bold mb-2 text-slate-900">{t.welcome}, {profile.username}</h1>
             
-            <div className="inline-flex flex-wrap items-center gap-4 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2">
-                 <span className="text-slate-600 font-bold">Wallet Balance:</span>
+            <div className="inline-flex flex-wrap items-center gap-4 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 mt-4">
+                 <span className="text-slate-600 font-bold">{t.balance}:</span>
                  <span className="text-xl font-black text-emerald-500">${walletBalance.toFixed(2)}</span>
-                 <button onClick={topUpWallet} className="bg-slate-900 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-black transition">Top Up Balance</button>
+                 <button onClick={topUpWallet} className="bg-slate-900 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-black transition">{t.topUp}</button>
             </div>
         </div>
         
         <div className="flex flex-col gap-3 min-w-[150px]">
           {profile.role === 'admin' && (
             <button onClick={() => router.push('/admin')} className="bg-primary hover:bg-blue-700 shadow-md text-white font-bold py-3 rounded-xl transition text-sm flex items-center justify-center gap-2">
-              Master Admin
+              {t.adminBtn}
             </button>
           )}
           <button onClick={() => { logout(); router.push('/'); }} className="bg-red-50 text-red-600 font-bold py-3 rounded-xl hover:bg-red-100 transition text-sm text-center">
-            Sign Out
+            {t.signOut}
           </button>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-4 mb-8">
-          <button onClick={()=>setTab('assets')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='assets'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>My Assets</button>
-          <button onClick={()=>setTab('billing')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='billing'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>Transaction Ledger</button>
-          <button onClick={()=>setTab('affiliate')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='affiliate'?'bg-emerald-500 text-white shadow-md':'bg-white border hover:bg-emerald-50 text-emerald-600 border-slate-200'}`}><LinkIcon size={16} className="inline mr-1 -mt-1"/> Affiliate Hub</button>
-          <button onClick={()=>setTab('support')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='support'?'bg-orange-500 text-white shadow-md':'bg-white border hover:bg-orange-50 text-orange-600 border-slate-200'}`}><Ticket size={16} className="inline mr-1 -mt-1"/> Support Tickets</button>
+          <button onClick={()=>setTab('assets')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='assets'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>{t.tabs.assets}</button>
+          <button onClick={()=>setTab('billing')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='billing'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>{t.tabs.billing}</button>
+          <button onClick={()=>setTab('affiliate')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='affiliate'?'bg-emerald-500 text-white shadow-md':'bg-white border hover:bg-emerald-50 text-emerald-600 border-slate-200'}`}><LinkIcon size={16} className="inline mr-1 -mt-1"/> {t.tabs.affiliate}</button>
+          <button onClick={()=>setTab('support')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='support'?'bg-orange-500 text-white shadow-md':'bg-white border hover:bg-orange-50 text-orange-600 border-slate-200'}`}><Ticket size={16} className="inline mr-1 -mt-1"/> {t.tabs.support}</button>
           <button onClick={()=>setTab('settings')} className={`px-6 py-3 rounded-xl font-bold transition-all ml-auto ${tab==='settings'?'bg-slate-900 text-white':'bg-white border px-4 hover:bg-slate-50 text-slate-600 border-slate-200'}`}><Settings size={18}/></button>
       </div>
 
@@ -120,8 +140,8 @@ function DashboardContent() {
             {orders.length === 0 ? (
               <div className="col-span-full text-center py-16 bg-slate-50 border border-slate-200 rounded-2xl">
                  <Package className="mx-auto text-slate-400 mb-4" size={48} />
-                 <h3 className="text-xl font-bold text-slate-900 mb-2">No Assets Yet</h3>
-                 <p className="text-slate-500 font-medium">Head to the store to claim your first digital asset.</p>
+                 <h3 className="text-xl font-bold text-slate-900 mb-2">{t.assets.emptyTitle}</h3>
+                 <p className="text-slate-500 font-medium">{t.assets.emptyDesc}</p>
               </div>
             ) : (
                 orders.flatMap(o => o.items.map(item => ({ ...item, orderId: o._id, date: o.createdAt }))).map((item, idx) => (
@@ -132,7 +152,7 @@ function DashboardContent() {
                     )}
                     <div className="flex-grow">
                         <h3 className="font-bold text-lg text-slate-900 line-clamp-1">{item.title}</h3>
-                        <p className="text-slate-500 font-medium text-xs">Purchased: {new Date(item.date).toLocaleDateString()}</p>
+                        <p className="text-slate-500 font-medium text-xs">{t.assets.purchased}: {new Date(item.date).toLocaleDateString()}</p>
                     </div>
                   </div>
                   
@@ -146,11 +166,11 @@ function DashboardContent() {
                                          {key}
                                      </span>
                                 </div>
-                                <button className="text-[10px] text-slate-500 hover:text-primary font-bold uppercase transition block" onClick={() => {navigator.clipboard.writeText(key); alert("Copied!");}}>Copy</button>
+                                <button className="text-[10px] text-slate-500 hover:text-primary font-bold uppercase transition block" onClick={() => {navigator.clipboard.writeText(key); alert("Copied!");}}>{t.assets.copy}</button>
                             </div>
                         ))
                     ) : (
-                        <p className="text-xs text-amber-600 font-bold bg-amber-50 p-2 rounded-lg border border-amber-100 italic">Processing delivery...</p>
+                        <p className="text-xs text-amber-600 font-bold bg-amber-50 p-2 rounded-lg border border-amber-100 italic">{t.assets.processing}</p>
                     )}
                   </div>
                 </div>
@@ -161,18 +181,18 @@ function DashboardContent() {
 
       {tab === 'billing' && (
           <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm animate-in fade-in">
-             <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2"><Clock size={20} className="text-primary"/> Billing History</h2>
+             <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2"><Clock size={20} className="text-primary"/> {t.billing.title}</h2>
              {orders.length === 0 ? (
-                 <p className="text-slate-500 text-center py-10">No recent transactions to display.</p>
+                 <p className="text-slate-500 text-center py-10">{t.billing.empty}</p>
              ) : (
                  <div className="overflow-x-auto">
                      <table className="w-full text-left">
                          <thead>
                              <tr className="border-b border-slate-200 text-slate-500 text-sm">
-                                 <th className="pb-4 font-bold">Ref No.</th>
-                                 <th className="pb-4 font-bold">Items Qty</th>
-                                 <th className="pb-4 font-bold">Date</th>
-                                 <th className="pb-4 font-bold text-right">Total Amount</th>
+                                 <th className="pb-4 font-bold">{t.billing.colRef}</th>
+                                 <th className="pb-4 font-bold">{t.billing.colQty}</th>
+                                 <th className="pb-4 font-bold">{t.billing.colDate}</th>
+                                 <th className="pb-4 font-bold text-right">{t.billing.colTotal}</th>
                              </tr>
                          </thead>
                          <tbody>
@@ -193,14 +213,14 @@ function DashboardContent() {
 
       {tab === 'affiliate' && (
           <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm animate-in fade-in">
-             <h2 className="text-2xl font-black text-slate-900 mb-2 flex items-center gap-2"><LinkIcon className="text-emerald-500"/> Affiliate Growth Hub</h2>
-             <p className="text-slate-500 mb-8 max-w-2xl">Invite friends, communities, or your followers to KeeStore. If they sign up via your unique link, you receive <span className="font-bold text-emerald-600">$5.00</span> in your KeeWallet instantly!</p>
+             <h2 className="text-2xl font-black text-slate-900 mb-2 flex items-center gap-2"><LinkIcon className="text-emerald-500"/> {t.affiliate.title}</h2>
+             <p className="text-slate-500 mb-8 max-w-2xl">{t.affiliate.desc1} <span className="font-bold text-emerald-600">$5.00</span> {t.affiliate.desc2}</p>
              
              <div className="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl">
-                 <label className="text-xs font-bold text-emerald-700 uppercase mb-2 block">Your Unique Referral Link</label>
+                 <label className="text-xs font-bold text-emerald-700 uppercase mb-2 block">{t.affiliate.label}</label>
                  <div className="flex gap-2">
                     <input type="text" readOnly value={refLink} className="flex-grow bg-white border border-emerald-200 rounded-xl px-4 py-3 font-mono font-bold text-sm text-emerald-900 outline-none" />
-                    <button onClick={()=>{navigator.clipboard.writeText(refLink); alert("Invite link copied!");}} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-lg whitespace-nowrap">Copy Link</button>
+                    <button onClick={()=>{navigator.clipboard.writeText(refLink); alert("Invite link copied!");}} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-lg whitespace-nowrap">{t.affiliate.btn}</button>
                  </div>
              </div>
           </div>
@@ -209,57 +229,57 @@ function DashboardContent() {
       {tab === 'support' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-in fade-in">
              <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm">
-                 <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2"><Ticket className="text-orange-500"/> Open New Ticket</h2>
+                 <h2 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2"><Ticket className="text-orange-500"/> {t.support.newTitle}</h2>
                  <form onSubmit={submitTicket} className="flex flex-col gap-4">
                      <div>
-                         <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Subject</label>
-                         <input type="text" value={ticketSub} onChange={e=>setTicketSub(e.target.value)} required placeholder="Ex: Need help installing Script" className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" />
+                         <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{t.support.subject}</label>
+                         <input type="text" value={ticketSub} onChange={e=>setTicketSub(e.target.value)} required placeholder={t.support.subPlaceholder} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" />
                      </div>
                      <div>
-                         <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Message</label>
-                         <textarea rows={5} value={ticketMsg} onChange={e=>setTicketMsg(e.target.value)} required placeholder="Describe your issue..." className="w-full bg-slate-50 border border-slate-200 resize-none rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900"></textarea>
+                         <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{t.support.msg}</label>
+                         <textarea rows={5} value={ticketMsg} onChange={e=>setTicketMsg(e.target.value)} required placeholder={t.support.msgPlaceholder} className="w-full bg-slate-50 border border-slate-200 resize-none rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900"></textarea>
                      </div>
-                     <button type="submit" className="bg-slate-900 hover:bg-black text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><Send size={16}/> Submit Request</button>
+                     <button type="submit" className="bg-slate-900 hover:bg-black text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><Send size={16}/> {t.support.btnSubmit}</button>
                  </form>
              </div>
 
              <div className="flex flex-col gap-4">
-                 <h2 className="text-xl font-black text-slate-900 mb-2">My Active Tickets</h2>
+                 <h2 className="text-xl font-black text-slate-900 mb-2">{t.support.activeTitle}</h2>
                  {tickets.length === 0 ? (
-                     <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center text-slate-500">No tickets found.</div>
+                     <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl text-center text-slate-500">{t.support.empty}</div>
                  ) : (
-                     tickets.map(t => (
-                         <div key={t._id} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
+                     tickets.map(tkt => (
+                         <div key={tkt._id} className="bg-white border border-slate-200 p-5 rounded-2xl shadow-sm">
                              <div className="flex justify-between items-center mb-4">
-                                 <h4 className="font-bold text-slate-900">{t.subject}</h4>
-                                 <span className={`text-xs font-black uppercase px-2 py-1 rounded-md ${t.status==='open'?'bg-orange-100 text-orange-600':t.status==='answered'?'bg-blue-100 text-blue-600':'bg-slate-200 text-slate-600'}`}>{t.status}</span>
+                                 <h4 className="font-bold text-slate-900">{tkt.subject}</h4>
+                                 <span className={`text-xs font-black uppercase px-2 py-1 rounded-md ${tkt.status==='open'?'bg-orange-100 text-orange-600':tkt.status==='answered'?'bg-blue-100 text-blue-600':'bg-slate-200 text-slate-600'}`}>{tkt.status}</span>
                              </div>
 
                              <div className="flex flex-col gap-3 mb-4 max-h-[300px] overflow-y-auto pr-2">
-                               {t.messages && t.messages.map((m, i) => (
+                               {tkt.messages && tkt.messages.map((m, i) => (
                                    <div key={i} className={`p-3 rounded-xl border ${m.sender === 'user' ? 'bg-slate-50 border-slate-100 ml-6 text-slate-700' : 'bg-blue-50 border-blue-100 mr-6 text-blue-900'}`}>
                                        <p className={`text-xs font-bold uppercase mb-1 ${m.sender === 'user' ? 'text-slate-500' : 'text-blue-800'}`}>
-                                           {m.sender === 'user' ? 'You' : 'Admin'}
+                                           {m.sender === 'user' ? t.support.you : t.support.admin}
                                        </p>
                                        <p className="text-sm whitespace-pre-wrap">{m.text}</p>
                                    </div>
                                ))}
                              </div>
 
-                             {t.status !== 'closed' && (
+                             {tkt.status !== 'closed' && (
                                 <div className="mt-4 pt-4 border-t border-slate-100 text-right">
                                     <button onClick={async () => {
                                         const reply = prompt("Enter your reply to Admin:");
                                         if(!reply) return;
                                         try {
                                            const token = localStorage.getItem('token');
-                                           await axios.put(`${API_BASE_URL}/api/tickets/${t._id}/user-reply`, { reply }, { headers:{ Authorization: `Bearer ${token}` }});
+                                           await axios.put(`${API_BASE_URL}/api/tickets/${tkt._id}/user-reply`, { reply }, { headers:{ Authorization: `Bearer ${token}` }});
                                            alert("Reply sent!");
                                            const wRes = await axios.get(`${API_BASE_URL}/api/tickets/my-tickets`, { headers: { Authorization: `Bearer ${token}` }});
                                            setTickets(wRes.data);
                                         } catch(e) { alert("Failed to send reply"); }
                                     }} className="text-sm font-bold text-slate-500 hover:text-primary transition-colors bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg">
-                                       Reply to Admin
+                                       {t.support.reply}
                                     </button>
                                 </div>
                              )}
@@ -272,13 +292,13 @@ function DashboardContent() {
 
       {tab === 'settings' && (
           <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm animate-in fade-in max-w-2xl">
-             <h2 className="text-xl font-black text-slate-900 mb-6">Profile & Security Settings</h2>
+             <h2 className="text-xl font-black text-slate-900 mb-6">{t.settings.title}</h2>
              
              <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl mb-8">
                  <div className="flex justify-between items-center">
                      <div className="pr-4">
-                         <label className="text-sm font-bold text-slate-900 mb-1 block">Two-Factor Authentication (2FA)</label>
-                         <p className="text-xs text-slate-500">Protect your digital vault with email-based secondary authorization code upon login.</p>
+                         <label className="text-sm font-bold text-slate-900 mb-1 block">{t.settings.tfa}</label>
+                         <p className="text-xs text-slate-500">{t.settings.tfaDesc}</p>
                      </div>
                      <button onClick={async () => {
                          try {
@@ -288,22 +308,22 @@ function DashboardContent() {
                              if(token) fetchData(token);
                          } catch(e) { alert("Failed to toggle 2FA"); }
                      }} className={`${profile?.twoFactorEnabled ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200' : 'bg-slate-900 hover:bg-black text-white'} px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm whitespace-nowrap min-w-[120px]`}>
-                         {profile?.twoFactorEnabled ? "Disable 2FA" : "Enable 2FA"}
+                         {profile?.twoFactorEnabled ? t.settings.disable : t.settings.enable}
                      </button>
                  </div>
              </div>
 
              <div className="flex flex-col gap-6">
                  <div>
-                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Username</label>
+                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{t.settings.user}</label>
                      <input type="text" value={profile?.username || ''} readOnly className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none text-slate-900 font-bold" />
                  </div>
                  <div>
-                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Email Address</label>
+                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{t.settings.email}</label>
                      <input type="email" value={profile?.email || ''} readOnly className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none text-slate-900 font-bold" />
                  </div>
                  <button onClick={()=>router.push("/forgot-password")} className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 px-6 rounded-xl w-fit transition-colors">
-                     Request Password Reset
+                     {t.settings.reset}
                  </button>
              </div>
           </div>

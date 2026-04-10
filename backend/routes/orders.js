@@ -101,12 +101,12 @@ router.post('/pay-wallet', auth, async (req, res) => {
        productsToUpdate.push({ product, quantity: qty });
     }
 
+    let couponToUpdate = null;
     if (promoCode) {
         const coupon = await Coupon.findOne({ code: promoCode.toUpperCase(), isActive: true });
         if (coupon && (coupon.maxUses === 0 || coupon.currentUses < coupon.maxUses)) {
              totalAmount = totalAmount * (1 - (coupon.discountPercent / 100));
-             coupon.currentUses += 1;
-             await coupon.save();
+             couponToUpdate = coupon; // Defer saving until AFTER wallet verification
         }
     } else {
         // Automatic 10% Referral Discount on First Order
@@ -121,6 +121,12 @@ router.post('/pay-wallet', auth, async (req, res) => {
 
     if (user.walletBalance < totalAmount) {
        return res.status(400).json({ error: 'Insufficient Wallet Balance' });
+    }
+
+    // Process coupon strictly now that balance is guaranteed
+    if (couponToUpdate) {
+        couponToUpdate.currentUses += 1;
+        await couponToUpdate.save();
     }
 
     // Deduct and fulfill
@@ -178,8 +184,14 @@ router.post('/pay-wallet', auth, async (req, res) => {
 
 // Fulfillment Helper
 const fulfillOrder = async (orderId, sessionId) => {
-    const order = await Order.findById(orderId);
-    if (order && order.status === 'pending') {
+    // Atomic status update: Lock the order exclusively for processing if it is 'pending'
+    const order = await Order.findOneAndUpdate(
+       { _id: orderId, status: 'pending' },
+       { $set: { status: 'processing' } },
+       { new: true }
+    );
+    
+    if (order) {
        let deliveredKeysArr = [];
        
        for (let item of order.items) {

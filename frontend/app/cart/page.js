@@ -5,12 +5,16 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "../context/ToastContext";
+import { useLanguage } from "../context/LanguageContext";
+import { translations } from "../../translations";
 
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { addToast } = useToast();
+  const { lang } = useLanguage();
+  const t = translations[lang].cart;
 
   const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -30,10 +34,10 @@ export default function Cart() {
         <div className="w-24 h-24 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto mb-6">
             <ShoppingBag size={48} />
         </div>
-        <h2 className="text-3xl font-bold text-slate-900 mb-4">Your Cart is Empty</h2>
-        <p className="text-slate-500 mb-8">Looks like you haven't added any digital assets yet.</p>
+        <h2 className="text-3xl font-bold text-slate-900 mb-4">{t.emptyTitle}</h2>
+        <p className="text-slate-500 mb-8">{t.emptyDesc}</p>
         <button onClick={() => router.push('/products')} className="bg-primary hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-bold shadow-md">
-            Browse Store
+            {t.browse}
         </button>
       </div>
     );
@@ -42,7 +46,7 @@ export default function Cart() {
   return (
     <div className="py-10 max-w-5xl mx-auto">
       <h1 className="text-3xl font-bold text-slate-900 mb-8 flex items-center gap-3">
-         <ShoppingCart className="text-primary"/> Shopping Cart
+         <ShoppingCart className="text-primary"/> {t.title}
       </h1>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -66,13 +70,13 @@ export default function Cart() {
          </div>
 
          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-md h-fit relative">
-            <h3 className="text-xl font-bold text-slate-900 mb-6">Order Summary</h3>
+            <h3 className="text-xl font-bold text-slate-900 mb-6">{t.summary}</h3>
             <div className="flex justify-between items-center mb-4 text-slate-600">
-                <span>Items ({cart.length})</span>
+                <span>{t.items} ({cart.length})</span>
                 <span>${totalAmount.toFixed(2)}</span>
             </div>
             <div className="border-t border-slate-100 my-4 pt-4 flex justify-between items-center">
-                <span className="font-bold text-slate-900">Total</span>
+                <span className="font-bold text-slate-900">{t.total}</span>
                 <span className="text-2xl font-black text-slate-900">${totalAmount.toFixed(2)}</span>
             </div>
             
@@ -82,7 +86,7 @@ export default function Cart() {
                 disabled={loading}
                 className="w-full bg-slate-900 hover:bg-black shadow-lg text-white rounded-xl py-4 font-bold flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
               >
-                  {loading ? "Processing..." : <><CreditCard size={20}/> Secure Checkout</>}
+                  {loading ? t.processing : <><CreditCard size={20}/> {t.checkout}</>}
               </button>
             </div>
          </div>

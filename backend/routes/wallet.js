@@ -52,21 +52,23 @@ router.post('/verify-topup', auth, async (req, res) => {
     const session = await stripe.checkout.sessions.retrieve(session_id);
 
     if (session.payment_status === 'paid' && session.metadata.type === 'wallet_topup') {
-        const user = await User.findById(req.user._id);
+        const processedAmount = parseFloat(amount);
         
-        // Prevent double claiming
-        if (user.usedCheckoutSessions && user.usedCheckoutSessions.includes(session_id)) {
+        // Atomic transaction: Find user ONLY IF they haven't used this session ID yet.
+        // Then atomically push the session ID and increment balance.
+        const user = await User.findOneAndUpdate(
+            { _id: req.user._id, usedCheckoutSessions: { $ne: session_id } },
+            { 
+                $inc: { walletBalance: processedAmount },
+                $addToSet: { usedCheckoutSessions: session_id }
+            },
+            { new: true }
+        );
+        
+        // If user is null, it means the session_id is already in usedCheckoutSessions
+        if (!user) {
             return res.status(400).json({ error: 'This payment has already been processed.' });
         }
-
-        const processedAmount = parseFloat(amount);
-        user.walletBalance += processedAmount;
-        
-        // Mark session as used
-        if (!user.usedCheckoutSessions) user.usedCheckoutSessions = [];
-        user.usedCheckoutSessions.push(session_id);
-        
-        await user.save();
         
         return res.json({ success: true, newBalance: user.walletBalance });
     }
