@@ -2,6 +2,7 @@ import "./globals.css";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { AuthProvider } from "./context/AuthContext";
+import { LanguageProvider } from "./context/LanguageContext";
 import { CartProvider } from "./context/CartContext";
 import { ToastProvider } from "./context/ToastContext";
 
@@ -15,15 +16,17 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="antialiased min-h-screen flex flex-col">
         <AuthProvider>
-          <ToastProvider>
-            <CartProvider>
-              <Navbar />
-              <main className="flex-grow pt-24 px-6 md:px-12 lg:px-24 max-w-7xl mx-auto w-full">
-              {children}
-              <Footer />
-              </main>
-            </CartProvider>
-          </ToastProvider>
+          <LanguageProvider>
+            <ToastProvider>
+              <CartProvider>
+                <Navbar />
+                <main className="flex-grow pt-24 px-6 md:px-12 lg:px-24 max-w-7xl mx-auto w-full">
+                {children}
+                </main>
+                <Footer />
+              </CartProvider>
+            </ToastProvider>
+          </LanguageProvider>
         </AuthProvider>
       </body>
     </html>

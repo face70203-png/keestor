@@ -17,7 +17,7 @@ export default function ContactPage() {
                 <div className="bg-primary/20 p-3 rounded-lg text-primary"><Mail size={24}/></div>
                 <div>
                     <h4 className="font-bold text-gray-300">Email</h4>
-                    <p className="text-white">support@keestore.app</p>
+                    <p className="text-white">yassinkhaled193@gmail.com</p>
                 </div>
             </div>
             <div className="glass p-6 rounded-2xl border border-white/5 flex gap-4 items-center">

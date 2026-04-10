@@ -10,7 +10,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend, AreaChart, Area
+} from 'recharts';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 export default function AdminDashboard() {
   const { user, loading } = useAuth();
@@ -22,10 +29,11 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [tickets, setTickets] = useState([]);
   const [coupons, setCoupons] = useState([]);
+  const [stats, setStats] = useState({ dailyStats: [], categoryStats: [] });
   
   const [activeTab, setActiveTab] = useState("overview");
 
-  // Product Form State
+  // ... (state vars same as before)
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
@@ -33,12 +41,8 @@ export default function AdminDashboard() {
   const [imageUrl, setImageUrl] = useState(""); 
   const [category, setCategory] = useState("General");
   const [submitting, setSubmitting] = useState(false);
-
-  // Add Keys State
   const [selectedProductId, setSelectedProductId] = useState("");
   const [newKeys, setNewKeys] = useState(""); 
-
-  // Promo State
   const [promoCode, setPromoCode] = useState("");
   const [promoDiscount, setPromoDiscount] = useState("");
   const [promoUses, setPromoUses] = useState(0);
@@ -53,18 +57,20 @@ export default function AdminDashboard() {
   const fetchData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const [prodRes, ordRes, usersRes, tRes, cRes] = await Promise.all([
+        const [prodRes, ordRes, usersRes, tRes, cRes, statsRes] = await Promise.all([
            axios.get(`${API_BASE_URL}/api/products`),
            axios.get(`${API_BASE_URL}/api/orders/all`, { headers: { Authorization: `Bearer ${token}` }}),
            axios.get(`${API_BASE_URL}/api/users`, { headers: { Authorization: `Bearer ${token}` }}),
            axios.get(`${API_BASE_URL}/api/tickets/all`, { headers: { Authorization: `Bearer ${token}` }}),
-           axios.get(`${API_BASE_URL}/api/coupons`, { headers: { Authorization: `Bearer ${token}` }})
+           axios.get(`${API_BASE_URL}/api/coupons`, { headers: { Authorization: `Bearer ${token}` }}),
+           axios.get(`${API_BASE_URL}/api/orders/stats`, { headers: { Authorization: `Bearer ${token}` }})
         ]);
         setProducts(prodRes.data);
         setOrders(ordRes.data);
         setUsers(usersRes.data);
         setTickets(tRes.data);
         setCoupons(cRes.data);
+        setStats(statsRes.data);
       } catch (err) { console.error(err); }
   };
 
@@ -184,24 +190,24 @@ export default function AdminDashboard() {
 
   if (!mounted || loading || !user) return <div className="text-center mt-20">Loading Command Center...</div>;
 
-  const totalRevenue = orders.reduce((sum, ord) => sum + (ord.product?.price || 0), 0);
-  const totalKeysSold = orders.filter(o => o.status === 'success' && o.deliveredKey).length;
-  const totalStock = products.reduce((sum, p) => sum + p.keys.length, 0);
+  const totalRevenue = orders.reduce((sum, ord) => sum + (ord.totalAmount || 0), 0);
+  const totalKeysSold = orders.filter(o => o.status === 'success').reduce((sum, o) => sum + (o.items?.reduce((s, i) => s + i.quantity, 0) || 0), 0);
+  const totalStock = products.reduce((sum, p) => sum + (p.keys?.length || 0), 0);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 border-t border-slate-200">
       
-      {/* Sidebar */}
+      {/* Sidebar (same as before) */}
       <aside className="w-full md:w-64 bg-white border-r border-slate-200 p-6 flex flex-col gap-2 overflow-y-auto">
          <div className="mb-8 px-4">
              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Command Center</h2>
              <p className="text-xl font-black text-slate-900 leading-tight">Master<br/><span className="text-primary text-3xl">Admin</span></p>
          </div>
 
-         <button onClick={()=>setActiveTab('overview')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='overview'?'bg-slate-900 text-white':'text-slate-600 hover:bg-slate-100'}`}>
+         <button onClick={()=>setActiveTab('overview')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='overview'?'bg-slate-900 text-white shadow-lg shadow-slate-200':'text-slate-600 hover:bg-slate-100'}`}>
              <LayoutDashboard size={20}/> Global Overview
          </button>
-         <button onClick={()=>setActiveTab('users')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='users'?'bg-emerald-500 text-white':'text-slate-600 hover:bg-slate-100'}`}>
+         <button onClick={()=>setActiveTab('users')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='users'?'bg-emerald-500 text-white shadow-lg shadow-emerald-100':'text-slate-600 hover:bg-slate-100'}`}>
              <Users size={20}/> User CRM
          </button>
          <button onClick={()=>setActiveTab('orders')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='orders'?'bg-slate-900 text-white':'text-slate-600 hover:bg-slate-100'}`}>
@@ -210,13 +216,13 @@ export default function AdminDashboard() {
          <button onClick={()=>setActiveTab('catalog')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='catalog'?'bg-slate-900 text-white':'text-slate-600 hover:bg-slate-100'}`}>
              <FolderOpen size={20}/> Catalog Planner
          </button>
-         <button onClick={()=>setActiveTab('vault')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='vault'?'bg-indigo-600 text-white':'text-slate-600 hover:bg-slate-100'}`}>
+         <button onClick={()=>setActiveTab('vault')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='vault'?'bg-indigo-600 text-white shadow-lg shadow-indigo-100':'text-slate-600 hover:bg-slate-100'}`}>
              <KeyRound size={20}/> Digital Vault
          </button>
-         <button onClick={()=>setActiveTab('promo')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='promo'?'bg-pink-600 text-white':'text-slate-600 hover:bg-slate-100'}`}>
+         <button onClick={()=>setActiveTab('promo')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='promo'?'bg-pink-600 text-white shadow-lg shadow-pink-100':'text-slate-600 hover:bg-slate-100'}`}>
              <Tag size={20}/> Promo Engine
          </button>
-         <button onClick={()=>setActiveTab('support')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='support'?'bg-orange-500 text-white':'text-slate-600 hover:bg-slate-100'}`}>
+         <button onClick={()=>setActiveTab('support')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='support'?'bg-orange-500 text-white shadow-lg shadow-orange-100':'text-slate-600 hover:bg-slate-100'}`}>
              <Ticket size={20}/> Support Desk
          </button>
 
@@ -225,7 +231,7 @@ export default function AdminDashboard() {
          </button>
 
          <div className="mt-auto pt-8">
-             <button onClick={()=>router.push('/')} className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 w-full">
+             <button onClick={()=>router.push('/')} className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 w-full transition-colors border border-transparent hover:border-slate-200">
                  <ArrowUpRight size={20}/> Storefront
              </button>
          </div>
@@ -234,36 +240,95 @@ export default function AdminDashboard() {
       {/* Main Content Area */}
       <main className="flex-1 p-8 md:p-12 overflow-y-auto w-full">
          
-         {/* OVERVIEW TAB */}
          {activeTab === 'overview' && (
              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                  <div className="flex justify-between items-center mb-8">
                      <div>
-                         <h1 className="text-3xl font-black text-slate-900 tracking-tight">Main Dashboard</h1>
-                         <p className="text-slate-500">Welcome to your Master CRM snapshot.</p>
+                         <h1 className="text-4xl font-black text-slate-900 tracking-tight">Global Snapshot</h1>
+                         <p className="text-slate-500 font-medium">Real-time performance analytics and warehouse logistics.</p>
                      </div>
                  </div>
 
+                 {/* Stats Cards */}
                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                         <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4"><Activity size={24}/></div>
-                         <p className="text-slate-500 text-sm font-bold mb-1">Lifetime Revenue</p>
+                     <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                         <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4"><Activity size={24}/></div>
+                         <p className="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">Lifetime Revenue</p>
                          <h3 className="text-3xl font-black text-slate-900">${totalRevenue.toFixed(2)}</h3>
                      </div>
-                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                         <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center mb-4"><ShoppingBag size={24}/></div>
-                         <p className="text-slate-500 text-sm font-bold mb-1">Keys Dispatched</p>
+                     <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                         <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4"><ShoppingBag size={24}/></div>
+                         <p className="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">Items Dispatched</p>
                          <h3 className="text-3xl font-black text-slate-900">{totalKeysSold}</h3>
                      </div>
-                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                         <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4"><KeyRound size={24}/></div>
-                         <p className="text-slate-500 text-sm font-bold mb-1">Warehouse Stock</p>
+                     <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                         <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-4"><KeyRound size={24}/></div>
+                         <p className="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">Vault Inventory</p>
                          <h3 className="text-3xl font-black text-slate-900">{totalStock}</h3>
                      </div>
-                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                         <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mb-4"><Users size={24}/></div>
-                         <p className="text-slate-500 text-sm font-bold mb-1">Global Accounts</p>
+                     <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                         <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center mb-4"><Users size={24}/></div>
+                         <p className="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">Active Accounts</p>
                          <h3 className="text-3xl font-black text-slate-900">{users.length}</h3>
+                     </div>
+                 </div>
+
+                 {/* Charts Section */}
+                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+                     {/* Revenue Trend Chart */}
+                     <div className="lg:col-span-2 bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+                         <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
+                             <Activity className="text-primary" size={20}/> 30-Day Revenue Trend
+                         </h3>
+                         <div className="h-[350px] w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={stats.dailyStats}>
+                                    <defs>
+                                        <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                    <XAxis dataKey="_id" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => val.split('-').slice(1).join('/')} />
+                                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
+                                    <Tooltip 
+                                        contentStyle={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                                        labelStyle={{ fontWeight: '800', color: '#1e293b', marginBottom: '4px' }}
+                                    />
+                                    <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                         </div>
+                     </div>
+
+                     {/* Category Distribution Chart */}
+                     <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+                         <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
+                             <FolderOpen className="text-primary" size={20}/> Revenue by Category
+                         </h3>
+                         <div className="h-[350px] w-full items-center justify-center flex">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={stats.categoryStats}
+                                        cx="50%"
+                                        cy="45%"
+                                        innerRadius={60}
+                                        outerRadius={100}
+                                        paddingAngle={5}
+                                        dataKey="revenue"
+                                        nameKey="_id"
+                                    >
+                                        {stats.categoryStats.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip />
+                                    <Legend verticalAlign="bottom" height={36}/>
+                                </PieChart>
+                            </ResponsiveContainer>
+                         </div>
                      </div>
                  </div>
              </div>

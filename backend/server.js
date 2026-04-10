@@ -11,6 +11,7 @@ const userRoutes = require('./routes/users');
 const couponRoutes = require('./routes/coupons');
 const ticketRoutes = require('./routes/tickets');
 const settingsRoutes = require('./routes/settings');
+const reviewRoutes = require('./routes/reviews');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 
@@ -104,6 +105,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/coupons', couponRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

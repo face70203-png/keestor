@@ -55,9 +55,16 @@ function CheckoutContent() {
            } else {
                router.push("/products");
            }
-       } catch(err) {
-           addToast("Failed to initiate checkout", "error");
-       } finally {
+        } catch(err) {
+            const errorMsg = err.response?.data?.error || err.message;
+            if (errorMsg.includes("Invalid token") || err.response?.status === 401) {
+                localStorage.clear();
+                addToast("Session expired or invalid. Please log in again.", "error");
+                router.push("/login");
+                return;
+            }
+            addToast(`Failed to initiate checkout: ${errorMsg}`, "error");
+        } finally {
            setLoading(false);
        }
     };
@@ -69,9 +76,10 @@ function CheckoutContent() {
   const handlePayWithWallet = async () => {
       setProcessing(true);
       const token = localStorage.getItem("token");
-      try {
-          const payload = { items: items.map(i => ({ productId: i._id, quantity: i.quantity })), promoCode: promoApplied ? promoCode : null };
-          const res = await axios.post(`${API_BASE_URL}/api/orders/pay-wallet`, payload, {
+       try {
+           const mappedItems = items.map(i => ({ productId: i.productId || i._id, quantity: i.quantity }));
+           const payload = { items: mappedItems, promoCode: promoApplied ? promoCode : null };
+           const res = await axios.post(`${API_BASE_URL}/api/orders/pay-wallet`, payload, {
               headers: { Authorization: `Bearer ${token}` }
           });
           if (res.data.success) {
@@ -80,7 +88,14 @@ function CheckoutContent() {
               router.push("/dashboard");
           }
       } catch(err) {
-          addToast("Wallet Payment Failed. " + (err.response?.data?.error || err.message), "error");
+          const errorMsg = err.response?.data?.error || err.message;
+          if (errorMsg.includes("Invalid token") || err.response?.status === 401) {
+              localStorage.clear();
+              addToast("Session expired or invalid. Please log in again.", "error");
+              router.push("/login");
+              return;
+          }
+          addToast("Wallet Payment Failed. " + errorMsg, "error");
       } finally {
           setProcessing(false);
       }
@@ -89,9 +104,10 @@ function CheckoutContent() {
   const handlePayWithStripe = async () => {
       setProcessing(true);
       const token = localStorage.getItem("token");
-      try {
-          const payload = { items: items.map(i => ({ productId: i._id, quantity: i.quantity })) };
-          const res = await axios.post(`${API_BASE_URL}/api/orders/create-checkout-session`, payload, {
+       try {
+           const mappedItems = items.map(i => ({ productId: i.productId || i._id, quantity: i.quantity }));
+           const payload = { items: mappedItems };
+           const res = await axios.post(`${API_BASE_URL}/api/orders/create-checkout-session`, payload, {
               headers: { Authorization: `Bearer ${token}` }
           });
           if (res.data.url) window.location.href = res.data.url;

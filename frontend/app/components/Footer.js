@@ -31,6 +31,7 @@ export default function Footer() {
             <h4 className="font-bold mb-6 text-white">Support</h4>
             <ul className="flex flex-col gap-4 text-gray-400">
                 <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
+                <li><a href="mailto:yassinkhaled193@gmail.com" className="hover:text-primary transition-colors">yassinkhaled193@gmail.com</a></li>
                 <li><Link href="#" className="hover:text-primary transition-colors">FAQ</Link></li>
                 <li><Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link></li>
             </ul>

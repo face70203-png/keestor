@@ -30,7 +30,7 @@ const sendEmail = async (options) => {
   }
 
   const message = {
-      from: `${process.env.FROM_NAME || 'KeeStore Security'} <${process.env.FROM_EMAIL || 'noreply@keestore.com'}>`,
+      from: `${process.env.FROM_NAME || 'KeeStore Security'} <${process.env.FROM_EMAIL || 'yassinkhaled193@gmail.com'}>`,
       to: options.email,
       subject: options.subject,
       html: options.message,

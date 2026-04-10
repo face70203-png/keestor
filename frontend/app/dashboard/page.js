@@ -124,26 +124,34 @@ function DashboardContent() {
                  <p className="text-slate-500 font-medium">Head to the store to claim your first digital asset.</p>
               </div>
             ) : (
-              orders.map((order) => (
-                <div key={order._id} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col hover:border-primary transition-colors group">
+                orders.flatMap(o => o.items.map(item => ({ ...item, orderId: o._id, date: o.createdAt }))).map((item, idx) => (
+                <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col hover:border-primary transition-colors group">
                   <div className="flex items-start gap-4 mb-6">
-                    {order.product?.imageUrl && (
-                      <img src={order.product.imageUrl} alt="" className="w-16 h-16 rounded-xl object-cover" />
+                    {item.imageUrl && (
+                      <img src={item.imageUrl} alt="" className="w-16 h-16 rounded-xl object-cover" />
                     )}
                     <div className="flex-grow">
-                        <h3 className="font-bold text-lg text-slate-900 line-clamp-1">{order.product?.title || 'Unknown Asset'}</h3>
-                        <p className="text-slate-500 font-medium text-sm flex items-center gap-1 mt-1"><CheckCircle size={14} className="text-emerald-500"/> Guaranteed delivery</p>
+                        <h3 className="font-bold text-lg text-slate-900 line-clamp-1">{item.title}</h3>
+                        <p className="text-slate-500 font-medium text-xs">Purchased: {new Date(item.date).toLocaleDateString()}</p>
                     </div>
                   </div>
                   
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                         <KeyRound size={20} className="text-primary" />
-                         <span className="text-slate-900 font-mono text-sm tracking-widest break-all font-black">
-                             {order.deliveredKey}
-                         </span>
-                    </div>
-                    <button className="text-xs text-slate-500 hover:text-primary font-bold uppercase transition block" onClick={() => navigator.clipboard.writeText(order.deliveredKey)}>Copy</button>
+                  <div className="flex flex-col gap-2">
+                    {item.keys && item.keys.length > 0 ? (
+                        item.keys.map((key, kIdx) => (
+                            <div key={kIdx} className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+                                <div className="flex items-center gap-3 overflow-hidden">
+                                     <KeyRound size={16} className="text-primary flex-shrink-0" />
+                                     <span className="text-slate-900 font-mono text-xs tracking-widest truncate font-black">
+                                         {key}
+                                     </span>
+                                </div>
+                                <button className="text-[10px] text-slate-500 hover:text-primary font-bold uppercase transition block" onClick={() => {navigator.clipboard.writeText(key); alert("Copied!");}}>Copy</button>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-xs text-amber-600 font-bold bg-amber-50 p-2 rounded-lg border border-amber-100 italic">Processing delivery...</p>
+                    )}
                   </div>
                 </div>
               ))
@@ -162,18 +170,18 @@ function DashboardContent() {
                          <thead>
                              <tr className="border-b border-slate-200 text-slate-500 text-sm">
                                  <th className="pb-4 font-bold">Ref No.</th>
-                                 <th className="pb-4 font-bold">Item</th>
+                                 <th className="pb-4 font-bold">Items Qty</th>
                                  <th className="pb-4 font-bold">Date</th>
-                                 <th className="pb-4 font-bold text-right">Amount</th>
+                                 <th className="pb-4 font-bold text-right">Total Amount</th>
                              </tr>
                          </thead>
                          <tbody>
                              {orders.map(o => (
                                  <tr key={o._id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50">
                                      <td className="py-4 font-mono text-xs text-slate-400">{o._id.substring(0, 10)}</td>
-                                     <td className="py-4 font-bold text-slate-900">{o.product?.title}</td>
+                                     <td className="py-4 font-bold text-slate-900">{o.items?.length || 0} Products</td>
                                      <td className="py-4 text-slate-500 text-sm">{new Date(o.createdAt).toLocaleDateString()}</td>
-                                     <td className="py-4 text-right font-black text-slate-900">${(o.product?.price || 0).toFixed(2)}</td>
+                                     <td className="py-4 text-right font-black text-slate-900">${(o.totalAmount || 0).toFixed(2)}</td>
                                  </tr>
                              ))}
                          </tbody>

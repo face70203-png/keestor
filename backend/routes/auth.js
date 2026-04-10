@@ -65,8 +65,6 @@ router.post('/register', async (req, res) => {
         const inviter = await User.findOne({ referralCode: ref });
         if (inviter) {
             referredBy = inviter._id;
-            inviter.walletBalance += 5;
-            await inviter.save();
         }
     }
 
