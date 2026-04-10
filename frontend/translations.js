@@ -11,8 +11,8 @@ export const translations = {
       register: "Get Started"
     },
     home: {
-      heroTitle: "Premium Digital Assets",
-      heroSubtitle: "High-end scripts, vehicles, and maps for your FiveM community.",
+      heroTitle: "The Ultimate Digital Marketplace",
+      heroSubtitle: "Equip yourself with the highest quality tools, game keys, and creative resources.",
       ctaStore: "Discover Catalog",
       ctaDashboard: "Enter Vault"
     },
@@ -86,8 +86,8 @@ export const translations = {
       register: "إنشاء حساب"
     },
     home: {
-      heroTitle: "أصول رقمية مميزة",
-      heroSubtitle: "سكربتات، سيارات، وخرائط عالية الجودة لمجتمع FiveM الخاص بك.",
+      heroTitle: "السوق الرقمي الشامل والأقوى",
+      heroSubtitle: "زوّد نفسك بأعلى جودة من الأدوات التكنولوجية، مفاتيح الألعاب، والموارد الإبداعية.",
       ctaStore: "استكشف المتجر",
       ctaDashboard: "ادخل الخزنة"
     },

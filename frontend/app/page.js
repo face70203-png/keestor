@@ -31,10 +31,10 @@ export default function Home() {
         
         <div className="z-10 max-w-4xl">
            <span className="bg-blue-500/20 text-blue-300 font-bold px-4 py-1.5 rounded-full text-sm inline-block mb-6 border border-blue-400/20 shadow-sm backdrop-blur-sm">
-             {lang === 'ar' ? 'أصول FiveM وألعاب عالية الجودة مميزة' : 'Premium Quality FiveM & Game Assets'}
+             {lang === 'ar' ? 'أدوات رقمية وألعاب عالية الجودة' : 'Premium Quality Games & Digital Assets'}
            </span>
            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight leading-tight">
-             {lang === 'ar' ? 'ارفع سيرفرك إلى' : 'Elevate Your Server To'} <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-primary">{lang === 'ar' ? 'المستوى التالي' : 'The Next Level'}</span>
+             {t.heroTitle}
            </h1>
            <p className="text-lg md:text-xl text-slate-300 mb-10 max-w-2xl mx-auto font-medium">
              {t.heroSubtitle}
