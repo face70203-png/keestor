@@ -1,5 +1,5 @@
 "use client";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useRef } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -17,6 +17,7 @@ function RegisterContent() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [captchaToken, setCaptchaToken] = useState(null);
+  const recaptchaRef = useRef(null);
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -38,6 +39,8 @@ function RegisterContent() {
     } catch (err) {
       console.error("Registration Error:", err);
       setError(err.response?.data?.error || "Registration failed. Please try again.");
+      if (recaptchaRef.current) recaptchaRef.current.reset();
+      setCaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -96,6 +99,7 @@ function RegisterContent() {
 
             <div className="flex justify-center my-2 scale-90 origin-center">
                 <ReCAPTCHA 
+                  ref={recaptchaRef}
                   sitekey={RECAPTCHA_SITE_KEY} 
                   onChange={(token) => setCaptchaToken(token)}
                 />

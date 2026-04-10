@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -19,6 +19,7 @@ export default function Login() {
   const [code, setCode] = useState("");
   const [userId, setUserId] = useState(null);
   const [captchaToken, setCaptchaToken] = useState(null);
+  const recaptchaRef = useRef(null);
   const { login } = useAuth();
   const router = useRouter();
 
@@ -42,6 +43,8 @@ export default function Login() {
       }
     } catch (err) {
       setError(err.response?.data?.error || "Login failed");
+      if (recaptchaRef.current) recaptchaRef.current.reset();
+      setCaptchaToken(null);
     } finally {
       setLoading(false);
     }
@@ -107,6 +110,7 @@ export default function Login() {
 
             <div className="flex justify-center my-4 scale-95 origin-center">
                 <ReCAPTCHA 
+                  ref={recaptchaRef}
                   sitekey={RECAPTCHA_SITE_KEY} 
                   onChange={(token) => setCaptchaToken(token)}
                   theme="light"

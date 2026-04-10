@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { KeyRound, ArrowLeft } from "lucide-react";
@@ -15,6 +15,7 @@ export default function ForgotPasswordPage() {
     const [captchaToken, setCaptchaToken] = useState(null);
     const [status, setStatus] = useState("idle"); // idle, loading, success, error
     const { addToast } = useToast();
+    const recaptchaRef = useRef(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -36,6 +37,8 @@ export default function ForgotPasswordPage() {
             console.error("Submission failed:", err);
             setStatus("error");
             addToast(err.response?.data?.error || "Error sending email. Please try again.", "error");
+            if (recaptchaRef.current) recaptchaRef.current.reset();
+            setCaptchaToken(null);
         } finally {
             console.log("Submission process finished.");
         }
@@ -76,6 +79,7 @@ export default function ForgotPasswordPage() {
 
                         <div className="flex justify-center my-2">
                              <ReCAPTCHA
+                                 ref={recaptchaRef}
                                  sitekey={RECAPTCHA_SITE_KEY}
                                  onChange={(token) => setCaptchaToken(token)}
                              />
