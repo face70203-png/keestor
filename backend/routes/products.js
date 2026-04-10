@@ -88,6 +88,26 @@ router.post('/:id/keys', auth, async (req, res) => {
   }
 });
 
+// Overwrite all keys for a product (Admin only)
+router.put('/:id/keys/overwrite', auth, async (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    
+    // Overwrite the keys array completely
+    if (Array.isArray(req.body.keys)) {
+       product.keys = req.body.keys.map(k => k.trim()).filter(k => k !== "");
+       await product.save();
+       res.json(product);
+    } else {
+       res.status(400).json({ error: 'Keys must be an array' });
+    }
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // Update Product
 router.put('/:id', auth, upload.single('image'), async (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ error: 'Access denied' });

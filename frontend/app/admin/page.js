@@ -43,6 +43,8 @@ export default function AdminDashboard() {
   const [submitting, setSubmitting] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState("");
   const [newKeys, setNewKeys] = useState(""); 
+  const [editingProductKeys, setEditingProductKeys] = useState(null);
+  const [editKeysText, setEditKeysText] = useState("");
   const [promoCode, setPromoCode] = useState("");
   const [promoDiscount, setPromoDiscount] = useState("");
   const [promoUses, setPromoUses] = useState(0);
@@ -113,6 +115,19 @@ export default function AdminDashboard() {
           alert(`Added ${keysArray.length} keys successfully!`);
           setNewKeys(""); fetchData();
       } catch(err) { alert("Failed to add keys"); }
+  };
+
+  const handleOverwriteKeys = async () => {
+      if(!editingProductKeys) return;
+      try {
+          const token = localStorage.getItem("token");
+          const keysArray = editKeysText.split('\n').map(k => k.trim()).filter(k => k);
+          await axios.put(`${API_BASE_URL}/api/products/${editingProductKeys._id}/keys/overwrite`, {
+              keys: keysArray
+          }, { headers: { Authorization: `Bearer ${token}` }});
+          alert(`Keys updated! Total keys: ${keysArray.length}`);
+          setEditingProductKeys(null); fetchData();
+      } catch(err) { alert("Failed to update keys"); }
   };
 
   const handleCreatePromo = async (e) => {
@@ -421,7 +436,7 @@ export default function AdminDashboard() {
                                      <th className="py-4 px-6 font-bold">Order UID</th>
                                      <th className="py-4 px-6 font-bold">Buyer</th>
                                      <th className="py-4 px-6 font-bold">Amount</th>
-                                     <th className="py-4 px-6 font-bold">Secret Dispensed</th>
+                                     <th className="py-4 px-6 font-bold">Status</th>
                                      <th className="py-4 px-6 font-bold text-right">Delete</th>
                                  </tr>
                              </thead>
@@ -431,11 +446,17 @@ export default function AdminDashboard() {
                                          <td className="py-4 px-6 text-sm text-slate-500">{new Date(o.createdAt).toLocaleDateString()}</td>
                                          <td className="py-4 px-6 font-mono text-xs text-slate-400">{o._id.substring(0, 8)}...</td>
                                          <td className="py-4 px-6 font-bold text-slate-800">{o.user?.username || 'Redacted User'}</td>
-                                         <td className="py-4 px-6 text-slate-600 font-bold">${o.product?.price?.toFixed(2) || '0.00'}</td>
+                                         <td className="py-4 px-6 text-slate-600 font-bold">${(o.totalAmount || 0).toFixed(2)}</td>
                                          <td className="py-4 px-6">
-                                            <div className="max-w-[150px] truncate font-mono text-xs bg-slate-100 px-2 py-1 rounded text-slate-600">
-                                                {o.deliveredKey}
-                                            </div>
+                                            {o.status === 'success' ? (
+                                                <div className="max-w-[150px] truncate font-mono text-xs bg-emerald-50 text-emerald-600 px-2 py-1 rounded border border-emerald-100">
+                                                    {o.deliveredKey || 'View Dashboard'}
+                                                </div>
+                                            ) : (
+                                                <div className="max-w-[150px] truncate font-mono text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded border border-slate-200">
+                                                    Pending / Abandoned
+                                                </div>
+                                            )}
                                          </td>
                                          <td className="py-4 px-6 text-right">
                                              <button onClick={() => handleDeleteOrder(o._id)} className="text-slate-400 hover:text-red-500 transition-colors p-2">
@@ -596,14 +617,49 @@ export default function AdminDashboard() {
                                          <p className="font-bold text-slate-800 text-sm">{p.title}</p>
                                          <p className="text-xs text-slate-400">{p.category}</p>
                                      </div>
-                                     <div className={`px-3 py-1 rounded-md text-xs font-black ${p.keys.length > 5 ? 'bg-emerald-100 text-emerald-700' : p.keys.length > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
-                                         {p.keys.length} QTY
+                                     <div className="flex items-center gap-3">
+                                         <div className={`px-3 py-1 rounded-md text-xs font-black ${p.keys.length > 5 ? 'bg-emerald-100 text-emerald-700' : p.keys.length > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                                             {p.keys.length} QTY
+                                         </div>
+                                         <button onClick={() => {
+                                             setEditingProductKeys(p);
+                                             setEditKeysText(p.keys ? p.keys.join('\n') : "");
+                                         }} className="px-3 py-1 bg-slate-100 hover:bg-indigo-50 text-indigo-600 text-xs font-bold rounded-md transition-colors border border-transparent hover:border-indigo-100">
+                                             Manage
+                                         </button>
                                      </div>
                                  </div>
                              ))}
                          </div>
                      </div>
                  </div>
+
+                 {editingProductKeys && (
+                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+                         <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden slide-in-from-bottom-4">
+                             <div className="flex justify-between items-center p-6 border-b border-slate-100">
+                                 <div>
+                                     <h3 className="text-xl font-black text-slate-900">Manage Keys: {editingProductKeys.title}</h3>
+                                     <p className="text-xs text-slate-500 font-medium">Edit, remove, or organize existing licenses below (One per line).</p>
+                                 </div>
+                                 <button onClick={()=>setEditingProductKeys(null)} className="p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors"><XCircle size={24}/></button>
+                             </div>
+                             <div className="flex-grow p-6 overflow-y-auto bg-slate-50">
+                                 <textarea 
+                                     value={editKeysText} 
+                                     onChange={(e)=>setEditKeysText(e.target.value)}
+                                     spellCheck="false"
+                                     className="w-full h-[400px] bg-slate-900 border border-slate-800 rounded-xl py-4 px-4 outline-none focus:border-indigo-500 text-emerald-400 font-mono text-sm resize-none whitespace-pre"
+                                     placeholder="Enter keys here, one per line..."
+                                 ></textarea>
+                             </div>
+                             <div className="p-6 border-t border-slate-100 flex justify-end gap-3 bg-white">
+                                 <button onClick={()=>setEditingProductKeys(null)} className="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancel</button>
+                                 <button onClick={handleOverwriteKeys} className="px-6 py-3 font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-md rounded-xl transition-all">Save Changes</button>
+                             </div>
+                         </div>
+                     </div>
+                 )}
              </div>
          )}
          
