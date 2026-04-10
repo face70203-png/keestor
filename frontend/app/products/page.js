@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { PackageSearch, Search, ShoppingCart, LayoutGrid } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
+import { useLanguage } from "../context/LanguageContext";
+import { translations } from "../../translations";
 import Link from "next/link";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -17,6 +19,8 @@ export default function ProductsPage() {
   const router = useRouter();
   const { addToCart } = useCart();
   const { addToast } = useToast();
+  const { lang } = useLanguage();
+  const t = translations[lang].product;
 
   useEffect(() => {
     axios.get(`${API_BASE_URL}/api/products`)
@@ -45,14 +49,14 @@ export default function ProductsPage() {
     <div className="py-10">
       <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
          <div>
-            <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-900"><LayoutGrid className="text-primary"/> All Digital Assets</h1>
-            <p className="text-slate-500 mt-2">Browse our complete collection of premium digital items.</p>
+            <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-900"><LayoutGrid className="text-primary"/> {t.allAssetsTitle}</h1>
+            <p className="text-slate-500 mt-2">{t.allAssetsSubtitle}</p>
          </div>
          <div className="relative w-full md:w-96">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
             <input 
               type="text" 
-              placeholder="Search assets..." 
+              placeholder={t.searchPlaceholder} 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-primary text-slate-900 shadow-sm"
@@ -68,7 +72,7 @@ export default function ProductsPage() {
                 className={`px-5 py-2 check rounded-full font-bold transition-colors shadow-sm
                     ${selectedCategory === cat ? 'bg-primary text-white border-primary' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 border'}`}
              >
-                 {cat}
+                 {t.categories[cat] || cat}
              </button>
          ))}
       </div>
@@ -89,7 +93,7 @@ export default function ProductsPage() {
                 {isSoldOut && (
                   <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-30">
                       <div className="bg-red-500/90 text-white font-black text-xl px-6 py-2 rounded-xl transform -rotate-12 border-2 border-red-400 shadow-xl backdrop-blur-md">
-                          SOLD OUT
+                          {t.soldOut}
                       </div>
                   </div>
                 )}
@@ -98,7 +102,7 @@ export default function ProductsPage() {
                   ${parseFloat(product.price).toFixed(2)}
                 </div>
                 <div className="absolute top-4 left-4 z-20 bg-primary/90 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-bold uppercase shadow-sm">
-                  {product.category || 'General'}
+                  {t.categories[product.category] || product.category || t.categories['General']}
                 </div>
               </Link>
               
@@ -113,6 +117,7 @@ export default function ProductsPage() {
                       disabled={isSoldOut}
                       onClick={() => { addToCart(product); addToast(`${product.title} added!`); }}
                       className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-3 rounded-xl font-bold transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                      title={t.addToCart}
                     >
                       <ShoppingCart size={18} />
                     </button>
@@ -121,7 +126,7 @@ export default function ProductsPage() {
                       onClick={() => handleCheckout(product._id)}
                       className="flex-[3] bg-primary hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed"
                     >
-                      {isSoldOut ? "Out of Stock" : (loadingId === product._id ? "Processing..." : "Buy Now")}
+                      {isSoldOut ? t.outOfStock : (loadingId === product._id ? "Processing..." : t.buyNow)}
                     </button>
                 </div>
               </div>

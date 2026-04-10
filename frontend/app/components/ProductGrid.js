@@ -5,6 +5,8 @@ import axios from "axios";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
+import { useLanguage } from "../context/LanguageContext";
+import { translations } from "../../translations";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -16,6 +18,8 @@ export default function ProductGrid() {
   const [loadingId, setLoadingId] = useState(null);
   const { addToCart } = useCart();
   const { addToast } = useToast();
+  const { lang } = useLanguage();
+  const t = translations[lang].product;
   const router = useRouter();
 
   useEffect(() => {
@@ -60,7 +64,7 @@ export default function ProductGrid() {
               {isSoldOut && (
                   <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-30">
                       <div className="bg-red-500/90 text-white font-black text-xl px-6 py-2 rounded-xl transform -rotate-12 border-2 border-red-400 shadow-xl backdrop-blur-md">
-                          SOLD OUT
+                          {t.soldOut}
                       </div>
                   </div>
               )}
@@ -69,7 +73,7 @@ export default function ProductGrid() {
                 ${parseFloat(product.price).toFixed(2)}
               </div>
               <div className="absolute top-4 left-4 z-20 bg-primary/90 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-bold uppercase shadow-sm">
-                {product.category || 'General'}
+                {t.categories[product.category] || product.category || t.categories['General']}
               </div>
             </Link>
             
@@ -95,6 +99,7 @@ export default function ProductGrid() {
                       addToast(`${product.title} added to cart!`); 
                     }}
                     className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-3 rounded-xl font-bold transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                    title={t.addToCart}
                   >
                     <ShoppingCart size={18} />
                   </button>
@@ -103,7 +108,7 @@ export default function ProductGrid() {
                     onClick={() => handleCheckout(product._id)}
                     className="flex-[3] bg-primary hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-all disabled:opacity-50 disabled:bg-slate-300 disabled:text-slate-500 disabled:cursor-not-allowed"
                   >
-                    {isSoldOut ? "Out of Stock" : "Buy Now"}
+                    {isSoldOut ? t.outOfStock : t.buyNow}
                   </button>
               </div>
             </div>
