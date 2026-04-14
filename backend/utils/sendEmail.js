@@ -11,23 +11,31 @@ const getTransporter = async () => {
 
     if (process.env.SMTP_HOST && process.env.SMTP_USER) {
         console.log(`[SMTP] Initializing Production Pool: ${process.env.SMTP_HOST}`);
-        transporter = nodemailer.createTransport({
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT) || 587,
-            secure: process.env.SMTP_PORT == 465, 
-            pool: true, // Reuse connections for speed
-            maxConnections: 5, // Prevent overwhelming Gmail
-            maxMessages: 100,
-            rateDelta: 1000,
-            rateLimit: 5, // Limit to 5 per sec
-            connectionTimeout: 10000, // 10s stop hanging
-            greetingTimeout: 10000, 
-            socketTimeout: 30000,
+        
+        const transportConfig = process.env.SMTP_HOST.includes('gmail') ? {
+            service: 'gmail',
+            pool: true,
             auth: {
                 user: process.env.SMTP_USER,
                 pass: (process.env.SMTP_PASS || "").replace(/\s+/g, '')
             }
-        });
+        } : {
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT) || 587,
+            secure: process.env.SMTP_PORT == 465, 
+            pool: true,
+            maxConnections: 5,
+            maxMessages: 100,
+            rateDelta: 1000,
+            rateLimit: 5,
+            connectionTimeout: 15000, 
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: (process.env.SMTP_PASS || "").replace(/\s+/g, '')
+            }
+        };
+
+        transporter = nodemailer.createTransport(transportConfig);
     } else {
         console.log('[SMTP] Generating Ethereal testing account...');
         const testAccount = await nodemailer.createTestAccount();
