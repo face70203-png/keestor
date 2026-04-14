@@ -39,60 +39,41 @@ export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
 
+  const fetchData = async () => {
+    if (!user || user.role !== 'admin') return;
+    setLoadingStats(true);
+    try {
+      const [prodRes, ordRes, usersRes, tRes, cRes, statsRes] = await Promise.all([
+         axios.get(`${API_BASE_URL}/api/products`),
+         axios.get(`${API_BASE_URL}/api/orders/all`),
+         axios.get(`${API_BASE_URL}/api/users`),
+         axios.get(`${API_BASE_URL}/api/tickets/all`),
+         axios.get(`${API_BASE_URL}/api/coupons`),
+         axios.get(`${API_BASE_URL}/api/analytics/stats`)
+      ]);
+      setProducts(prodRes.data);
+      setOrders(ordRes.data);
+      setUsers(usersRes.data);
+      setTickets(tRes.data);
+      setCoupons(cRes.data);
+      setStats(statsRes.data);
+    } catch (err) { 
+      console.error("Admin Fetch Error:", err); 
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
   useEffect(() => {
     setMounted(true);
-    if (!loading && (!user || user.role !== 'admin')) {
-      router.push("/");
+    if (!loading) {
+      if (!user || user.role !== 'admin') {
+        router.push("/");
+      } else {
+        fetchData();
+      }
     }
   }, [user, loading, router]);
-
-  const fetchAdminData = async () => {
-     try {
-        const [pRes, oRes, uRes, cRes, sRes] = await Promise.all([
-           axios.get(`${API_BASE_URL}/api/products`),
-           axios.get(`${API_BASE_URL}/api/orders`),
-           axios.get(`${API_BASE_URL}/api/users`),
-           axios.get(`${API_BASE_URL}/api/coupons`),
-           axios.get(`${API_BASE_URL}/api/analytics/stats`)
-        ]);
-        setProducts(pRes.data);
-        setOrders(oRes.data);
-        setUsers(uRes.data);
-        setCoupons(cRes.data);
-        setStats(sRes.data);
-        setLoadingStats(false);
-     } catch (e) {
-        console.error("Fetch failed", e);
-        setLoadingStats(false);
-     }
-  };
-
-  useEffect(() => {
-    fetchAdminData();
-  }, []);
-
-  const fetchData = async () => {
-      try {
-        const [prodRes, ordRes, usersRes, tRes, cRes, statsRes] = await Promise.all([
-           axios.get(`${API_BASE_URL}/api/products`),
-           axios.get(`${API_BASE_URL}/api/orders/all`),
-           axios.get(`${API_BASE_URL}/api/users`),
-           axios.get(`${API_BASE_URL}/api/tickets/all`),
-           axios.get(`${API_BASE_URL}/api/coupons`),
-           axios.get(`${API_BASE_URL}/api/orders/stats`)
-        ]);
-        setProducts(prodRes.data);
-        setOrders(ordRes.data);
-        setUsers(usersRes.data);
-        setTickets(tRes.data);
-        setCoupons(cRes.data);
-        setStats(statsRes.data);
-      } catch (err) { console.error(err); }
-  };
-
-  useEffect(() => {
-    if (user && user.role === 'admin') fetchData();
-  }, [user]);
 
   const handleAddProduct = async (e) => {
       e.preventDefault();

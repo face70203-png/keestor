@@ -59,8 +59,11 @@ const sendEmail = async (options) => {
     try {
         const mailClient = await getTransporter();
         
+        const fromAddress = `${process.env.FROM_NAME || 'KeeStore'} <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`;
+        console.log(`[SMTP] Attempting dispatch to ${options.email} via ${process.env.SMTP_HOST || 'Ethereal'} from ${fromAddress}`);
+        
         const message = {
-            from: `${process.env.FROM_NAME || 'KeeStore'} <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
+            from: fromAddress,
             to: options.email,
             subject: options.subject,
             html: options.message,
