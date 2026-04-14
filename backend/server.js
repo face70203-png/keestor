@@ -12,8 +12,10 @@ const couponRoutes = require('./routes/coupons');
 const ticketRoutes = require('./routes/tickets');
 const settingsRoutes = require('./routes/settings');
 const reviewRoutes = require('./routes/reviews');
+const analyticsRoutes = require('./routes/analytics');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const path = require('path');
@@ -21,19 +23,35 @@ const path = require('path');
 // 🏁 Pre-Flight / CORS Headers (VERY TOP)
 app.use((req, res, next) => {
     const origin = req.headers.origin;
-    const allowedOrigins = ['https://keestore.vercel.app', 'http://localhost:3000'];
-    if (allowedOrigins.includes(origin)) {
+    const frontendUrl = process.env.FRONTEND_URL;
+    
+    // Auto-detection and Environment Variable support
+    const allowedOrigins = [
+        'http://localhost:3000',
+        'https://keestore.vercel.app'
+    ];
+    
+    if (frontendUrl) allowedOrigins.push(frontendUrl);
+    
+    // Dynamic matching for Vercel preview domains if needed
+    if (origin && allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    } else if (origin && (origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com'))) {
+        // Optional: allow all vercel/render subdomains for flexibility during setup
         res.header('Access-Control-Allow-Origin', origin);
     }
+    
     res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Credentials', 'true'); // Required for Cookies
     
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
     }
     next();
 });
+
+app.use(cookieParser()); // Enable Cookie Parsing
 
 // 🛡️ Security Middlewares
 app.use(mongoSanitize()); // Prevent NoSQL Injection
@@ -106,6 +124,7 @@ app.use('/api/coupons', couponRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

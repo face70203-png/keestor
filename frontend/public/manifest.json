@@ -1,0 +1,21 @@
+{
+  "name": "KeeStore — Premium Digital Assets",
+  "short_name": "KeeStore",
+  "description": "Secure, fast platform for premium digital keys and software assets.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

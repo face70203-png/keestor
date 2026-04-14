@@ -21,6 +21,16 @@ router.get('/me', auth, async (req, res) => {
   }
 });
 
+// Get current user referral status
+router.get('/referrals', auth, async (req, res) => {
+  try {
+    const count = await User.countDocuments({ referredBy: req.user._id });
+    res.json({ totalReferrals: count });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // Get all users (Admin Only)
 router.get('/', auth, async (req, res) => {
   try {

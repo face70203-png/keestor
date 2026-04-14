@@ -1,49 +1,79 @@
 const nodemailer = require('nodemailer');
 
+// Persistent transporter for Connection Pooling
+let transporter;
+
+/**
+ * Initialize Transporter only once for production/staging to ensure pooling works.
+ */
+const getTransporter = async () => {
+    if (transporter) return transporter;
+
+    if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+        console.log(`[SMTP] Initializing Production Pool: ${process.env.SMTP_HOST}`);
+        transporter = nodemailer.createTransport({
+            host: process.env.SMTP_HOST,
+            port: parseInt(process.env.SMTP_PORT) || 587,
+            secure: process.env.SMTP_PORT == 465, 
+            pool: true, // Reuse connections for speed
+            maxConnections: 5, // Prevent overwhelming Gmail
+            maxMessages: 100,
+            rateDelta: 1000,
+            rateLimit: 5, // Limit to 5 per sec
+            connectionTimeout: 10000, // 10s stop hanging
+            greetingTimeout: 10000, 
+            socketTimeout: 30000,
+            auth: {
+                user: process.env.SMTP_USER,
+                pass: process.env.SMTP_PASS
+            }
+        });
+    } else {
+        console.log('[SMTP] Generating Ethereal testing account...');
+        const testAccount = await nodemailer.createTestAccount();
+        transporter = nodemailer.createTransport({
+            host: "smtp.ethereal.email",
+            port: 587,
+            secure: false,
+            auth: {
+                user: testAccount.user,
+                pass: testAccount.pass
+            }
+        });
+    }
+
+    try {
+        await transporter.verify();
+        console.log('[SMTP] Configuration Verified & Ready.');
+    } catch (err) {
+        console.error('[SMTP] Verification Failed:', err.message);
+    }
+
+    return transporter;
+};
+
 const sendEmail = async (options) => {
-  // If no real SMTP is provided, we use Ethereal (A fake SMTP service for testing)
-  let transporter;
+    try {
+        const mailClient = await getTransporter();
+        
+        const message = {
+            from: `${process.env.FROM_NAME || 'KeeStore'} <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`,
+            to: options.email,
+            subject: options.subject,
+            html: options.message,
+        };
 
-  if (process.env.SMTP_HOST && process.env.SMTP_USER) {
-      transporter = nodemailer.createTransport({
-          host: process.env.SMTP_HOST,
-          port: process.env.SMTP_PORT || 587,
-          secure: process.env.SMTP_PORT == 465, // true for 465, false for other ports
-          auth: {
-              user: process.env.SMTP_USER,
-              pass: process.env.SMTP_PASS
-          }
-      });
-  } else {
-      // Fallback: Generate an automatic testing account
-      console.log('No SMTP config found in .env, generating automatic Ethereal test account...');
-      const testAccount = await nodemailer.createTestAccount();
-      transporter = nodemailer.createTransport({
-          host: "smtp.ethereal.email",
-          port: 587,
-          secure: false,
-          auth: {
-              user: testAccount.user,
-              pass: testAccount.pass
-          }
-      });
-  }
+        const info = await mailClient.sendMail(message);
 
-  const message = {
-      from: `${process.env.FROM_NAME || 'KeeStore Security'} <${process.env.FROM_EMAIL || 'yassinkhaled193@gmail.com'}>`,
-      to: options.email,
-      subject: options.subject,
-      html: options.message,
-  };
-
-  const info = await transporter.sendMail(message);
-
-  if (!process.env.SMTP_HOST) {
-     console.log('----------------------------------------------------');
-     console.log('Automatic Testing Email Sent!');
-     console.log('Preview URL (Click here to read): %s', nodemailer.getTestMessageUrl(info));
-     console.log('----------------------------------------------------');
-  }
+        if (!process.env.SMTP_HOST) {
+           console.log('--- Ethereal URL: %s ---', nodemailer.getTestMessageUrl(info));
+        }
+        
+        return { success: true, messageId: info.messageId };
+    } catch (error) {
+        console.error('[SMTP] Dispatch Failed:', error.message);
+        throw new Error(`Email delivery failure: ${error.message}`);
+    }
 };
 
 module.exports = sendEmail;

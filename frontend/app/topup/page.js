@@ -4,6 +4,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import { Wallet, ShieldCheck, Zap } from "lucide-react";
 import { useToast } from "../context/ToastContext";
+import { useAuth } from "../context/AuthContext";
 import Link from "next/link";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -13,19 +14,18 @@ export default function TopUpGateway() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { addToast } = useToast();
+  const { user } = useAuth();
 
   const handleTopUp = async (amount) => {
       setLoading(true);
-      const token = localStorage.getItem("token");
-      if (!token) {
+      if (!user) {
           router.push("/login");
           return;
       }
 
       try {
           const res = await axios.post(`${API_BASE_URL}/api/wallet/create-topup-session`, 
-            { amount: parseFloat(amount) }, 
-            { headers: { Authorization: `Bearer ${token}` }}
+            { amount: parseFloat(amount) }
           );
           if (res.data.url) window.location.href = res.data.url;
       } catch(err) {

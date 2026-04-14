@@ -14,6 +14,7 @@ function CheckoutContent() {
   const searchParams = useSearchParams();
   const { cart, clearCart } = useCart();
   const { addToast } = useToast();
+  const { user } = useAuth();
 
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
@@ -26,14 +27,13 @@ function CheckoutContent() {
 
   useEffect(() => {
     const fetchCheckoutData = async () => {
-       const token = localStorage.getItem("token");
-       if (!token) {
+       if (!user) {
            router.push("/login"); return;
        }
        
        try {
            // Fetch Wallet Balance
-           const wRes = await axios.get(`${API_BASE_URL}/api/wallet/balance`, { headers: { Authorization: `Bearer ${token}` }});
+           const wRes = await axios.get(`${API_BASE_URL}/api/wallet/balance`);
            setWalletBalance(wRes.data.walletBalance);
 
            // Resolve items
@@ -75,13 +75,10 @@ function CheckoutContent() {
 
   const handlePayWithWallet = async () => {
       setProcessing(true);
-      const token = localStorage.getItem("token");
-       try {
-           const mappedItems = items.map(i => ({ productId: i.productId || i._id, quantity: i.quantity }));
-           const payload = { items: mappedItems, promoCode: promoApplied ? promoCode : null };
-           const res = await axios.post(`${API_BASE_URL}/api/orders/pay-wallet`, payload, {
-              headers: { Authorization: `Bearer ${token}` }
-          });
+        try {
+            const mappedItems = items.map(i => ({ productId: i.productId || i._id, quantity: i.quantity }));
+            const payload = { items: mappedItems, promoCode: promoApplied ? promoCode : null };
+            const res = await axios.post(`${API_BASE_URL}/api/orders/pay-wallet`, payload);
           if (res.data.success) {
               if (searchParams.get("cart")) clearCart();
               addToast("Payment successful using KeeWallet! Any referral discounts were applied automatically.", "success");
@@ -103,13 +100,10 @@ function CheckoutContent() {
 
   const handlePayWithStripe = async () => {
       setProcessing(true);
-      const token = localStorage.getItem("token");
-       try {
-           const mappedItems = items.map(i => ({ productId: i.productId || i._id, quantity: i.quantity }));
-           const payload = { items: mappedItems };
-           const res = await axios.post(`${API_BASE_URL}/api/orders/create-checkout-session`, payload, {
-              headers: { Authorization: `Bearer ${token}` }
-          });
+        try {
+            const mappedItems = items.map(i => ({ productId: i.productId || i._id, quantity: i.quantity }));
+            const payload = { items: mappedItems };
+            const res = await axios.post(`${API_BASE_URL}/api/orders/create-checkout-session`, payload);
           if (res.data.url) window.location.href = res.data.url;
       } catch(err) {
           addToast("Card Checkout Failed. " + (err.response?.data?.error || err.message), "error");

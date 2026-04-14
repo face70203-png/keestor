@@ -9,11 +9,12 @@ import {
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import dynamic from 'next/dynamic';
 
-import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, AreaChart, Area
-} from 'recharts';
+const AdminCharts = dynamic(() => import('../components/AdminCharts'), { 
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full bg-slate-100 animate-pulse rounded-[2rem] flex items-center justify-center font-bold text-slate-400">Initializing Core Analytics...</div>
+});
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -41,6 +42,8 @@ export default function AdminDashboard() {
   const [imageUrl, setImageUrl] = useState(""); 
   const [category, setCategory] = useState("General");
   const [submitting, setSubmitting] = useState(false);
+  const [originalPrice, setOriginalPrice] = useState(""); // For discount display
+  const [saleEndDate, setSaleEndDate] = useState(""); // ⏱️ Sale Expiry Date
   const [selectedProductId, setSelectedProductId] = useState("");
   const [newKeys, setNewKeys] = useState(""); 
   const [editingProductKeys, setEditingProductKeys] = useState(null);
@@ -56,16 +59,40 @@ export default function AdminDashboard() {
     }
   }, [user, loading, router]);
 
+  const fetchAdminData = async () => {
+     try {
+        const [pRes, oRes, uRes, cRes, sRes] = await Promise.all([
+           axios.get(`${API_BASE_URL}/api/products`),
+           axios.get(`${API_BASE_URL}/api/orders`),
+           axios.get(`${API_BASE_URL}/api/users`),
+           axios.get(`${API_BASE_URL}/api/coupons`),
+           axios.get(`${API_BASE_URL}/api/analytics/stats`)
+        ]);
+        setProducts(pRes.data);
+        setOrders(oRes.data);
+        setUsers(uRes.data);
+        setCoupons(cRes.data);
+        setStats(sRes.data);
+        setLoadingStats(false);
+     } catch (e) {
+        console.error("Fetch failed", e);
+        setLoadingStats(false);
+     }
+  };
+
+  useEffect(() => {
+    fetchAdminData();
+  }, []);
+
   const fetchData = async () => {
       try {
-        const token = localStorage.getItem("token");
         const [prodRes, ordRes, usersRes, tRes, cRes, statsRes] = await Promise.all([
            axios.get(`${API_BASE_URL}/api/products`),
-           axios.get(`${API_BASE_URL}/api/orders/all`, { headers: { Authorization: `Bearer ${token}` }}),
-           axios.get(`${API_BASE_URL}/api/users`, { headers: { Authorization: `Bearer ${token}` }}),
-           axios.get(`${API_BASE_URL}/api/tickets/all`, { headers: { Authorization: `Bearer ${token}` }}),
-           axios.get(`${API_BASE_URL}/api/coupons`, { headers: { Authorization: `Bearer ${token}` }}),
-           axios.get(`${API_BASE_URL}/api/orders/stats`, { headers: { Authorization: `Bearer ${token}` }})
+           axios.get(`${API_BASE_URL}/api/orders/all`),
+           axios.get(`${API_BASE_URL}/api/users`),
+           axios.get(`${API_BASE_URL}/api/tickets/all`),
+           axios.get(`${API_BASE_URL}/api/coupons`),
+           axios.get(`${API_BASE_URL}/api/orders/stats`)
         ]);
         setProducts(prodRes.data);
         setOrders(ordRes.data);
@@ -80,22 +107,26 @@ export default function AdminDashboard() {
     if (user && user.role === 'admin') fetchData();
   }, [user]);
 
-  // --- HANDLERS ... ---
   const handleAddProduct = async (e) => {
       e.preventDefault();
       setSubmitting(true);
       try {
-          const token = localStorage.getItem("token");
           const formData = new FormData();
           formData.append('title', title);
           formData.append('description', description);
           formData.append('category', category);
           formData.append('price', price);
+          if (originalPrice && parseFloat(originalPrice) > parseFloat(price)) {
+            formData.append('originalPrice', originalPrice);
+          }
+          if (saleEndDate) {
+            formData.append('saleEndDate', saleEndDate);
+          }
           if (imageFile) formData.append('image', imageFile);
           else if (imageUrl) formData.append('imageUrl', imageUrl);
 
           await axios.post(`${API_BASE_URL}/api/products`, formData, { 
-             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'multipart/form-data' }
+             headers: { 'Content-Type': 'multipart/form-data' }
           });
           alert("Product added successfully!");
           setTitle(""); setPrice(""); setDescription(""); setImageUrl(""); setImageFile(null); setCategory("General");
@@ -107,11 +138,10 @@ export default function AdminDashboard() {
       e.preventDefault();
       if(!selectedProductId || !newKeys) return alert("Select product and enter keys");
       try {
-          const token = localStorage.getItem("token");
           const keysArray = newKeys.split(',').map(k => k.trim()).filter(k => k);
           await axios.post(`${API_BASE_URL}/api/products/${selectedProductId}/keys`, {
               keys: keysArray
-          }, { headers: { Authorization: `Bearer ${token}` }});
+          });
           alert(`Added ${keysArray.length} keys successfully!`);
           setNewKeys(""); fetchData();
       } catch(err) { alert("Failed to add keys"); }
@@ -120,11 +150,10 @@ export default function AdminDashboard() {
   const handleOverwriteKeys = async () => {
       if(!editingProductKeys) return;
       try {
-          const token = localStorage.getItem("token");
           const keysArray = editKeysText.split('\n').map(k => k.trim()).filter(k => k);
           await axios.put(`${API_BASE_URL}/api/products/${editingProductKeys._id}/keys/overwrite`, {
               keys: keysArray
-          }, { headers: { Authorization: `Bearer ${token}` }});
+          });
           alert(`Keys updated! Total keys: ${keysArray.length}`);
           setEditingProductKeys(null); fetchData();
       } catch(err) { alert("Failed to update keys"); }
@@ -133,8 +162,7 @@ export default function AdminDashboard() {
   const handleCreatePromo = async (e) => {
       e.preventDefault();
       try {
-          const token = localStorage.getItem("token");
-          await axios.post(`${API_BASE_URL}/api/coupons`, { code: promoCode, discountPercent: Number(promoDiscount), maxUses: Number(promoUses) }, { headers: { Authorization: `Bearer ${token}` }});
+          await axios.post(`${API_BASE_URL}/api/coupons`, { code: promoCode, discountPercent: Number(promoDiscount), maxUses: Number(promoUses) });
           alert("Promo Code Created!");
           setPromoCode(""); setPromoDiscount(""); setPromoUses(0); fetchData();
       } catch(err) { alert(err.response?.data?.error || err.message); }
@@ -142,8 +170,7 @@ export default function AdminDashboard() {
 
   const handleDeletePromo = async (id) => {
       try {
-          const token = localStorage.getItem("token");
-          await axios.delete(`${API_BASE_URL}/api/coupons/${id}`, { headers: { Authorization: `Bearer ${token}` }});
+          await axios.delete(`${API_BASE_URL}/api/coupons/${id}`);
           fetchData();
       } catch(e) {}
   };
@@ -152,34 +179,30 @@ export default function AdminDashboard() {
       const reply = prompt("Enter your reply to the user:");
       if (!reply) return;
       try {
-          const token = localStorage.getItem("token");
-          await axios.put(`${API_BASE_URL}/api/tickets/${id}/reply`, { reply }, { headers: { Authorization: `Bearer ${token}` }});
+          await axios.put(`${API_BASE_URL}/api/tickets/${id}/reply`, { reply });
           fetchData();
       } catch(e) {}
   };
 
   const handleCloseTicket = async (id) => {
       try {
-          const token = localStorage.getItem("token");
-          await axios.put(`${API_BASE_URL}/api/tickets/${id}/close`, {}, { headers: { Authorization: `Bearer ${token}` }});
+          await axios.put(`${API_BASE_URL}/api/tickets/${id}/close`, {});
           fetchData();
       } catch(e) {}
   };
 
   const handleWipeHistory = async () => {
      if(!confirm("WARNING! Wipe ALL transaction history entirely?")) return;
-     const token = localStorage.getItem("token");
      try {
-         await axios.delete(`${API_BASE_URL}/api/orders/wipe/all`, { headers: { Authorization: `Bearer ${token}` }});
+         await axios.delete(`${API_BASE_URL}/api/orders/wipe/all`);
          alert("Complete Global History Wiped."); fetchData();
      } catch (err) { alert(err.message); }
   };
 
   const handleDeleteOrder = async (id) => {
       if(!confirm("Wipe this specific transaction from ledger?")) return;
-      const token = localStorage.getItem("token");
       try {
-          await axios.delete(`${API_BASE_URL}/api/orders/${id}`, { headers: { Authorization: `Bearer ${token}` }});
+          await axios.delete(`${API_BASE_URL}/api/orders/${id}`);
           fetchData();
       } catch (err) { alert(err.message); }
   };
@@ -188,8 +211,7 @@ export default function AdminDashboard() {
     const val = prompt(`Set absolute wallet balance (Current: $${currentBal}):`, currentBal);
     if(val === null || isNaN(val)) return;
     try {
-       const token = localStorage.getItem("token");
-       await axios.put(`${API_BASE_URL}/api/users/${userId}/wallet`, { balance: Number(val) }, { headers: { Authorization: `Bearer ${token}` } });
+       await axios.put(`${API_BASE_URL}/api/users/${userId}/wallet`, { balance: Number(val) });
        alert("Wallet balance forcefully set."); fetchData();
     } catch(e) { alert(e.message); }
   };
@@ -197,8 +219,7 @@ export default function AdminDashboard() {
   const handlePromoteAdmin = async (userId) => {
       if(!confirm("Promote this user to Admin Mode?")) return;
       try {
-          const token = localStorage.getItem("token");
-          await axios.put(`${API_BASE_URL}/api/users/${userId}/role`, { role: 'admin' }, { headers: { Authorization: `Bearer ${token}` } });
+          await axios.put(`${API_BASE_URL}/api/users/${userId}/role`, { role: 'admin' });
           alert("User is now an Administrator."); fetchData();
       } catch(e) { alert(e.message); }
   };
@@ -212,23 +233,82 @@ export default function AdminDashboard() {
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 border-t border-slate-200">
       
-      {/* Sidebar (same as before) */}
       <aside className="w-full md:w-64 bg-white border-r border-slate-200 p-6 flex flex-col gap-2 overflow-y-auto">
          <div className="mb-8 px-4">
              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Command Center</h2>
              <p className="text-xl font-black text-slate-900 leading-tight">Master<br/><span className="text-primary text-3xl">Admin</span></p>
+         </div>         <div className="flex flex-col gap-3">
+             <button onClick={()=>setActiveTab('overview')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='overview'?'bg-slate-900 text-white shadow-lg shadow-slate-200':'text-slate-600 hover:bg-slate-100'}`}>
+                 <LayoutDashboard size={20}/> Global Overview
+             </button>
+             <button onClick={()=>setActiveTab('users')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='users'?'bg-emerald-500 text-white shadow-lg shadow-emerald-100':'text-slate-600 hover:bg-slate-100'}`}>
+                 <Users size={20}/> User CRM
+             </button>
+             <button onClick={()=>setActiveTab('audit')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='audit'?'bg-red-600 text-white shadow-lg shadow-red-100':'text-slate-600 hover:bg-slate-100'}`}>
+                 <ShieldCheck size={20}/> Security Audit
+             </button>
          </div>
 
-         <button onClick={()=>setActiveTab('overview')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='overview'?'bg-slate-900 text-white shadow-lg shadow-slate-200':'text-slate-600 hover:bg-slate-100'}`}>
-             <LayoutDashboard size={20}/> Global Overview
-         </button>
-         <button onClick={()=>setActiveTab('users')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='users'?'bg-emerald-500 text-white shadow-lg shadow-emerald-100':'text-slate-600 hover:bg-slate-100'}`}>
-             <Users size={20}/> User CRM
-         </button>
-         <button onClick={()=>setActiveTab('orders')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='orders'?'bg-slate-900 text-white':'text-slate-600 hover:bg-slate-100'}`}>
-             <ShoppingBag size={20}/> History Ledger
-         </button>
-         <button onClick={()=>setActiveTab('catalog')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='catalog'?'bg-slate-900 text-white':'text-slate-600 hover:bg-slate-100'}`}>
+         <div className="mt-auto pt-6 border-t border-slate-100">
+             <button onClick={logout} className="flex items-center gap-3 px-4 py-3 w-full text-red-500 font-bold hover:bg-red-50 rounded-xl transition-all">
+                 <LogOut size={20}/> Terminate
+             </button>
+         </div>
+      </aside>
+
+      <main className="flex-grow p-6 md:p-12 overflow-y-auto">
+          {!loadingStats && activeTab === 'overview' && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+               {[
+                 { label: 'Total Revenue', value: `$${stats.revenue?.toFixed(2)}`, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                 { label: 'Total Orders', value: stats.totalOrders, color: 'text-blue-600', bg: 'bg-blue-50' },
+                 { label: 'Active Users', value: stats.totalUsers, color: 'text-purple-600', bg: 'bg-purple-50' },
+                 { label: 'Cloud Inventory', value: stats.totalProducts, color: 'text-orange-600', bg: 'bg-orange-50' }
+               ].map((s, i) => (
+                 <div key={i} className={`${s.bg} p-6 rounded-3xl border border-transparent hover:border-slate-200 transition-all shadow-sm`}>
+                    <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider block mb-1">{s.label}</span>
+                    <span className={`text-3xl font-black ${s.color}`}>{s.value}</span>
+                 </div>
+               ))}
+            </div>
+          )}
+
+          {activeTab === 'overview' && (
+             <div className="flex flex-wrap gap-4 mb-8">
+                 <button onClick={() => setTab('products')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='products'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>Products</button>
+                 <button onClick={() => setTab('orders')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='orders'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>Orders</button>
+                 <button onClick={() => setTab('tickets')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='tickets'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>Tickets</button>
+                 <button onClick={() => setTab('coupons')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='coupons'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>Coupons</button>
+                 <button onClick={() => window.print()} className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold flex items-center gap-2 ml-auto">
+                    <Download size={16}/> Export Report (PDF)
+                 </button>
+             </div>
+          )}
+
+          {activeTab === 'audit' && (
+            <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-4">
+               <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><ShieldCheck className="text-red-600"/> Security Audit Logs</h2>
+               <div className="space-y-4">
+                  {stats.recentLogs?.length === 0 ? (
+                    <p className="text-slate-500 text-center py-10">No recent activity recorded.</p>
+                  ) : (
+                    stats.recentLogs.map((log, i) => (
+                      <div key={i} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors">
+                         <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-black text-slate-600 shrink-0">
+                           {log.adminName.charAt(0)}
+                         </div>
+                         <div className="flex-grow">
+                            <div className="flex justify-between">
+                               <span className="text-sm font-black text-slate-900">{log.adminName}</span>
+                               <span className="text-[10px] text-slate-400 font-bold">{new Date(log.timestamp).toLocaleString()}</span>
+                            </div>
+                            <p className="text-xs font-bold text-slate-600 mt-0.5"><span className="text-primary uppercase mr-2">{log.action}</span> {log.details}</p>
+                         </div>
+                      </div>
+                    ))
+                  )}
+               </div>
+            </div>
              <FolderOpen size={20}/> Catalog Planner
          </button>
          <button onClick={()=>setActiveTab('vault')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='vault'?'bg-indigo-600 text-white shadow-lg shadow-indigo-100':'text-slate-600 hover:bg-slate-100'}`}>
@@ -288,64 +368,8 @@ export default function AdminDashboard() {
                      </div>
                  </div>
 
-                 {/* Charts Section */}
-                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-                     {/* Revenue Trend Chart */}
-                     <div className="lg:col-span-2 bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
-                         <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-                             <Activity className="text-primary" size={20}/> 30-Day Revenue Trend
-                         </h3>
-                         <div className="h-[350px] w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <AreaChart data={stats.dailyStats}>
-                                    <defs>
-                                        <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
-                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                    <XAxis dataKey="_id" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => val.split('-').slice(1).join('/')} />
-                                    <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
-                                    <Tooltip 
-                                        contentStyle={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                        labelStyle={{ fontWeight: '800', color: '#1e293b', marginBottom: '4px' }}
-                                    />
-                                    <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                         </div>
-                     </div>
-
-                     {/* Category Distribution Chart */}
-                     <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
-                         <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-                             <FolderOpen className="text-primary" size={20}/> Revenue by Category
-                         </h3>
-                         <div className="h-[350px] w-full items-center justify-center flex">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={stats.categoryStats}
-                                        cx="50%"
-                                        cy="45%"
-                                        innerRadius={60}
-                                        outerRadius={100}
-                                        paddingAngle={5}
-                                        dataKey="revenue"
-                                        nameKey="_id"
-                                    >
-                                        {stats.categoryStats.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip />
-                                    <Legend verticalAlign="bottom" height={36}/>
-                                </PieChart>
-                            </ResponsiveContainer>
-                         </div>
-                     </div>
-                 </div>
+                 {/* Optimized Charts Section via Dynamic Import */}
+                 <AdminCharts stats={stats} />
              </div>
          )}
 
@@ -502,8 +526,33 @@ export default function AdminDashboard() {
                          </div>
 
                          <div>
-                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">USD Price</label>
+                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Sale Price (USD) ✨</label>
                              <input type="number" step="0.01" placeholder="49.99" value={price} onChange={(e)=>setPrice(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" />
+                         </div>
+
+                         <div>
+                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                               Original Price (Before Discount) 
+                               <span className="text-slate-400 normal-case font-normal ml-1">— Optional</span>
+                             </label>
+                             <input type="number" step="0.01" placeholder="69.99 (leave empty if no discount)" value={originalPrice} onChange={(e)=>setOriginalPrice(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" />
+                             {originalPrice && price && parseFloat(originalPrice) > parseFloat(price) && (
+                               <div className="mt-2 flex items-center gap-2">
+                                 <span className="bg-red-50 text-red-600 border border-red-200 text-xs font-black px-3 py-1 rounded-full">
+                                   -{Math.round((1 - parseFloat(price) / parseFloat(originalPrice)) * 100)}% OFF
+                                 </span>
+                                 <span className="text-xs text-slate-400">Preview: <s className="text-slate-400">${parseFloat(originalPrice).toFixed(2)}</s> → <strong className="text-emerald-600">${parseFloat(price).toFixed(2)}</strong></span>
+                               </div>
+                             )}
+                         </div>
+
+                         <div>
+                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                               Sale Expiry Date (Countdown) ⏱️
+                               <span className="text-slate-400 normal-case font-normal ml-1">— Optional</span>
+                             </label>
+                             <input type="datetime-local" value={saleEndDate} onChange={(e)=>setSaleEndDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" />
+                             <p className="text-[10px] text-slate-400 mt-1">Leave empty if this is a permanent discount.</p>
                          </div>
 
                          <div className="md:col-span-2">
@@ -549,8 +598,7 @@ export default function AdminDashboard() {
                                                  const newPrice = prompt(`Enter new price for ${p.title} (Current: ${p.price}):`);
                                                  if (!newPrice || isNaN(newPrice)) return;
                                                  try {
-                                                     const token = localStorage.getItem("token");
-                                                     await axios.put(`${API_BASE_URL}/api/products/${p._id}`, { price: parseFloat(newPrice) }, { headers: { Authorization: `Bearer ${token}` } });
+                                                     await axios.put(`${API_BASE_URL}/api/products/${p._id}`, { price: parseFloat(newPrice) });
                                                      alert("Product Updated!"); fetchData();
                                                  } catch(e) { alert("Failed to update."); }
                                              }} className="text-blue-500 hover:text-blue-700 p-2"><Edit size={16}/></button>
@@ -558,8 +606,7 @@ export default function AdminDashboard() {
                                              <button onClick={async () => {
                                                  if(!confirm(`Delete ${p.title} entirely?`)) return;
                                                  try {
-                                                     const token = localStorage.getItem("token");
-                                                     await axios.delete(`${API_BASE_URL}/api/products/${p._id}`, { headers: { Authorization: `Bearer ${token}` } });
+                                                     await axios.delete(`${API_BASE_URL}/api/products/${p._id}`);
                                                      alert("Product Deleted!"); fetchData();
                                                  } catch(e) { alert("Failed to delete."); }
                                              }} className="text-red-400 hover:text-red-600 p-2"><Trash2 size={16}/></button>

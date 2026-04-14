@@ -8,6 +8,20 @@ const sendEmail = require('../utils/sendEmail');
 const { auth } = require('../middleware/auth');
 const axios = require('axios');
 
+// 🍪 Cookie Helper for Cross-Domain (Vercel + Render) support
+const setTokenCookie = (res, token) => {
+    const isProd = process.env.NODE_ENV === 'production';
+    res.cookie('token', token, {
+        httpOnly: true,
+        secure: true, // Required for SameSite: None
+        sameSite: 'None', // Essential for Cross-Domain cookies
+        maxAge: 30 * 24 * 60 * 60 * 1000 // 30 Days
+    });
+};
+
+// ... keep verifyRecaptcha helper ...
+
+
 // Helper to verify Google reCAPTCHA
 const verifyRecaptcha = async (token) => {
     if (!token) {
@@ -119,7 +133,8 @@ router.post('/verify-email', async (req, res) => {
         user.otpAttempts = 0;
         await user.save();
 
-        const token = jwt.sign({ _id: user._id, role: user.role, username: user.username, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const token = jwt.sign({ _id: user._id, role: user.role, username: user.username, email: user.email }, process.env.JWT_SECRET, { expiresIn: '30d' });
+        setTokenCookie(res, token);
         res.json({ token, role: user.role, username: user.username, email: user.email });
     } catch(e) {
         res.status(500).json({ error: e.message });
@@ -200,7 +215,8 @@ router.post('/login', async (req, res) => {
         return res.json({ requires2FA: true, userId: user._id });
     }
 
-    const token = jwt.sign({ _id: user._id, role: user.role, username: user.username, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ _id: user._id, role: user.role, username: user.username, email: user.email }, process.env.JWT_SECRET, { expiresIn: '30d' });
+    setTokenCookie(res, token);
     res.json({ token, role: user.role, username: user.username, email: user.email });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -231,7 +247,8 @@ router.post('/verify-2fa', async (req, res) => {
         user.otpAttempts = 0;
         await user.save();
 
-        const token = jwt.sign({ _id: user._id, role: user.role, username: user.username, email: user.email }, process.env.JWT_SECRET, { expiresIn: '1d' });
+        const token = jwt.sign({ _id: user._id, role: user.role, username: user.username, email: user.email }, process.env.JWT_SECRET, { expiresIn: '30d' });
+        setTokenCookie(res, token);
         res.json({ token, role: user.role, username: user.username, email: user.email });
     } catch(e) {
         res.status(500).json({ error: e.message });
@@ -267,8 +284,7 @@ router.post('/forgot-password', async (req, res) => {
         user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
         await user.save();
 
-        const rawUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        const frontendUrl = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`;
+        const frontendUrl = process.env.FRONTEND_URL ? (process.env.FRONTEND_URL.startsWith('http') ? process.env.FRONTEND_URL : `https://${process.env.FRONTEND_URL}`) : 'http://localhost:3000';
         const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
         // 📧 Attempt Email Dispatch
@@ -279,10 +295,15 @@ router.post('/forgot-password', async (req, res) => {
                 message: `<h1>Password Reset</h1><p>You requested a password reset. Click the button below to proceed:</p><a href="${resetUrl}" style="background:#3b82f6;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;">Reset Password Now</a>`
             });
         } catch (emailError) {
-            console.error("Email Delivery Failed:", emailError.message);
-            // Even if email fails, we don't want to crash. 
-            // However, we must inform the user that the recovery could not be sent.
-            return res.status(500).json({ error: 'Failed to send recovery email. Please check your SMTP settings.' });
+            console.error("[AUTH] ForgotPassword Email Failed:", emailError.message);
+            // Revert the reset token since it couldn't be sent
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpire = undefined;
+            await user.save();
+            
+            return res.status(503).json({ 
+                error: 'Email service is temporarily unavailable. Our team has been notified. Please try again in a few minutes.' 
+            });
         }
 
         return res.json({ success: true, message: 'Email sent successfully' });
@@ -315,6 +336,26 @@ router.post('/reset-password', async (req, res) => {
 
         res.json({ message: 'Password has been reset. You can now login.' });
     } catch(e) { res.status(500).json({ error: e.message }); }
+});
+
+// [GET] Current User Profile (Checks Cookie)
+router.get('/me', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select('-password');
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        res.json(user);
+    } catch(e) {
+        res.status(500).json({ error: 'Identity verification failed.' });
+    }
+});
+
+// [POST] Logout (Clear Cookie)
+router.post('/logout', (req, res) => {
+    res.clearCookie('token', {
+        sameSite: 'None',
+        secure: true
+    });
+    res.json({ success: true, message: 'Terminal session ended.' });
 });
 
 module.exports = router;

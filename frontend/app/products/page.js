@@ -7,6 +7,7 @@ import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 import { useLanguage } from "../context/LanguageContext";
 import { translations } from "../../translations";
+import { useAuth } from "../context/AuthContext";
 import Link from "next/link";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -21,6 +22,7 @@ export default function ProductsPage() {
   const { addToast } = useToast();
   const { lang } = useLanguage();
   const t = translations[lang].product;
+  const { user } = useAuth();
 
   useEffect(() => {
     axios.get(`${API_BASE_URL}/api/products`)
@@ -29,8 +31,7 @@ export default function ProductsPage() {
   }, []);
 
   const handleCheckout = async (productId) => {
-      const token = localStorage.getItem("token");
-      if (!token) {
+      if (!user) {
         router.push("/login");
         return;
       }

@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { KeyRound, Package, Wallet, CheckCircle, Clock, Settings, Ticket, Link as LinkIcon, Send } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
+import { useTheme } from "../context/ThemeContext";
+import { useCurrency } from "../context/CurrencyContext";
 import { translations } from "../../translations";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -20,23 +22,30 @@ function DashboardContent() {
   const searchParams = useSearchParams();
   const { lang } = useLanguage();
   const t = translations[lang].dashboard;
+  const { theme, toggleTheme } = useTheme();
+  const { currency, changeCurrency, allCurrencies } = useCurrency();
 
   // Support Ticket Form
   const [ticketSub, setTicketSub] = useState("");
   const [ticketMsg, setTicketMsg] = useState("");
 
-  const fetchData = async (token) => {
+  // Referral Hub State
+  const [totalReferrals, setTotalReferrals] = useState(0);
+
+  const fetchData = async () => {
       try {
-          const [wRes, pRes, oRes, tRes] = await Promise.all([
-             axios.get(`${API_BASE_URL}/api/wallet/balance`, { headers: { Authorization: `Bearer ${token}` } }),
-             axios.get(`${API_BASE_URL}/api/users/me`, { headers: { Authorization: `Bearer ${token}` } }),
-             axios.get(`${API_BASE_URL}/api/orders/my-orders`, { headers: { Authorization: `Bearer ${token}` } }),
-             axios.get(`${API_BASE_URL}/api/tickets/my-tickets`, { headers: { Authorization: `Bearer ${token}` } })
+          const [wRes, pRes, oRes, tRes, rRes] = await Promise.all([
+             axios.get(`${API_BASE_URL}/api/wallet/balance`),
+             axios.get(`${API_BASE_URL}/api/users/me`),
+             axios.get(`${API_BASE_URL}/api/orders/my-orders`),
+             axios.get(`${API_BASE_URL}/api/tickets/my-tickets`),
+             axios.get(`${API_BASE_URL}/api/users/referrals`)
           ]);
           setWalletBalance(wRes.data.walletBalance || 0);
           setProfile(pRes.data);
           setOrders(oRes.data);
           setTickets(tRes.data);
+          setTotalReferrals(rRes.data.totalReferrals || 0);
       } catch(e) { console.error("Fetch error", e); }
   };
 
@@ -44,22 +53,17 @@ function DashboardContent() {
 
   useEffect(() => {
     const initData = async () => {
-       const token = localStorage.getItem("token");
-       if (!token) return;
-
-       fetchData(token);
+       fetchData();
 
        // Handle Wallet Top-ups
        const topup_session_id = searchParams.get('topup_session_id');
        const amount = searchParams.get('amount');
        if (topup_session_id && amount) {
            try {
-              await axios.post(`${API_BASE_URL}/api/wallet/verify-topup`, { session_id: topup_session_id, amount }, {
-                 headers: { Authorization: `Bearer ${token}` }
-              });
+              await axios.post(`${API_BASE_URL}/api/wallet/verify-topup`, { session_id: topup_session_id, amount });
               alert("Funds successfully added to KeeWallet!");
               router.replace('/dashboard');
-              fetchData(token);
+              fetchData();
            } catch (e) {}
        }
 
@@ -68,12 +72,10 @@ function DashboardContent() {
        const order_id = searchParams.get('order_id');
        if (session_id && order_id) {
            try {
-              await axios.post(`${API_BASE_URL}/api/orders/verify-session`, { session_id, order_id }, {
-                 headers: { Authorization: `Bearer ${token}` }
-              });
+              await axios.post(`${API_BASE_URL}/api/orders/verify-session`, { session_id, order_id });
               alert("Payment successful! Your assets are now available in your Vault.");
               router.replace('/dashboard');
-              fetchData(token);
+              fetchData();
            } catch (e) {
               console.error("Order verification failed:", e);
            }
@@ -84,12 +86,11 @@ function DashboardContent() {
 
   const submitTicket = async (e) => {
       e.preventDefault();
-      const token = localStorage.getItem("token");
       try {
-          await axios.post(`${API_BASE_URL}/api/tickets`, { subject: ticketSub, message: ticketMsg }, { headers: { Authorization: `Bearer ${token}` } });
+          await axios.post(`${API_BASE_URL}/api/tickets`, { subject: ticketSub, message: ticketMsg });
           alert("Ticket Submitted successfully!");
           setTicketSub(""); setTicketMsg("");
-          fetchData(token);
+          fetchData();
       } catch(e) { alert(e.message); }
   };
 
@@ -212,18 +213,38 @@ function DashboardContent() {
       )}
 
       {tab === 'affiliate' && (
-          <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm animate-in fade-in">
-             <h2 className="text-2xl font-black text-slate-900 mb-2 flex items-center gap-2"><LinkIcon className="text-emerald-500"/> {t.affiliate.title}</h2>
-             <p className="text-slate-500 mb-8 max-w-2xl">{t.affiliate.desc1} <span className="font-bold text-emerald-600">$5.00</span> {t.affiliate.desc2}</p>
-             
-             <div className="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl">
-                 <label className="text-xs font-bold text-emerald-700 uppercase mb-2 block">{t.affiliate.label}</label>
-                 <div className="flex gap-2">
-                    <input type="text" readOnly value={refLink} className="flex-grow bg-white border border-emerald-200 rounded-xl px-4 py-3 font-mono font-bold text-sm text-emerald-900 outline-none" />
-                    <button onClick={()=>{navigator.clipboard.writeText(refLink); alert("Invite link copied!");}} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3 rounded-xl transition-colors shadow-lg whitespace-nowrap">{t.affiliate.btn}</button>
+           <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 shadow-sm animate-in fade-in">
+              <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-10">
+                 <div className="max-w-xl">
+                    <h2 className="text-3xl font-black text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-3">
+                      <LinkIcon size={32} className="text-emerald-500"/> {t.affiliate.title}
+                    </h2>
+                    <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed">
+                      {t.affiliate.desc1} <span className="font-black text-emerald-500">$5.00</span> {t.affiliate.desc2}
+                    </p>
                  </div>
-             </div>
-          </div>
+                 
+                 <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 p-6 rounded-[2rem] min-w-[200px] text-center shadow-inner">
+                    <span className="text-[10px] font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-widest block mb-1">Total Referrals</span>
+                    <span className="text-5xl font-black text-emerald-600 dark:text-emerald-400 tracking-tighter">{totalReferrals}</span>
+                    <span className="text-[10px] font-bold text-emerald-600/60 block mt-1">LIFETIME GROWTH</span>
+                 </div>
+              </div>
+              
+              <div className="bg-slate-900 dark:bg-slate-700 p-8 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
+                  <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                     <LinkIcon size={120} />
+                  </div>
+                  <label className="text-xs font-black text-emerald-400 uppercase mb-3 block tracking-wider">{t.affiliate.label}</label>
+                  <div className="flex flex-col sm:flex-row gap-3 relative z-10">
+                     <input type="text" readOnly value={refLink} className="flex-grow bg-white/10 border border-white/20 rounded-2xl px-5 py-4 font-mono font-bold text-sm text-white outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all" />
+                     <button onClick={()=>{navigator.clipboard.writeText(refLink); alert("Invite link copied!");}} className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-black px-8 py-4 rounded-2xl transition-all shadow-lg active:scale-95 whitespace-nowrap">
+                       {t.affiliate.btn}
+                     </button>
+                  </div>
+                  <p className="text-[10px] text-slate-400 mt-4 font-medium italic">Share this link to earn credit for every new user who registers and shops.</p>
+              </div>
+           </div>
       )}
 
       {tab === 'support' && (
@@ -291,21 +312,21 @@ function DashboardContent() {
       )}
 
       {tab === 'settings' && (
-          <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm animate-in fade-in max-w-2xl">
-             <h2 className="text-xl font-black text-slate-900 mb-6">{t.settings.title}</h2>
+          <div id="settings" className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 shadow-sm animate-in fade-in max-w-2xl">
+             <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-6">{t.settings.title}</h2>
              
-             <div className="bg-slate-50 border border-slate-200 p-6 rounded-2xl mb-8">
+             {/* 2FA Toggle */}
+             <div className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 p-6 rounded-2xl mb-6">
                  <div className="flex justify-between items-center">
                      <div className="pr-4">
-                         <label className="text-sm font-bold text-slate-900 mb-1 block">{t.settings.tfa}</label>
-                         <p className="text-xs text-slate-500">{t.settings.tfaDesc}</p>
+                         <label className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1 block">{t.settings.tfa}</label>
+                         <p className="text-xs text-slate-500 dark:text-slate-400">{t.settings.tfaDesc}</p>
                      </div>
                      <button onClick={async () => {
                          try {
-                             await axios.put(`${API_BASE_URL}/api/auth/toggle-2fa`, {}, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
-                             alert("2FA setting updated successfully! (Refresh to see status)");
-                             const token = localStorage.getItem("token");
-                             if(token) fetchData(token);
+                             await axios.put(`${API_BASE_URL}/api/auth/toggle-2fa`, {});
+                             alert("2FA setting updated! (Refresh to see status)");
+                             fetchData();
                          } catch(e) { alert("Failed to toggle 2FA"); }
                      }} className={`${profile?.twoFactorEnabled ? 'bg-red-50 text-red-600 hover:bg-red-100 border border-red-200' : 'bg-slate-900 hover:bg-black text-white'} px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm whitespace-nowrap min-w-[120px]`}>
                          {profile?.twoFactorEnabled ? t.settings.disable : t.settings.enable}
@@ -313,16 +334,53 @@ function DashboardContent() {
                  </div>
              </div>
 
-             <div className="flex flex-col gap-6">
+             {/* 🌙 Theme Toggle */}
+             <div className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 p-6 rounded-2xl mb-6">
+                 <div className="flex justify-between items-center">
+                     <div>
+                         <label className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-1 block">🌙 Display Theme</label>
+                         <p className="text-xs text-slate-500 dark:text-slate-400">Switch between light and dark mode for your comfort.</p>
+                     </div>
+                     <button onClick={toggleTheme} className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-sm flex items-center gap-2 ${theme === 'dark' ? 'bg-yellow-400 text-slate-900 hover:bg-yellow-300' : 'bg-slate-900 text-white hover:bg-slate-800'}`}>
+                         {theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode'}
+                     </button>
+                 </div>
+             </div>
+
+             {/* 💱 Currency Selector */}
+             <div className="bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 p-6 rounded-2xl mb-6">
+                 <label className="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3 block">💱 Display Currency</label>
+                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Prices across the store will be shown in your preferred currency.</p>
+                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                     {Object.entries(allCurrencies).map(([code, info]) => (
+                         <button
+                             key={code}
+                             onClick={() => changeCurrency(code)}
+                             className={`flex flex-col items-center gap-1 py-3 px-2 rounded-xl border-2 font-bold text-sm transition-all ${
+                                 currency === code
+                                 ? 'border-primary bg-blue-50 dark:bg-blue-900/30 text-primary'
+                                 : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-primary/50'
+                             }`}
+                         >
+                             <span className="text-xl">{info.flag}</span>
+                             <span className="font-black">{code}</span>
+                             <span className="text-xs opacity-70">{info.symbol}</span>
+                         </button>
+                     ))}
+                 </div>
+             </div>
+
+             {/* Account Info */}
+             <div className="flex flex-col gap-4">
                  <div>
-                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{t.settings.user}</label>
-                     <input type="text" value={profile?.username || ''} readOnly className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none text-slate-900 font-bold" />
+                     <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">{t.settings.user}</label>
+                     <input type="text" value={profile?.username || ''} readOnly className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl py-3 px-4 outline-none text-slate-900 dark:text-slate-100 font-bold" />
                  </div>
                  <div>
-                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">{t.settings.email}</label>
-                     <input type="email" value={profile?.email || ''} readOnly className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none text-slate-900 font-bold" />
+                     <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">{t.settings.email}</label>
+                     <input type="email" value={profile?.email || ''} readOnly className="w-full bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl py-3 px-4 outline-none text-slate-900 dark:text-slate-100 font-bold" />
                  </div>
-                 <button onClick={()=>router.push("/forgot-password")} className="bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold py-3 px-6 rounded-xl w-fit transition-colors">
+                 <button onClick={()=>router.push("/forgot-password")} className="bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 font-bold py-3 px-6 rounded-xl w-fit transition-colors">
                      {t.settings.reset}
                  </button>
              </div>

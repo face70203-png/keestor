@@ -8,6 +8,7 @@ import { useToast } from "../../context/ToastContext";
 import Link from "next/link";
 import { useLanguage } from "../../context/LanguageContext";
 import { translations } from "../../../translations";
+import { useAuth } from "../../context/AuthContext";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -53,10 +54,11 @@ export default function ProductDetailPage() {
     fetchReviews();
   }, [id]);
 
+  const { user } = useAuth();
+
   const handleSubmitReview = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-    if (!token) return addToast("Please login to leave a review", "error");
+    if (!user) return addToast("Please login to leave a review", "error");
     
     setSubmittingReview(true);
     try {
@@ -64,7 +66,7 @@ export default function ProductDetailPage() {
         productId: id,
         rating: newRating,
         comment: newComment
-      }, { headers: { Authorization: `Bearer ${token}` } });
+      });
       
       addToast("Review submitted successfully!");
       setNewComment("");

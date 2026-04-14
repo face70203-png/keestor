@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useToast } from "../context/ToastContext";
 import { useLanguage } from "../context/LanguageContext";
 import { translations } from "../../translations";
+import { useAuth } from "../context/AuthContext";
 
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -15,13 +16,13 @@ export default function Cart() {
   const { addToast } = useToast();
   const { lang } = useLanguage();
   const t = translations[lang].cart;
+  const { user } = useAuth();
 
   const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleCheckout = async () => {
     setLoading(true);
-    const token = localStorage.getItem("token");
-    if (!token) {
+    if (!user) {
        router.push("/login");
        return;
     }

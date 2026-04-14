@@ -5,44 +5,126 @@
   --color-secondary: #0f172a; /* Slate 900 */
 }
 
+/* ==============================
+   LIGHT MODE (default)
+   ============================== */
 @layer base {
   :root {
-    --background: #f8fafc; /* Light slate */
-    --foreground: #0f172a;
+    --bg: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-subtle: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #0f172a;
+    --text-muted: #64748b;
+    --glass-bg: rgba(255, 255, 255, 0.9);
+    --glass-border: rgba(0, 0, 0, 0.05);
+    --scrollbar-track: #f1f5f9;
+    --scrollbar-thumb: #cbd5e1;
+    --scrollbar-thumb-hover: #94a3b8;
+  }
+
+  /* ==============================
+     DARK MODE — html.dark
+     ============================== */
+  html.dark {
+    --bg: #0a0f1e;
+    --bg-card: #111827;
+    --bg-subtle: #1e293b;
+    --border: #1e293b;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --glass-bg: rgba(15, 23, 42, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --scrollbar-track: #0f172a;
+    --scrollbar-thumb: #334155;
+    --scrollbar-thumb-hover: #475569;
   }
 }
 
+/* ==============================
+   BASE STYLES
+   ============================== */
+*, *::before, *::after {
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease;
+}
+
 body {
-  color: var(--foreground);
-  background: var(--background);
+  color: var(--text);
+  background: var(--bg);
   font-family: 'Inter', system-ui, sans-serif;
   overflow-x: hidden;
 }
 
-/* Light Theme Glassmorphism */
+/* ==============================
+   GLASSMORPHISM (theme-aware)
+   ============================== */
 .glass {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--glass-bg) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  border-color: var(--glass-border) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
 }
 
+/* ==============================
+   CARD / SURFACE UTILITIES
+   ============================== */
+.bg-card {
+  background-color: var(--bg-card);
+}
+.bg-subtle {
+  background-color: var(--bg-subtle);
+}
+.border-theme {
+  border-color: var(--border);
+}
+.text-theme {
+  color: var(--text);
+}
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* ==============================
+   DISCOUNT BADGE ANIMATION
+   ============================== */
+@keyframes discount-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.discount-badge {
+  animation: discount-pulse 2s ease-in-out infinite;
+}
+
+/* ==============================
+   LIVE SEARCH RESULTS
+   ============================== */
+.search-results {
+  backdrop-filter: blur(12px);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+}
+
+/* ==============================
+   GLOW
+   ============================== */
 .glow-primary {
   box-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
 }
 
-/* Custom Scrollbar for Light Theme */
+/* ==============================
+   SCROLLBAR
+   ============================== */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #f1f5f9; 
+  background: var(--scrollbar-track);
 }
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1; 
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8; 
+  background: var(--scrollbar-thumb-hover);
 }
