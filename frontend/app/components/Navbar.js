@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Key, LayoutDashboard, LogIn, LogOut, ShieldCheck, ShoppingCart, Globe, Sun, Moon, Search, X } from "lucide-react";
+import { Key, LayoutDashboard, LogIn, LogOut, ShieldCheck, ShoppingCart, Globe, Sun, Moon, Search, X, Menu } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -18,7 +18,7 @@ export default function Navbar() {
   const { cart } = useCart();
   const { lang, toggleLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
-  const { currentCurrencyInfo, formatPrice } = useCurrency();
+  const { currentCurrencyInfo, formatPrice, allRates, currency, changeCurrency } = useCurrency();
   const t = translations[lang].nav;
   
   // 🔍 Search State
@@ -88,7 +88,7 @@ export default function Navbar() {
         
         {/* 📱 Mobile Menu Trigger */}
         <button onClick={() => setIsMenuOpen(true)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
-            <Search size={24} />
+            <Menu size={24} />
         </button>
 
         {/* 🔍 Professional Live Search (Desktop Only) */}
@@ -196,7 +196,7 @@ export default function Navbar() {
                          </div>
                       </div>
                       <div className="max-h-64 overflow-y-auto p-2 scrollbar-thin">
-                         {Object.entries(allRates)
+                         {Object.entries(allRates || {})
                            .filter(([code]) => code.toLowerCase().includes(currencySearch.toLowerCase()))
                            .slice(0, currencySearch ? 100 : 15) // Limit initial list for performance
                            .map(([code, rate]) => {

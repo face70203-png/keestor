@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useLanguage } from "../../context/LanguageContext";
 import { translations } from "../../../translations";
 import { useAuth } from "../../context/AuthContext";
+import { useCurrency } from "../../context/CurrencyContext";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -19,6 +20,7 @@ export default function ProductDetailPage() {
   const router = useRouter();
   const { addToCart } = useCart();
   const { addToast } = useToast();
+  const { formatPrice } = useCurrency();
   
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -126,7 +128,7 @@ export default function ProductDetailPage() {
                  <span className="text-sm font-bold text-slate-500">{avgRating > 0 ? `${avgRating} Rating` : (lang === 'ar' ? 'لا توجد تقييمات' : 'No reviews yet')} • {reviews.length} {lang === 'ar' ? 'تقييم' : 'Reviews'}</span>
              </div>
 
-             <p className="text-3xl font-black text-primary mb-6">${product.price?.toFixed(2)}</p>
+             <p className="text-3xl font-black text-primary mb-6">{formatPrice(product.price)}</p>
 
              <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-8">
                  <h3 className="font-bold text-slate-900 mb-2">{t.description}</h3>

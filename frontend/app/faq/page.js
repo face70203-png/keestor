@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ChevronDown, HelpCircle, MessageCircle, Zap } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { useRouter } from 'next/navigation';
 
 const FAQ_DATA = {
   en: [
@@ -23,6 +24,7 @@ export default function FAQPage() {
   const { lang } = useLanguage();
   const [openIndex, setOpenIndex] = useState(null);
   const data = FAQ_DATA[lang];
+  const router = useRouter();
 
   return (
     <div className="max-w-4xl mx-auto py-12 px-4">
@@ -72,10 +74,16 @@ export default function FAQPage() {
          <h2 className="text-3xl font-black mb-4 relative z-10">{lang === 'ar' ? 'ما زلت تبحث عن إجابة؟' : 'Still looking for an answer?'}</h2>
          <p className="text-white/70 mb-8 relative z-10">{lang === 'ar' ? 'فريق الدعم متاح على مدار الساعة لمساعدتك.' : 'Our support team is available 24/7 to help you with any issues.'}</p>
          <div className="flex flex-wrap justify-center gap-4 relative z-10">
-            <button className="bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-sm hover:scale-105 transition-transform flex items-center gap-2">
+            <button 
+              onClick={() => router.push('/dashboard?tab=support')}
+              className="bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-sm hover:scale-105 transition-transform flex items-center gap-2"
+            >
                <MessageCircle size={18} /> {lang === 'ar' ? 'فتح تذكرة دعم' : 'Open Support Ticket'}
             </button>
-            <button className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-8 py-4 rounded-2xl font-black text-sm transition-colors">
+            <button 
+              onClick={() => router.push('/contact')}
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white px-8 py-4 rounded-2xl font-black text-sm transition-colors"
+            >
                {lang === 'ar' ? 'تواصل معنا' : 'Contact Us'}
             </button>
          </div>

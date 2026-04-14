@@ -38,7 +38,7 @@ export const CurrencyProvider = ({ children }) => {
       if (cachedRates && cacheTime && (now - cacheTime < 24 * 60 * 60 * 1000)) {
         currentRates = JSON.parse(cachedRates);
       } else {
-        const res = await axios.get('https://open.er-api.com/v6/latest/USD');
+        const res = await axios.get('https://open.er-api.com/v6/latest/USD', { withCredentials: false });
         currentRates = res.data.rates;
         localStorage.setItem('keestore_rates', JSON.stringify(currentRates));
         localStorage.setItem('keestore_rates_time', now.toString());
@@ -51,7 +51,7 @@ export const CurrencyProvider = ({ children }) => {
         setCurrency(savedCurrency);
       } else {
         try {
-          const locRes = await axios.get('https://ipapi.co/json/');
+          const locRes = await axios.get('https://ipapi.co/json/', { withCredentials: false });
           const detectedCode = locRes.data.currency;
           if (currentRates[detectedCode]) {
              setCurrency(detectedCode);
@@ -108,6 +108,7 @@ export const CurrencyProvider = ({ children }) => {
         formatPrice, 
         currentCurrencyInfo, 
         allRates: rates,
+        allCurrencies: CURRENCY_DATABASE, // Restore this to fix Dashboard/Admin crashes
         isReady 
     }}>
       {children}

@@ -5,6 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Wallet, CreditCard, ShieldCheck, Ticket } from "lucide-react";
 import { useToast } from "../context/ToastContext";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import { useCurrency } from "../context/CurrencyContext";
 import Link from "next/link";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -15,6 +17,7 @@ function CheckoutContent() {
   const { cart, clearCart } = useCart();
   const { addToast } = useToast();
   const { user } = useAuth();
+  const { formatPrice } = useCurrency();
 
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
@@ -145,7 +148,7 @@ function CheckoutContent() {
                                 <p className="text-slate-500 text-xs">Qty: {item.quantity} | {item.category}</p>
                             </div>
                             <div className="font-black text-slate-900">
-                                ${(item.price * item.quantity).toFixed(2)}
+                                {formatPrice(item.price * item.quantity)}
                             </div>
                         </div>
                     ))}
@@ -165,7 +168,7 @@ function CheckoutContent() {
                     )}
                     <div className="flex justify-between items-center bg-slate-50 p-4 rounded-xl border border-slate-100">
                         <span className="font-bold text-slate-600">Total Price</span>
-                        <span className="text-2xl font-black text-slate-900">${finalTotal.toFixed(2)}</span>
+                        <span className="text-2xl font-black text-slate-900">{formatPrice(finalTotal)}</span>
                     </div>
                 </div>
             </div>
@@ -187,7 +190,7 @@ function CheckoutContent() {
                             <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center"><Wallet size={20}/></div>
                             <h3 className="text-lg font-black text-slate-900">KeeWallet Balance</h3>
                         </div>
-                        <p className="text-sm font-bold text-slate-500 border border-slate-200 bg-slate-50 rounded-lg w-fit px-3 py-1">Available: ${walletBalance.toFixed(2)}</p>
+                        <p className="text-sm font-bold text-slate-500 border border-slate-200 bg-slate-50 rounded-lg w-fit px-3 py-1">Available: {formatPrice(walletBalance)}</p>
                         
                         {walletBalance >= finalTotal ? (
                             <button 

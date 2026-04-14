@@ -66,7 +66,11 @@ const sendEmail = async (options) => {
             html: options.message,
         };
 
-        const info = await mailClient.sendMail(message);
+        // ⏱️ Execute sendMail with a hard 12s timeout
+        const info = await Promise.race([
+            mailClient.sendMail(message),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("Email Dispatch Timeout")), 12000))
+        ]);
 
         if (!process.env.SMTP_HOST) {
            console.log('--- Ethereal URL: %s ---', nodemailer.getTestMessageUrl(info));

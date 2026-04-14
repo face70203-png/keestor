@@ -8,6 +8,7 @@ import { useToast } from "../context/ToastContext";
 import { useLanguage } from "../context/LanguageContext";
 import { translations } from "../../translations";
 import { useAuth } from "../context/AuthContext";
+import { useCurrency } from "../context/CurrencyContext";
 
 export default function Cart() {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -17,6 +18,7 @@ export default function Cart() {
   const { lang } = useLanguage();
   const t = translations[lang].cart;
   const { user } = useAuth();
+  const { formatPrice } = useCurrency();
 
   const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -57,7 +59,7 @@ export default function Cart() {
                     <img src={item.imageUrl} alt={item.title} className="w-24 h-24 object-cover rounded-xl" />
                     <div className="flex-grow">
                         <h3 className="font-bold text-lg text-slate-900">{item.title}</h3>
-                        <p className="text-primary font-bold">${item.price.toFixed(2)}</p>
+                        <p className="text-primary font-bold">{formatPrice(item.price)}</p>
                         <p className="text-slate-500 text-sm mt-1">Qty: {item.quantity}</p>
                     </div>
                     <button 
@@ -74,11 +76,11 @@ export default function Cart() {
             <h3 className="text-xl font-bold text-slate-900 mb-6">{t.summary}</h3>
             <div className="flex justify-between items-center mb-4 text-slate-600">
                 <span>{t.items} ({cart.length})</span>
-                <span>${totalAmount.toFixed(2)}</span>
+                <span>{formatPrice(totalAmount)}</span>
             </div>
             <div className="border-t border-slate-100 my-4 pt-4 flex justify-between items-center">
                 <span className="font-bold text-slate-900">{t.total}</span>
-                <span className="text-2xl font-black text-slate-900">${totalAmount.toFixed(2)}</span>
+                <span className="text-2xl font-black text-slate-900">{formatPrice(totalAmount)}</span>
             </div>
             
             <div className="flex flex-col gap-3 mt-6">

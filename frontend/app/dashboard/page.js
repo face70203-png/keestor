@@ -20,10 +20,10 @@ function DashboardContent() {
   const { user, loading, logout } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { lang } = useLanguage();
+  const { lang, toggleLanguage } = useLanguage();
   const t = translations[lang].dashboard;
   const { theme, toggleTheme } = useTheme();
-  const { currency, changeCurrency, allCurrencies } = useCurrency();
+  const { currency, changeCurrency, allCurrencies, formatPrice } = useCurrency();
 
   // Support Ticket Form
   const [ticketSub, setTicketSub] = useState("");
@@ -53,6 +53,10 @@ function DashboardContent() {
 
   useEffect(() => {
     const initData = async () => {
+       // Handle Tab Switching from URL
+       const urlTab = searchParams.get('tab');
+       if (urlTab) setTab(urlTab);
+
        fetchData();
 
        // Handle Wallet Top-ups
@@ -110,7 +114,7 @@ function DashboardContent() {
             
             <div className="inline-flex flex-wrap items-center gap-4 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 mt-4">
                  <span className="text-slate-600 font-bold">{t.balance}:</span>
-                 <span className="text-xl font-black text-emerald-500">${walletBalance.toFixed(2)}</span>
+                 <span className="text-xl font-black text-emerald-500">{formatPrice(walletBalance)}</span>
                  <button onClick={topUpWallet} className="bg-slate-900 text-white text-sm font-bold px-4 py-2 rounded-lg hover:bg-black transition">{t.topUp}</button>
             </div>
         </div>
@@ -202,7 +206,7 @@ function DashboardContent() {
                                      <td className="py-4 font-mono text-xs text-slate-400">{o._id.substring(0, 10)}</td>
                                      <td className="py-4 font-bold text-slate-900">{o.items?.length || 0} Products</td>
                                      <td className="py-4 text-slate-500 text-sm">{new Date(o.createdAt).toLocaleDateString()}</td>
-                                     <td className="py-4 text-right font-black text-slate-900">${(o.totalAmount || 0).toFixed(2)}</td>
+                                     <td className="py-4 text-right font-black text-slate-900">{formatPrice(o.totalAmount || 0)}</td>
                                  </tr>
                              ))}
                          </tbody>

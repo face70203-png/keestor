@@ -1,10 +1,12 @@
 "use client";
 import { useAuth } from "../context/AuthContext";
+import { useCurrency } from "../context/CurrencyContext";
 import { 
   Activity, Plus, Database, Package, 
   LayoutDashboard, ShoppingBag, FolderOpen, 
   Settings, KeyRound, ArrowUpRight, Search,
-  Users, Trash2, Edit, Ticket, Tag, Reply, XCircle
+  Users, Trash2, Edit, Ticket, Tag, Reply, XCircle,
+  Download, LogOut, ShieldCheck
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -21,7 +23,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
 export default function AdminDashboard() {
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
+  const { formatPrice } = useCurrency();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   
@@ -293,10 +296,10 @@ export default function AdminDashboard() {
           {!loadingStats && activeTab === 'overview' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                {[
-                 { label: 'Total Revenue', value: `$${stats.revenue?.toFixed(2)}`, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                 { label: 'Total Orders', value: stats.totalOrders, color: 'text-blue-600', bg: 'bg-blue-50' },
-                 { label: 'Active Users', value: stats.totalUsers, color: 'text-purple-600', bg: 'bg-purple-50' },
-                 { label: 'Cloud Inventory', value: stats.totalProducts, color: 'text-orange-600', bg: 'bg-orange-50' }
+                 { label: 'Total Revenue', value: formatPrice(stats.revenue || 0), color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                 { label: 'Total Orders', value: stats.totalOrders || 0, color: 'text-blue-600', bg: 'bg-blue-50' },
+                 { label: 'Active Users', value: stats.totalUsers || 0, color: 'text-purple-600', bg: 'bg-purple-50' },
+                 { label: 'Cloud Inventory', value: stats.totalProducts || 0, color: 'text-orange-600', bg: 'bg-orange-50' }
                ].map((s, i) => (
                  <div key={i} className={`${s.bg} p-6 rounded-3xl border border-transparent hover:border-slate-200 transition-all shadow-sm`}>
                     <span className="text-[10px] font-black uppercase text-slate-500 tracking-wider block mb-1">{s.label}</span>
@@ -358,7 +361,7 @@ export default function AdminDashboard() {
                      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4"><Activity size={24}/></div>
                          <p className="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">Lifetime Revenue</p>
-                         <h3 className="text-3xl font-black text-slate-900">${totalRevenue.toFixed(2)}</h3>
+                         <h3 className="text-3xl font-black text-slate-900">{formatPrice(totalRevenue)}</h3>
                      </div>
                      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
                          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4"><ShoppingBag size={24}/></div>
@@ -418,7 +421,7 @@ export default function AdminDashboard() {
                                             </span>
                                          </td>
                                          <td className="py-4 px-6 font-black text-emerald-600 text-lg">
-                                             ${u.walletBalance?.toFixed(2) || '0.00'}
+                                             {formatPrice(u.walletBalance || 0)}
                                          </td>
                                          <td className="py-4 px-6 text-right">
                                              <div className="flex items-center justify-end gap-2">
@@ -479,7 +482,7 @@ export default function AdminDashboard() {
                                          <td className="py-4 px-6 text-sm text-slate-500">{new Date(o.createdAt).toLocaleDateString()}</td>
                                          <td className="py-4 px-6 font-mono text-xs text-slate-400">{o._id.substring(0, 8)}...</td>
                                          <td className="py-4 px-6 font-bold text-slate-800">{o.user?.username || 'Redacted User'}</td>
-                                         <td className="py-4 px-6 text-slate-600 font-bold">${(o.totalAmount || 0).toFixed(2)}</td>
+                                         <td className="py-4 px-6 text-slate-600 font-bold">{formatPrice(o.totalAmount || 0)}</td>
                                          <td className="py-4 px-6">
                                             {o.status === 'success' ? (
                                                 <div className="max-w-[150px] truncate font-mono text-xs bg-emerald-50 text-emerald-600 px-2 py-1 rounded border border-emerald-100">
@@ -601,7 +604,7 @@ export default function AdminDashboard() {
                                      <tr key={p._id} className="border-b border-slate-100 items-center">
                                          <td className="py-2 px-4"><img src={p.imageUrl} alt="" className="w-10 h-10 object-cover rounded-md" /></td>
                                          <td className="py-2 px-4 font-bold text-slate-800 text-sm overflow-hidden truncate max-w-[200px]">{p.title}</td>
-                                         <td className="py-2 px-4 text-emerald-600 font-bold">${p.price.toFixed(2)}</td>
+                                         <td className="py-2 px-4 text-emerald-600 font-bold">{formatPrice(p.price)}</td>
                                          <td className="py-2 px-4 text-right">
                                              <button onClick={async () => {
                                                  const newPrice = prompt(`Enter new price for ${p.title} (Current: ${p.price}):`);
