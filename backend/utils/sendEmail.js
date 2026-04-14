@@ -81,8 +81,8 @@ const sendEmail = async (options) => {
         
         return { success: true, messageId: info.messageId };
     } catch (error) {
-        console.error('[SMTP] Dispatch Failed:', error.message);
-        throw new Error(`Email delivery failure: ${error.message}`);
+        console.error('[SMTP] Dispatch Failed:', error.message, error.code);
+        throw new Error(`Email delivery failure: ${error.message}${error.code ? ' (' + error.code + ')' : ''}`);
     }
 };
 
