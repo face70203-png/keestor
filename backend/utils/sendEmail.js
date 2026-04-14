@@ -1,96 +1,83 @@
 const nodemailer = require('nodemailer');
-
-// Persistent transporter for Connection Pooling
-let transporter;
+const axios = require('axios');
 
 /**
- * Initialize Transporter only once for production/staging to ensure pooling works.
+ * High-Speed Email Utility
+ * Prioritizes Resend API (HTTP) for speed, falls back to optimized SMTP.
  */
-const getTransporter = async () => {
-    if (transporter) return transporter;
+const sendEmail = async (options) => {
+    const resendKey = (process.env.RESEND_API_KEY || "").trim();
+    const smtpUser = (process.env.SMTP_USER || "").trim();
+    const smtpPass = (process.env.SMTP_PASS || "").replace(/\s+/g, '');
+    const smtpHost = (process.env.SMTP_HOST || "smtp.gmail.com").trim();
+    const smtpPort = parseInt(process.env.SMTP_PORT) || 465;
 
-    if (process.env.SMTP_HOST && process.env.SMTP_USER) {
-        console.log(`[SMTP] Initializing Production Pool: ${process.env.SMTP_HOST}`);
-        
-        const transportConfig = process.env.SMTP_HOST.includes('gmail') ? {
+    const fromAddress = `${process.env.FROM_NAME || 'KeeStore'} <${process.env.FROM_EMAIL || smtpUser || 'onboarding@resend.dev'}>`;
+
+    // --- MODE 1: RESEND API (Preferred for Speed) ---
+    if (resendKey) {
+        console.log(`[EMAIL] Attempting high-speed dispatch via Resend API to: ${options.email}`);
+        try {
+            const response = await axios.post('https://api.resend.com/emails', {
+                from: fromAddress,
+                to: options.email,
+                subject: options.subject,
+                html: options.message
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${resendKey}`,
+                    'Content-Type': 'application/json'
+                },
+                timeout: 10000 // 10s timeout for API
+            });
+            console.log(`[EMAIL] Resend Dispatch Successful: ${response.data.id}`);
+            return { success: true, messageId: response.data.id };
+        } catch (apiError) {
+            console.error(`[EMAIL] Resend API Failed: ${apiError.response?.data?.message || apiError.message}`);
+            console.log(`[EMAIL] Falling back to SMTP...`);
+            // Continue to SMTP mode
+        }
+    }
+
+    // --- MODE 2: OPTIMIZED SMTP (Fallback) ---
+    console.log(`[EMAIL] Attempting direct SMTP dispatch to: ${options.email}`);
+    
+    if (!smtpUser || !smtpPass) {
+        throw new Error("No mail credentials found (RESEND_API_KEY or SMTP_USER/PASS).");
+    }
+
+    try {
+        const transportConfig = smtpHost.includes('gmail') ? {
             service: 'gmail',
-            pool: true,
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: (process.env.SMTP_PASS || "").replace(/\s+/g, '')
-            }
+            auth: { user: smtpUser, pass: smtpPass }
         } : {
-            host: process.env.SMTP_HOST,
-            port: parseInt(process.env.SMTP_PORT) || 587,
-            secure: process.env.SMTP_PORT == 465, 
-            pool: true,
-            maxConnections: 5,
-            maxMessages: 100,
-            rateDelta: 1000,
-            rateLimit: 5,
-            connectionTimeout: 15000, 
-            auth: {
-                user: process.env.SMTP_USER,
-                pass: (process.env.SMTP_PASS || "").replace(/\s+/g, '')
-            }
+            host: smtpHost,
+            port: smtpPort,
+            secure: smtpPort === 465,
+            auth: { user: smtpUser, pass: smtpPass },
+            tls: { rejectUnauthorized: false } // Avoid handshake hangs on shared hosting
         };
 
-        transporter = nodemailer.createTransport(transportConfig);
-    } else {
-        console.log('[SMTP] Generating Ethereal testing account...');
-        const testAccount = await nodemailer.createTestAccount();
-        transporter = nodemailer.createTransport({
-            host: "smtp.ethereal.email",
-            port: 587,
-            secure: false,
-            auth: {
-                user: testAccount.user,
-                pass: testAccount.pass
-            }
-        });
-    }
+        const transporter = nodemailer.createTransport(transportConfig);
 
-    try {
-        await Promise.race([
-            transporter.verify(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("SMTP Connection Timeout")), 12000))
-        ]);
-        console.log('[SMTP] Configuration Verified & Ready.');
-    } catch (err) {
-        console.error('[SMTP] Verification Failed or Timed Out:', err.message);
-    }
-
-    return transporter;
-};
-
-const sendEmail = async (options) => {
-    try {
-        const mailClient = await getTransporter();
-        
-        const fromAddress = `${process.env.FROM_NAME || 'KeeStore'} <${process.env.FROM_EMAIL || process.env.SMTP_USER}>`;
-        console.log(`[SMTP] Attempting dispatch to ${options.email} via ${process.env.SMTP_HOST || 'Ethereal'} from ${fromAddress}`);
-        
-        const message = {
+        const mailOptions = {
             from: fromAddress,
             to: options.email,
             subject: options.subject,
             html: options.message,
         };
 
-        // ⏱️ Execute sendMail with a hard 12s timeout
+        // Execute sendMail with a strict timeout
         const info = await Promise.race([
-            mailClient.sendMail(message),
-            new Promise((_, reject) => setTimeout(() => reject(new Error("Email Dispatch Timeout")), 12000))
+            transporter.sendMail(mailOptions),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("SMTP Timeout - Check Credentials/Network")), 20000))
         ]);
 
-        if (!process.env.SMTP_HOST) {
-           console.log('--- Ethereal URL: %s ---', nodemailer.getTestMessageUrl(info));
-        }
-        
+        console.log(`[EMAIL] SMTP Dispatch Successful: ${info.messageId}`);
         return { success: true, messageId: info.messageId };
-    } catch (error) {
-        console.error('[SMTP] Dispatch Failed:', error.message, error.code);
-        throw new Error(`Email delivery failure: ${error.message}${error.code ? ' (' + error.code + ')' : ''}`);
+    } catch (smtpError) {
+        console.error(`[EMAIL] SMTP Dispatch Failed:`, smtpError.message);
+        throw new Error(`Email delivery failure: ${smtpError.message} (${smtpError.code || 'TIMEOUT'})`);
     }
 };
 

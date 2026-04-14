@@ -289,6 +289,7 @@ router.post('/forgot-password', async (req, res) => {
         const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
 
         // 📧 Attempt Email Dispatch
+        console.log(`[AUTH] Initiating password reset dispatch for: ${user.email}`);
         try {
             await sendEmail({
                 email: user.email,
