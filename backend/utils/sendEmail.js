@@ -39,16 +39,17 @@ const sendEmail = async (options) => {
         } catch (apiError) {
             const errMsg = apiError.response?.data?.message || apiError.message;
             console.error(`[EMAIL] Resend API Failed (${apiError.response?.status}): ${errMsg}`);
-            
-            if (apiError.response?.status === 403 || apiError.response?.status === 401) {
-                throw new Error(`Resend Authentication Failed: ${errMsg}. Check your RESEND_API_KEY in Render.`);
-            }
-            
-            console.log(`[EMAIL] Falling back to SMTP due to API failure...`);
+            console.log(`[EMAIL] Falling back to SMTP (Recipients outside of sandbox/verified domains)...`);
         }
     } 
 
     // --- MODE 2: OPTIMIZED SMTP (Fallback) ---
+    if (resendKey) {
+       console.log(`[EMAIL] Proceeding with SMTP fallback...`);
+    } else {
+       console.log(`[EMAIL] Resend Key NOT detected. Using SMTP legacy mode.`);
+    }
+    
     console.log(`[EMAIL] Attempting direct SMTP dispatch to: ${options.email}`);
     
     if (!smtpUser || !smtpPass) {
