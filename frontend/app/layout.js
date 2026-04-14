@@ -25,13 +25,16 @@ export default function RootLayout({ children }) {
             <LanguageProvider>
               <CurrencyProvider>
                 <ToastProvider>
-                  <CartProvider>
-                    <Navbar />
-                    <main className="flex-grow pt-24 px-6 md:px-12 lg:px-24 max-w-7xl mx-auto w-full">
-                    {children}
-                    </main>
-                    <Footer />
-                  </CartProvider>
+                  <WishlistProvider>
+                    <CartProvider>
+                      <Navbar />
+                      <main className="flex-grow pt-24 px-6 md:px-12 lg:px-24 max-w-7xl mx-auto w-full">
+                      {children}
+                      </main>
+                      <Footer />
+                      <SalesNotifications />
+                    </CartProvider>
+                  </WishlistProvider>
                 </ToastProvider>
               </CurrencyProvider>
             </LanguageProvider>

@@ -232,12 +232,13 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 border-t border-slate-200">
-      
-      <aside className="w-full md:w-64 bg-white border-r border-slate-200 p-6 flex flex-col gap-2 overflow-y-auto">
+          <aside className="w-full md:w-64 bg-white border-r border-slate-200 p-6 flex flex-col gap-2 overflow-y-auto shrink-0 shadow-sm relative z-20">
          <div className="mb-8 px-4">
              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Command Center</h2>
              <p className="text-xl font-black text-slate-900 leading-tight">Master<br/><span className="text-primary text-3xl">Admin</span></p>
-         </div>         <div className="flex flex-col gap-3">
+         </div>
+
+         <div className="flex flex-col gap-1.5">
              <button onClick={()=>setActiveTab('overview')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='overview'?'bg-slate-900 text-white shadow-lg shadow-slate-200':'text-slate-600 hover:bg-slate-100'}`}>
                  <LayoutDashboard size={20}/> Global Overview
              </button>
@@ -247,16 +248,39 @@ export default function AdminDashboard() {
              <button onClick={()=>setActiveTab('audit')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='audit'?'bg-red-600 text-white shadow-lg shadow-red-100':'text-slate-600 hover:bg-slate-100'}`}>
                  <ShieldCheck size={20}/> Security Audit
              </button>
+             
+             <div className="h-px bg-slate-100 my-4" />
+
+             <button onClick={()=>setActiveTab('catalog')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='catalog'?'bg-slate-900 text-white':'text-slate-600 hover:bg-slate-100'}`}>
+                 <FolderOpen size={20}/> Catalog Planner
+             </button>
+             <button onClick={()=>setActiveTab('vault')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='vault'?'bg-indigo-600 text-white shadow-lg shadow-indigo-100':'text-slate-600 hover:bg-slate-100'}`}>
+                 <KeyRound size={20}/> Digital Vault
+             </button>
+             <button onClick={()=>setActiveTab('promo')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='promo'?'bg-pink-600 text-white shadow-lg shadow-pink-100':'text-slate-600 hover:bg-slate-100'}`}>
+                 <Tag size={20}/> Promo Engine
+             </button>
+             <button onClick={()=>setActiveTab('support')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='support'?'bg-orange-500 text-white shadow-lg shadow-orange-100':'text-slate-600 hover:bg-slate-100'}`}>
+                 <Ticket size={20}/> Support Desk
+             </button>
+             <button onClick={()=>setActiveTab('settings')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='settings'?'bg-slate-900 text-white':'text-slate-600 hover:bg-slate-100'}`}>
+                 <Settings size={20}/> System Settings
+             </button>
          </div>
 
          <div className="mt-auto pt-6 border-t border-slate-100">
+             <button onClick={()=>router.push('/')} className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 w-full mb-3 transition-colors border border-transparent hover:border-slate-200">
+                 <ArrowUpRight size={20}/> Storefront
+             </button>
              <button onClick={logout} className="flex items-center gap-3 px-4 py-3 w-full text-red-500 font-bold hover:bg-red-50 rounded-xl transition-all">
                  <LogOut size={20}/> Terminate
              </button>
          </div>
       </aside>
 
-      <main className="flex-grow p-6 md:p-12 overflow-y-auto">
+      <main className="flex-1 p-6 md:p-12 overflow-y-auto w-full bg-slate-50/50">
+          
+          {/* Top Bar for Mobile/Quick Actions */}
           {!loadingStats && activeTab === 'overview' && (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                {[
@@ -275,7 +299,7 @@ export default function AdminDashboard() {
 
           {activeTab === 'overview' && (
              <div className="flex flex-wrap gap-4 mb-8">
-                 <button onClick={() => setTab('products')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='products'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>Products</button>
+                 <button onClick={() => setTab('products')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='products'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>Inventory</button>
                  <button onClick={() => setTab('orders')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='orders'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>Orders</button>
                  <button onClick={() => setTab('tickets')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='tickets'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>Tickets</button>
                  <button onClick={() => setTab('coupons')} className={`px-6 py-3 rounded-xl font-bold transition-all ${tab==='coupons'?'bg-slate-900 text-white shadow-md':'bg-white border hover:bg-slate-50 text-slate-600 border-slate-200'}`}>Coupons</button>
@@ -309,31 +333,7 @@ export default function AdminDashboard() {
                   )}
                </div>
             </div>
-             <FolderOpen size={20}/> Catalog Planner
-         </button>
-         <button onClick={()=>setActiveTab('vault')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='vault'?'bg-indigo-600 text-white shadow-lg shadow-indigo-100':'text-slate-600 hover:bg-slate-100'}`}>
-             <KeyRound size={20}/> Digital Vault
-         </button>
-         <button onClick={()=>setActiveTab('promo')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='promo'?'bg-pink-600 text-white shadow-lg shadow-pink-100':'text-slate-600 hover:bg-slate-100'}`}>
-             <Tag size={20}/> Promo Engine
-         </button>
-         <button onClick={()=>setActiveTab('support')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='support'?'bg-orange-500 text-white shadow-lg shadow-orange-100':'text-slate-600 hover:bg-slate-100'}`}>
-             <Ticket size={20}/> Support Desk
-         </button>
-
-         <button onClick={()=>setActiveTab('settings')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='settings'?'bg-slate-900 text-white':'text-slate-600 hover:bg-slate-100'}`}>
-             <Settings size={20}/> System Settings
-         </button>
-
-         <div className="mt-auto pt-8">
-             <button onClick={()=>router.push('/')} className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-slate-600 hover:bg-slate-100 w-full transition-colors border border-transparent hover:border-slate-200">
-                 <ArrowUpRight size={20}/> Storefront
-             </button>
-         </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="flex-1 p-8 md:p-12 overflow-y-auto w-full">
+          )}
          
          {activeTab === 'overview' && (
              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
