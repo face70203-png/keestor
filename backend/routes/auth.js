@@ -109,6 +109,33 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// 🛠️ ULTIMATE DEBUGGER (GET /api/auth/test-email)
+// Visit this in browser to see EXACTLY why emails fail
+router.get('/test-email', async (req, res) => {
+    try {
+        console.log("[DEBUG] Starting direct test email dispatch...");
+        // Attempts to send to the owner's email
+        const target = "face70203@gmail.com";
+        const result = await sendEmail({
+            email: target,
+            subject: "KeeStore System Test",
+            message: "<h1>Test Successful</h1><p>If you see this, your email system is WORKING PERFECTLY.</p>"
+        });
+        res.json({ 
+            status: "SUCCESS", 
+            message: `Test email sent to ${target}`,
+            details: result 
+        });
+    } catch (e) {
+        console.error("[DEBUG] Test Email Failed:", e.message);
+        res.status(500).json({ 
+            status: "FAILED", 
+            error: e.message,
+            tip: "Check your RESEND_API_KEY or SMTP_USER/PASS in Render environment variables."
+        });
+    }
+});
+
 // Verify Email
 router.post('/verify-email', async (req, res) => {
     try {

@@ -16,10 +16,14 @@ const sendEmail = async (options) => {
 
     // --- MODE 1: RESEND API (Preferred for Speed) ---
     if (resendKey) {
-        console.log(`[EMAIL] Attempting high-speed dispatch via Resend API to: ${options.email}`);
+        console.log(`[EMAIL] Detecting Resend Key: ${resendKey.substring(0, 6)}...`);
+        
+        // 🛡️ Fix for Sandbox: Resend ONLY allows 'onboarding@resend.dev' as sender until domain is verified.
+        const resendSender = (resendKey.includes('_ox') || resendKey.startsWith('re_')) ? 'onboarding@resend.dev' : fromAddress;
+
         try {
             const response = await axios.post('https://api.resend.com/emails', {
-                from: fromAddress,
+                from: resendSender,
                 to: options.email,
                 subject: options.subject,
                 html: options.message
@@ -28,22 +32,27 @@ const sendEmail = async (options) => {
                     'Authorization': `Bearer ${resendKey}`,
                     'Content-Type': 'application/json'
                 },
-                timeout: 10000 // 10s timeout for API
+                timeout: 25000 
             });
             console.log(`[EMAIL] Resend Dispatch Successful: ${response.data.id}`);
-            return { success: true, messageId: response.data.id };
+            return { success: true, messageId: response.data.id, method: 'resend' };
         } catch (apiError) {
-            console.error(`[EMAIL] Resend API Failed: ${apiError.response?.data?.message || apiError.message}`);
-            console.log(`[EMAIL] Falling back to SMTP...`);
-            // Continue to SMTP mode
+            const errMsg = apiError.response?.data?.message || apiError.message;
+            console.error(`[EMAIL] Resend API Failed (${apiError.response?.status}): ${errMsg}`);
+            
+            if (apiError.response?.status === 403 || apiError.response?.status === 401) {
+                throw new Error(`Resend Authentication Failed: ${errMsg}. Check your RESEND_API_KEY in Render.`);
+            }
+            
+            console.log(`[EMAIL] Falling back to SMTP due to API failure...`);
         }
-    }
+    } 
 
     // --- MODE 2: OPTIMIZED SMTP (Fallback) ---
     console.log(`[EMAIL] Attempting direct SMTP dispatch to: ${options.email}`);
     
     if (!smtpUser || !smtpPass) {
-        throw new Error("No mail credentials found (RESEND_API_KEY or SMTP_USER/PASS).");
+        throw new Error("Missing Credentials: No RESEND_API_KEY and No SMTP_USER/PASS found in Environment Variables.");
     }
 
     try {

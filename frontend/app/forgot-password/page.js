@@ -36,8 +36,10 @@ export default function ForgotPasswordPage() {
             addToast("Recovery email dispatched!", "success");
         } catch (err) {
             console.error("Submission failed:", err);
+            const errMsg = err.response?.data?.error || "Error sending email. Please try again.";
             setStatus("error");
-            addToast(err.response?.data?.error || "Error sending email. Please try again.", "error");
+            setError(errMsg);
+            addToast(errMsg, "error");
             if (recaptchaRef.current) recaptchaRef.current.reset();
             setCaptchaToken(null);
         } finally {
