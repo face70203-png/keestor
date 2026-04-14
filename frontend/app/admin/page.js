@@ -32,25 +32,9 @@ export default function AdminDashboard() {
   const [coupons, setCoupons] = useState([]);
   const [stats, setStats] = useState({ dailyStats: [], categoryStats: [] });
   
-  const [activeTab, setActiveTab] = useState("overview");
-
-  // ... (state vars same as before)
-  const [title, setTitle] = useState("");
-  const [price, setPrice] = useState("");
-  const [description, setDescription] = useState("");
-  const [imageFile, setImageFile] = useState(null);
-  const [imageUrl, setImageUrl] = useState(""); 
-  const [category, setCategory] = useState("General");
-  const [submitting, setSubmitting] = useState(false);
-  const [originalPrice, setOriginalPrice] = useState(""); // For discount display
-  const [saleEndDate, setSaleEndDate] = useState(""); // ⏱️ Sale Expiry Date
-  const [selectedProductId, setSelectedProductId] = useState("");
-  const [newKeys, setNewKeys] = useState(""); 
-  const [editingProductKeys, setEditingProductKeys] = useState(null);
-  const [editKeysText, setEditKeysText] = useState("");
-  const [promoCode, setPromoCode] = useState("");
-  const [promoDiscount, setPromoDiscount] = useState("");
   const [promoUses, setPromoUses] = useState(0);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
     setMounted(true);
@@ -231,14 +215,34 @@ export default function AdminDashboard() {
   const totalStock = products.reduce((sum, p) => sum + (p.keys?.length || 0), 0);
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 border-t border-slate-200">
-          <aside className="w-full md:w-64 bg-white border-r border-slate-200 p-6 flex flex-col gap-2 overflow-y-auto shrink-0 shadow-sm relative z-20">
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
+      
+      {/* 📱 Mobile Header */}
+      <div className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-40">
+           <div className="flex items-center gap-3">
+               <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white">
+                   <ShieldCheck size={18}/>
+               </div>
+               <span className="font-black text-slate-900">Admin Panel</span>
+           </div>
+           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 text-slate-600">
+               <Activity size={24} className={isSidebarOpen ? 'rotate-90 transition-all' : ''}/>
+           </button>
+      </div>
+
+      {/* Sidebar - Desktop & Mobile Drawer */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 p-6 flex flex-col gap-2 overflow-y-auto transform transition-transform duration-300 md:translate-x-0 md:static ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+         
+         <div className="flex md:hidden justify-end mb-4">
+             <button onClick={() => setIsSidebarOpen(false)} className="p-2 text-slate-400"><Plus className="rotate-45" size={24}/></button>
+         </div>
+
          <div className="mb-8 px-4">
              <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Command Center</h2>
              <p className="text-xl font-black text-slate-900 leading-tight">Master<br/><span className="text-primary text-3xl">Admin</span></p>
          </div>
 
-         <div className="flex flex-col gap-1.5">
+         <div className="flex flex-col gap-1.5" onClick={() => setIsSidebarOpen(false)}>
              <button onClick={()=>setActiveTab('overview')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='overview'?'bg-slate-900 text-white shadow-lg shadow-slate-200':'text-slate-600 hover:bg-slate-100'}`}>
                  <LayoutDashboard size={20}/> Global Overview
              </button>
@@ -277,6 +281,11 @@ export default function AdminDashboard() {
              </button>
          </div>
       </aside>
+
+      {/* Mobile Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setIsSidebarOpen(false)} />
+      )}
 
       <main className="flex-1 p-6 md:p-12 overflow-y-auto w-full bg-slate-50/50">
           
@@ -319,11 +328,11 @@ export default function AdminDashboard() {
                     stats.recentLogs.map((log, i) => (
                       <div key={i} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors">
                          <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-black text-slate-600 shrink-0">
-                           {log.adminName.charAt(0)}
+                           {log.adminName?.charAt(0) || '?'}
                          </div>
                          <div className="flex-grow">
                             <div className="flex justify-between">
-                               <span className="text-sm font-black text-slate-900">{log.adminName}</span>
+                               <span className="text-sm font-black text-slate-900">{log.adminName || 'System'}</span>
                                <span className="text-[10px] text-slate-400 font-bold">{new Date(log.timestamp).toLocaleString()}</span>
                             </div>
                             <p className="text-xs font-bold text-slate-600 mt-0.5"><span className="text-primary uppercase mr-2">{log.action}</span> {log.details}</p>

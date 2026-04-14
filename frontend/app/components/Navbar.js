@@ -26,6 +26,9 @@ export default function Navbar() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCurrencyPickerOpen, setIsCurrencyPickerOpen] = useState(false);
+  const [currencySearch, setCurrencySearch] = useState("");
   const searchRef = useRef(null);
 
   const cartItemsCount = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -69,11 +72,12 @@ export default function Navbar() {
   };
 
   return (
+  <>
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-gray-200 py-3 px-4 md:px-12 flex items-center justify-between">
       <div className="flex items-center gap-8 flex-grow">
         <Link href="/" className="flex items-center gap-3 group shrink-0">
           <div className="relative h-10 w-auto flex items-center min-w-[32px]">
-              <img src="/logo.png" alt="Store Logo" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} className="h-full w-auto object-contain z-10 drop-shadow-sm max-w-[150px]" />
+              <img src="/logo.png" alt="Store Logo" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} className="h-full w-auto object-contain z-10 drop-shadow-sm max-w-[120px] md:max-w-[150px]" />
               <div className="hidden items-center gap-2 z-0">
                  <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white shadow-lg transform group-hover:rotate-12 transition-all">
                     <Key size={16} className="rotate-45" />
@@ -81,8 +85,13 @@ export default function Navbar() {
               </div>
           </div>
         </Link>
+        
+        {/* 📱 Mobile Menu Trigger */}
+        <button onClick={() => setIsMenuOpen(true)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+            <Search size={24} />
+        </button>
 
-        {/* 🔍 Professional Live Search */}
+        {/* 🔍 Professional Live Search (Desktop Only) */}
         <div className="hidden lg:relative lg:flex flex-grow max-w-md mx-4" ref={searchRef}>
           <div className="relative w-full">
              <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -161,12 +170,55 @@ export default function Navbar() {
                 <span className="hidden sm:inline">{lang === 'en' ? 'AR' : 'EN'}</span>
             </button>
 
-            {/* 💱 Currency Badge */}
+            {/* 💱 Smart Currency Selector */}
             {currentCurrencyInfo && (
-              <Link href="/dashboard#settings" className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-black bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors border border-slate-200 dark:border-slate-700">
-                <span>{currentCurrencyInfo.flag}</span>
-                <span>{currentCurrencyInfo.symbol}</span>
-              </Link>
+              <div className="relative">
+                <button 
+                  onClick={() => setIsCurrencyPickerOpen(!isCurrencyPickerOpen)} 
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all border border-slate-200 dark:border-slate-700 shadow-sm"
+                >
+                  <span className="text-sm">{currentCurrencyInfo.flag}</span>
+                  <span>{currentCurrencyInfo.symbol}</span>
+                </button>
+
+                {isCurrencyPickerOpen && (
+                   <div className="absolute top-full right-0 mt-3 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl z-[60] overflow-hidden animate-in slide-in-from-top-2 duration-200">
+                      <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+                         <div className="relative">
+                            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                            <input 
+                              type="text" 
+                              placeholder={lang === 'ar' ? "ابحث عن عملة..." : "Search all currencies..."}
+                              value={currencySearch}
+                              onChange={(e) => setCurrencySearch(e.target.value)}
+                              className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-xl py-2 pl-9 pr-4 text-xs outline-none focus:ring-2 focus:ring-primary/20"
+                            />
+                         </div>
+                      </div>
+                      <div className="max-h-64 overflow-y-auto p-2 scrollbar-thin">
+                         {Object.entries(allRates)
+                           .filter(([code]) => code.toLowerCase().includes(currencySearch.toLowerCase()))
+                           .slice(0, currencySearch ? 100 : 15) // Limit initial list for performance
+                           .map(([code, rate]) => {
+                             const isSelected = currency === code;
+                             return (
+                               <button 
+                                 key={code} 
+                                 onClick={() => { changeCurrency(code); setIsCurrencyPickerOpen(false); }}
+                                 className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'}`}
+                               >
+                                 <div className="flex items-center gap-3">
+                                    <span className="text-lg opacity-80">{code === 'USD' ? '🇺🇸' : code === 'EUR' ? '🇪🇺' : code === 'EGP' ? '🇪🇬' : '🌐'}</span>
+                                    <span className="font-bold text-sm tracking-tight">{code}</span>
+                                 </div>
+                                 <span className="text-[10px] font-black opacity-50 uppercase tracking-widest">{rate.toFixed(2)} / $</span>
+                               </button>
+                             );
+                         })}
+                      </div>
+                   </div>
+                )}
+              </div>
             )}
 
             {/* 🌙 Dark/Light Mode Toggle */}
@@ -227,5 +279,91 @@ export default function Navbar() {
         ) : null}
       </div>
     </nav>
+
+    {/* 📱 Mobile Drawer Overlay */}
+    {isMenuOpen && (
+       <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm lg:hidden animate-in fade-in duration-300">
+          <div className="absolute right-0 top-0 bottom-0 w-[80%] max-w-sm bg-white dark:bg-slate-900 shadow-2xl animate-in slide-in-from-right duration-300 p-6 flex flex-col">
+             <div className="flex justify-between items-center mb-10">
+                <div className="font-black text-2xl tracking-tighter italic text-slate-900 dark:text-white">Kee<span className="text-primary font-black uppercase not-italic">Store</span></div>
+                <button onClick={() => setIsMenuOpen(false)} className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                    <X size={24} />
+                </button>
+             </div>
+
+             <div className="space-y-4 overflow-y-auto flex-grow pb-10" onClick={() => setIsMenuOpen(false)}>
+                <div className="relative mb-8" onClick={(e) => e.stopPropagation()}>
+                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input 
+                      type="text" 
+                      placeholder={lang === 'ar' ? 'بحث...' : 'Search...'}
+                      value={searchQuery}
+                      onFocus={() => router.push('/products')}
+                      className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-2xl py-3 pl-12 focus:ring-2 focus:ring-primary/20 text-sm"
+                    />
+                </div>
+
+                <Link href="/" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 font-bold transition-colors">
+                    <Key size={20} className="text-primary"/>
+                    <span>{lang === 'ar' ? 'الرئيسية' : 'Marketplace'}</span>
+                </Link>
+                <Link href="/about" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 font-bold transition-colors">
+                    <Globe size={20} className="text-emerald-500"/>
+                    <span>{t.about}</span>
+                </Link>
+                <Link href="/tracking" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 font-bold transition-colors">
+                    <Search size={20} className="text-blue-500"/>
+                    <span>{lang === 'ar' ? 'تتبع الطلب' : 'Global Tracking'}</span>
+                </Link>
+                <Link href="/faq" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 font-bold transition-colors">
+                    <ShieldCheck size={20} className="text-purple-500"/>
+                    <span>{lang === 'ar' ? 'المساعدة' : 'Legal & Help'}</span>
+                </Link>
+
+                <div className="h-px bg-slate-100 dark:bg-slate-800 my-6" />
+
+                <div className="grid grid-cols-2 gap-3" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={toggleLanguage} className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 font-black text-xs uppercase">
+                        <Globe size={20} className="text-primary"/>
+                        {lang === 'en' ? 'Arabic' : 'English'}
+                    </button>
+                    <button onClick={toggleTheme} className="flex flex-col items-center gap-2 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 font-black text-xs uppercase">
+                        {theme === 'dark' ? <Sun size={20} className="text-yellow-400" /> : <Moon size={20} className="text-slate-600" />}
+                        {theme === 'dark' ? 'Light' : 'Dark'}
+                    </button>
+                </div>
+             </div>
+
+             <div className="mt-auto pt-6 border-t border-slate-100 dark:border-slate-800">
+                {!loading && user ? (
+                    <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-black">
+                                {user.username?.charAt(0)}
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="font-bold text-sm">{user.username}</span>
+                                <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{user.role}</span>
+                            </div>
+                        </div>
+                        <button onClick={logout} className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors">
+                            <LogOut size={20} />
+                        </button>
+                    </div>
+                ) : (
+                    <div className="flex flex-col gap-3">
+                        <Link href="/login" onClick={() => setIsMenuOpen(false)} className="w-full py-4 text-center font-bold bg-slate-100 dark:bg-slate-800 rounded-2xl">
+                            {t.login}
+                        </Link>
+                        <Link href="/register" onClick={() => setIsMenuOpen(false)} className="w-full py-4 text-center font-black bg-primary text-white rounded-2xl shadow-lg shadow-primary/20">
+                            {t.register}
+                        </Link>
+                    </div>
+                )}
+             </div>
+          </div>
+       </div>
+    )}
+  </>
   );
 }

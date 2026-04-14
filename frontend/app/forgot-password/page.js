@@ -86,8 +86,29 @@ export default function ForgotPasswordPage() {
                         </div>
 
                         <button type="submit" disabled={status==='loading'} className="w-full bg-slate-900 hover:bg-black shadow-lg text-white font-black py-4 rounded-xl transition-all disabled:opacity-50 mt-2">
-                           {status==='loading' ? "Processing Node..." : "Send Reset Link"}
+                           {status === 'loading' ? (
+                              <div className="flex items-center gap-2">
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Sending Reset Link...
+                              </div>
+                           ) : "Send Reset Link"}
                         </button>
+
+                        {status === 'success' && (
+                           <div className="mt-6 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl animate-in fade-in zoom-in duration-300">
+                              <p className="text-emerald-700 text-sm font-bold flex items-center gap-2">
+                                 <ShieldCheck size={18}/> Reset link sent! Please check your inbox and spam folder.
+                              </p>
+                           </div>
+                        )}
+
+                        {status === 'error' && (
+                           <div className="mt-6 p-4 bg-red-50 border border-red-100 rounded-2xl animate-in fade-in zoom-in duration-300">
+                              <p className="text-red-700 text-sm font-bold">
+                                 {error || "Failed to initiate reset. Please check your email and try again."}
+                              </p>
+                           </div>
+                        )}
                     </form>
                 )}
             </div>

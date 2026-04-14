@@ -43,10 +43,13 @@ const getTransporter = async () => {
     }
 
     try {
-        await transporter.verify();
+        await Promise.race([
+            transporter.verify(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error("SMTP Connection Timeout")), 12000))
+        ]);
         console.log('[SMTP] Configuration Verified & Ready.');
     } catch (err) {
-        console.error('[SMTP] Verification Failed:', err.message);
+        console.error('[SMTP] Verification Failed or Timed Out:', err.message);
     }
 
     return transporter;
