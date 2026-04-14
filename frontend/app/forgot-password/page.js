@@ -14,6 +14,7 @@ export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
     const [captchaToken, setCaptchaToken] = useState(null);
     const [status, setStatus] = useState("idle"); // idle, loading, success, error
+    const [error, setError] = useState("");
     const { addToast } = useToast();
     const recaptchaRef = useRef(null);
 

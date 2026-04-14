@@ -45,7 +45,8 @@ const verifyRecaptcha = async (token) => {
         console.log("Google reCAPTCHA Verification Response:", response.data);
         
         if (!response.data.success) {
-            console.log("reCAPTCHA Failed details:", response.data['error-codes']);
+            console.log(`[reCAPTCHA] Verification Failed. Error Codes: ${response.data['error-codes']?.join(', ') || 'N/A'}`);
+            console.log(`[reCAPTCHA] Tip: Check if Site Key and Secret Key are from the same pair.`);
         }
         
         return response.data.success;

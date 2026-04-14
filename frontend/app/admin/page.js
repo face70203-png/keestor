@@ -38,6 +38,26 @@ export default function AdminDashboard() {
   const [promoUses, setPromoUses] = useState(0);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [tab, setTab] = useState('products');
+  const [submitting, setSubmitting] = useState(false);
+
+  // Form states
+  const [title, setTitle] = useState("");
+  const [price, setPrice] = useState("");
+  const [originalPrice, setOriginalPrice] = useState("");
+  const [description, setDescription] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [category, setCategory] = useState("General");
+  const [saleEndDate, setSaleEndDate] = useState("");
+
+  const [newKeys, setNewKeys] = useState("");
+  const [selectedProductId, setSelectedProductId] = useState("");
+  const [editingProductKeys, setEditingProductKeys] = useState(null);
+  const [editKeysText, setEditKeysText] = useState("");
+  const [promoCode, setPromoCode] = useState("");
+  const [promoDiscount, setPromoDiscount] = useState("");
 
   const fetchData = async () => {
     if (!user || user.role !== 'admin') return;
@@ -194,9 +214,9 @@ export default function AdminDashboard() {
 
   if (!mounted || loading || !user) return <div className="text-center mt-20">Loading Command Center...</div>;
 
-  const totalRevenue = orders.reduce((sum, ord) => sum + (ord.totalAmount || 0), 0);
-  const totalKeysSold = orders.filter(o => o.status === 'success').reduce((sum, o) => sum + (o.items?.reduce((s, i) => s + i.quantity, 0) || 0), 0);
-  const totalStock = products.reduce((sum, p) => sum + (p.keys?.length || 0), 0);
+  const totalRevenue = (orders || []).reduce((sum, ord) => sum + (ord.totalAmount || 0), 0);
+  const totalKeysSold = (orders || []).filter(o => o.status === 'success').reduce((sum, o) => sum + (o.items?.reduce((s, i) => s + i.quantity, 0) || 0), 0);
+  const totalStock = (products || []).reduce((sum, p) => sum + (p.keys?.length || 0), 0);
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">

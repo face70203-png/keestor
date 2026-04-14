@@ -38,8 +38,9 @@ app.use((req, res, next) => {
     if (origin && allowedOrigins.includes(origin)) {
         res.header('Access-Control-Allow-Origin', origin);
     } else if (origin && (origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com'))) {
-        // Optional: allow all vercel/render subdomains for flexibility during setup
         res.header('Access-Control-Allow-Origin', origin);
+    } else {
+        console.log(`[CORS] Request from unknown origin: ${origin || 'No Origin Header'}. Allowed: ${allowedOrigins.join(', ')}`);
     }
     
     res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
@@ -66,7 +67,7 @@ const generalLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  max: 5, // 5 attempts per 15 mins for sensitive routes
+  max: 20, // Increased from 5 to 20 for easier owner testing
   message: { error: 'Too many login/register attempts. Please wait 15 minutes.' }
 });
 
