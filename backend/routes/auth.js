@@ -303,7 +303,7 @@ router.post('/forgot-password', async (req, res) => {
             await user.save();
             
             return res.status(503).json({ 
-                error: 'Email service is temporarily unavailable. Our team has been notified. Please try again in a few minutes.' 
+                error: `Email delivery failure: ${emailError.message}` 
             });
         }
 
