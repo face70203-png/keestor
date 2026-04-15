@@ -18,12 +18,9 @@ const sendEmail = async (options) => {
     if (resendKey) {
         console.log(`[EMAIL] Detecting Resend Key: ${resendKey.substring(0, 6)}...`);
         
-        // 🛡️ Fix for Sandbox: Resend ONLY allows 'onboarding@resend.dev' as sender until domain is verified.
-        const resendSender = (resendKey.includes('_ox') || resendKey.startsWith('re_')) ? 'onboarding@resend.dev' : fromAddress;
-
-        try {
-            const response = await axios.post('https://api.resend.com/emails', {
-                from: resendSender,
+        const attemptSend = async (sender) => {
+            return await axios.post('https://api.resend.com/emails', {
+                from: sender,
                 to: options.email,
                 subject: options.subject,
                 html: options.message
@@ -34,20 +31,38 @@ const sendEmail = async (options) => {
                 },
                 timeout: 25000 
             });
-            console.log(`[EMAIL] Resend Dispatch Successful: ${response.data.id}`);
-            return { success: true, messageId: response.data.id, method: 'resend' };
+        };
+
+        try {
+            // 🛡️ Phase 1: Try Official Sender
+            console.log(`[EMAIL] Attempting dispatch via Official Sender: ${fromAddress}`);
+            const response = await attemptSend(fromAddress);
+            console.log(`[EMAIL] Resend Dispatch Successful (Official): ${response.data.id}`);
+            return { success: true, messageId: response.data.id, method: 'resend-official' };
         } catch (apiError) {
+            const status = apiError.response?.status;
             const errMsg = apiError.response?.data?.message || apiError.message;
-            console.error(`[EMAIL] Resend API Failed (${apiError.response?.status}): ${errMsg}`);
-            console.log(`[EMAIL] Falling back to SMTP (Recipients outside of sandbox/verified domains)...`);
+
+            // 🔄 Phase 2: If unauthorized, retry with Sandbox Onboarding address
+            if (status === 403 || status === 422 || status === 401) {
+                console.warn(`[EMAIL] Official Sender rejected. Retrying with onboarding fallback...`);
+                try {
+                    const fallbackResponse = await attemptSend('onboarding@resend.dev');
+                    console.log(`[EMAIL] Resend Dispatch Successful (Sandbox Fallback): ${fallbackResponse.data.id}`);
+                    return { success: true, messageId: fallbackResponse.data.id, method: 'resend-sandbox' };
+                } catch (fallbackError) {
+                    console.error(`[EMAIL] Resend Sandbox Fallback also failed: ${fallbackError.message}`);
+                }
+            } else {
+                console.error(`[EMAIL] Resend API Error (${status}): ${errMsg}`);
+            }
+            console.log(`[EMAIL] Proceeding to SMTP fallback...`);
         }
     } 
 
     // --- MODE 2: OPTIMIZED SMTP (Fallback) ---
     if (resendKey) {
-       console.log(`[EMAIL] Proceeding with SMTP fallback...`);
-    } else {
-       console.log(`[EMAIL] Resend Key NOT detected. Using SMTP legacy mode.`);
+       console.log(`[EMAIL] Using SMTP fallback as last resort...`);
     }
     
     console.log(`[EMAIL] Attempting direct SMTP dispatch to: ${options.email}`);
