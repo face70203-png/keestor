@@ -142,7 +142,8 @@ const sendEmail = async (options) => {
             
             resendAttachments.push({
                 filename: fileName,
-                content: pdfBase64
+                content: pdfBase64,
+                content_type: 'application/pdf'
             });
             
             smtpAttachments.push({
@@ -182,7 +183,8 @@ const sendEmail = async (options) => {
                 metadata: {
                     recipient: options.email,
                     provider: 'Resend',
-                    orderId: options.order ? options.order._id : null
+                    orderId: options.order ? options.order._id : null,
+                    attachmentCount: resendAttachments.length
                 }
             }).catch(e => console.error("Log Error:", e.message));
 
