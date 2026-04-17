@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Stripe = require('stripe');
 const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
-const { auth } = require('../middleware/auth');
+const { auth, adminAuth } = require('../middleware/auth');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 
@@ -192,30 +192,54 @@ const fulfillOrder = async (orderId, sessionId) => {
     );
     
     if (order) {
-       let deliveredKeysArr = [];
-       
+       const deliveredKeysArr = [];
        for (let item of order.items) {
-           const product = await Product.findById(item.productId);
-           if (product && product.keys.length >= item.quantity) {
-               const itemKeys = [];
-               for(let i=0; i<item.quantity; i++) {
-                   const key = product.keys.shift();
-                   itemKeys.push(key);
-                   deliveredKeysArr.push(key);
-               }
-               item.keys = itemKeys;
-               await product.save();
-           }
+           const prod = await Product.findById(item.productId);
+           if (!prod) continue;
+           
+           // Dispense n keys from the product's keys array
+           const dispensed = prod.keys.splice(0, item.quantity);
+           item.keys = dispensed; // Copy the { value, keyType } objects
+           deliveredKeysArr.push(...dispensed.map(k => k.value)); // For the summary string
+           await prod.save();
        }
        
        order.status = 'success';
        order.deliveredKey = deliveredKeysArr.join(', ');
        if (sessionId) order.stripeSessionId = sessionId;
+
+       // 💳 Fetch Card Info from Stripe if applicable
+       if (sessionId) {
+           try {
+               const session = await stripe.checkout.sessions.retrieve(sessionId, {
+                   expand: ['payment_intent.payment_method']
+               });
+               const paymentMethod = session.payment_intent?.payment_method;
+               if (paymentMethod && paymentMethod.card) {
+                   order.cardLast4 = paymentMethod.card.last4;
+                   order.cardBrand = paymentMethod.card.brand;
+               }
+           } catch (stripeErr) {
+               console.error("Stripe Card Retrieval Error:", stripeErr.message);
+           }
+       }
+
        await order.save();
 
-       // 🤝 REFERRAL REWARD LOGIC
+       // 📧 Send Professional Success Email
        const User = require('../models/User');
        const user = await User.findById(order.user);
+       if (user) {
+           const sendEmail = require('../utils/sendEmail');
+           sendEmail({
+               email: user.email,
+               subject: `Order Success - KeeStore #${order._id.toString().slice(-6)}`,
+               message: 'PLACEHOLDER_INVOICE_TEMPLATE', // Will be replaced by actual template logic in sendEmail
+               order: order // Pass order object for rich templating
+           }).catch(e => console.error("Fulfillment Email Error:", e.message));
+       }
+
+       // 🤝 REFERRAL REWARD LOGIC
        if (user && user.referredBy) {
            const existingOrdersCount = await Order.countDocuments({ user: user._id, status: 'success' });
            if (existingOrdersCount === 1) {
@@ -270,13 +294,8 @@ router.get('/my-orders', auth, async (req, res) => {
 });
 
 // Admin Route: Get Analytics Stats
-router.get('/stats', auth, async (req, res) => {
+router.get('/stats', adminAuth, async (req, res) => {
   try {
-    const User = require('../models/User');
-    const userRole = await User.findById(req.user._id);
-    if (!userRole || userRole.role !== 'admin') {
-       return res.status(403).json({ error: 'Access denied' });
-    }
 
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -319,13 +338,8 @@ router.get('/stats', auth, async (req, res) => {
 });
 
 // Admin Route: Get ALL Orders globally
-router.get('/all', auth, async (req, res) => {
+router.get('/all', adminAuth, async (req, res) => {
   try {
-    const User = require('../models/User');
-    const userRole = await User.findById(req.user._id);
-    if (!userRole || userRole.role !== 'admin') {
-       return res.status(403).json({ error: 'Access denied: Admins only' });
-    }
     const orders = await Order.find().populate('user', 'username email').sort({ createdAt: -1 });
     res.json(orders);
   } catch (error) {
@@ -334,13 +348,8 @@ router.get('/all', auth, async (req, res) => {
 });
 
 // Admin Route: Wipe single order
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', adminAuth, async (req, res) => {
   try {
-    const User = require('../models/User');
-    const userRole = await User.findById(req.user._id);
-    if (!userRole || userRole.role !== 'admin') {
-       return res.status(403).json({ error: 'Access denied' });
-    }
     await Order.findByIdAndDelete(req.params.id);
     res.json({ message: 'Order wiped successfully' });
   } catch (error) {
@@ -349,13 +358,8 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 // Admin Route: Wipe entirely all history
-router.delete('/wipe/all', auth, async (req, res) => {
+router.delete('/wipe/all', adminAuth, async (req, res) => {
   try {
-    const User = require('../models/User');
-    const userRole = await User.findById(req.user._id);
-    if (!userRole || userRole.role !== 'admin') {
-       return res.status(403).json({ error: 'Access denied' });
-    }
     await Order.deleteMany({});
     res.json({ message: 'All transaction history wiped successfully' });
   } catch (error) {

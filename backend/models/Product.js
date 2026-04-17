@@ -8,7 +8,12 @@ const productSchema = new mongoose.Schema({
   saleEndDate: { type: Date }, // ⏱️ New field for Flash Sales
   category: { type: String, default: 'General' },
   imageUrl: { type: String, default: '' },
-  keys: [{ type: String }] // Array of digital keys (text, license, etc.)
+  qrCodeUrl: { type: String, default: '' }, // 🤳 QR code image for the product
+  activationSteps: { type: String, default: '' }, // 📖 Instructions for how to use/activate
+  keys: [{ 
+    value: { type: String }, // The actual key (text or image URL)
+    keyType: { type: String, enum: ['text', 'image'], default: 'text' } 
+  }] 
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

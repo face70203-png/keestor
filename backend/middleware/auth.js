@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-function auth(req, res, next) {
+async function auth(req, res, next) {
   // 🍪 Check Cookie first (HttpOnly) or then Authorization Header (legacy/API)
   let token = req.cookies?.token;
   
@@ -13,6 +13,13 @@ function auth(req, res, next) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
+
+    // 🛡️ SECURITY CHECK: Ensure user is not blocked in real-time
+    const User = require('../models/User');
+    const user = await User.findById(decoded._id).select('isBlocked role');
+    if (!user) return res.status(401).json({ error: 'User account no longer exists.' });
+    if (user.isBlocked) return res.status(403).json({ error: 'Your account has been suspended. Please contact support.' });
+
     next();
   } catch (ex) {
     res.status(400).json({ error: 'Invalid or expired session token.' });
@@ -24,6 +31,15 @@ function adminAuth(req, res, next) {
     if (req.user.role !== 'admin') {
       return res.status(403).json({ error: 'Access denied. Admin only.' });
     }
+
+    // 🛡️ DEMO MODE RESTRICTION
+    if (req.user.email === 'demo@keestore.app') {
+       const restrictedMethods = ['POST', 'PUT', 'DELETE'];
+       if (restrictedMethods.includes(req.method)) {
+          return res.status(403).json({ error: 'you are demo this only for admin' });
+       }
+    }
+
     next();
   });
 }

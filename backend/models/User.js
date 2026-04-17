@@ -9,9 +9,13 @@ const userSchema = new mongoose.Schema({
   referralCode: { type: String, unique: true },
   referredBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   
-  // Security Fields
+  // Security & Status
   isEmailVerified: { type: Boolean, default: false },
   emailVerificationCode: { type: String },
+  verificationCodeExpire: { type: Date }, // ⏱️ New expiry field
+  isBlocked: { type: Boolean, default: false }, // 🚫 Block/Unblock field
+  profilePicture: { type: String, default: '' }, // 👤 User avatar
+  
   resetPasswordToken: { type: String },
   resetPasswordExpire: { type: Date },
   

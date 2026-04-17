@@ -13,9 +13,9 @@ export default function AdminCharts({ stats }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
       {/* Revenue Trend Chart */}
-      <div className="lg:col-span-2 bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
-        <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-          <Activity className="text-[#3b82f6]" size={20}/> 30-Day Revenue Trend
+      <div className="lg:col-span-2 bg-card p-8 rounded-[2rem] border border-theme shadow-sm">
+        <h3 className="text-xl font-black text-theme mb-6 flex items-center gap-2">
+          <Activity className="text-primary" size={20}/> 30-Day Revenue Trend
         </h3>
         <div className="h-[350px] w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -26,12 +26,18 @@ export default function AdminCharts({ stats }) {
                   <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="_id" stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => val.split('-').slice(1).join('/')} />
-              <YAxis stroke="#94a3b8" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
+              <XAxis dataKey="_id" stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} />
+              <YAxis stroke="var(--text-muted)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(val) => `$${val}`} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                labelStyle={{ fontWeight: '800', color: '#1e293b', marginBottom: '4px' }}
+                contentStyle={{ 
+                    backgroundColor: 'var(--bg-card)', 
+                    borderRadius: '16px', 
+                    border: '1px solid var(--border)',
+                    color: 'var(--text)'
+                }}
+                itemStyle={{ color: 'var(--text)' }}
+                labelStyle={{ fontWeight: '800', color: 'var(--text)', marginBottom: '4px' }}
               />
               <Area type="monotone" dataKey="revenue" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorRev)" />
             </AreaChart>
@@ -40,9 +46,9 @@ export default function AdminCharts({ stats }) {
       </div>
 
       {/* Category Distribution Chart */}
-      <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
-        <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-2">
-          <FolderOpen className="text-[#3b82f6]" size={20}/> Revenue by Category
+      <div className="bg-card p-8 rounded-[2rem] border border-theme shadow-sm">
+        <h3 className="text-xl font-black text-theme mb-6 flex items-center gap-2">
+          <FolderOpen className="text-primary" size={20}/> Revenue by Category
         </h3>
         <div className="h-[350px] w-full items-center justify-center flex">
           <ResponsiveContainer width="100%" height="100%">
@@ -56,13 +62,21 @@ export default function AdminCharts({ stats }) {
                 paddingAngle={5}
                 dataKey="revenue"
                 nameKey="_id"
+                stroke="var(--bg-card)"
               >
                 {stats.categoryStats?.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
-              <Legend verticalAlign="bottom" height={36}/>
+              <Tooltip 
+                 contentStyle={{ 
+                    backgroundColor: 'var(--bg-card)', 
+                    borderRadius: '16px', 
+                    border: '1px solid var(--border)',
+                    color: 'var(--text)'
+                }}
+              />
+              <Legend verticalAlign="bottom" height={36} wrapperStyle={{ color: 'var(--text)' }} />
             </PieChart>
           </ResponsiveContainer>
         </div>

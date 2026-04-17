@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { useCurrency } from "../context/CurrencyContext";
+import { useToast } from "../context/ToastContext";
 import { translations } from "../../translations";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
@@ -141,42 +142,92 @@ function DashboardContent() {
       </div>
 
       {tab === 'assets' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
             {orders.length === 0 ? (
-              <div className="col-span-full text-center py-16 bg-slate-50 border border-slate-200 rounded-2xl">
-                 <Package className="mx-auto text-slate-400 mb-4" size={48} />
-                 <h3 className="text-xl font-bold text-slate-900 mb-2">{t.assets.emptyTitle}</h3>
-                 <p className="text-slate-500 font-medium">{t.assets.emptyDesc}</p>
+              <div className="col-span-full text-center py-24 bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[3rem]">
+                 <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-400">
+                    <Package size={40} />
+                 </div>
+                 <h3 className="text-2xl font-black text-slate-900 dark:text-slate-100 mb-2 tracking-tight">{t.assets.emptyTitle}</h3>
+                 <p className="text-slate-500 dark:text-slate-400 font-medium max-w-sm mx-auto">{t.assets.emptyDesc}</p>
+                 <button onClick={()=>router.push('/products')} className="mt-8 bg-primary hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-2xl transition shadow-lg shadow-primary/20">Explore Marketplace</button>
               </div>
             ) : (
                 orders.flatMap(o => o.items.map(item => ({ ...item, orderId: o._id, date: o.createdAt }))).map((item, idx) => (
-                <div key={idx} className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col hover:border-primary transition-colors group">
-                  <div className="flex items-start gap-4 mb-6">
-                    {item.imageUrl && (
-                      <img src={item.imageUrl} alt="" className="w-16 h-16 rounded-xl object-cover" />
-                    )}
-                    <div className="flex-grow">
-                        <h3 className="font-bold text-lg text-slate-900 line-clamp-1">{item.title}</h3>
-                        <p className="text-slate-500 font-medium text-xs">{t.assets.purchased}: {new Date(item.date).toLocaleDateString()}</p>
+                <div key={idx} className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-4 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none flex flex-col group hover:border-primary transition-all duration-500 overflow-hidden relative">
+                  
+                  {/* Premium Header with Image */}
+                  <div className="flex items-center gap-5 p-4 mb-2">
+                    <div className="w-20 h-20 relative shrink-0">
+                       <img src={item.imageUrl || '/placeholder.png'} alt="" className="w-full h-full rounded-[1.5rem] object-cover shadow-lg border-2 border-white dark:border-slate-700" />
+                       <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-white p-1.5 rounded-full border-2 border-white dark:border-slate-800 shadow-sm">
+                          <CheckCircle size={14} />
+                       </div>
+                    </div>
+                    <div className="flex-grow min-w-0">
+                        <h3 className="font-black text-xl text-slate-900 dark:text-slate-100 truncate mb-1">{item.title}</h3>
+                        <div className="flex items-center gap-2">
+                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t.assets.purchased}: {new Date(item.date).toLocaleDateString()}</span>
+                           <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
+                           <span className="text-[10px] font-black text-primary uppercase tracking-widest">Order Verified</span>
+                        </div>
                     </div>
                   </div>
                   
-                  <div className="flex flex-col gap-2">
+                  {/* Keys Container */}
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-5 flex flex-col gap-4 border border-slate-100 dark:border-slate-800/50">
                     {item.keys && item.keys.length > 0 ? (
-                        item.keys.map((key, kIdx) => (
-                            <div key={kIdx} className="bg-slate-50 p-3 rounded-xl border border-slate-200 flex items-center justify-between">
-                                <div className="flex items-center gap-3 overflow-hidden">
-                                     <KeyRound size={16} className="text-primary flex-shrink-0" />
-                                     <span className="text-slate-900 font-mono text-xs tracking-widest truncate font-black">
-                                         {key}
-                                     </span>
-                                </div>
-                                <button className="text-[10px] text-slate-500 hover:text-primary font-bold uppercase transition block" onClick={() => {navigator.clipboard.writeText(key); alert("Copied!");}}>{t.assets.copy}</button>
+                        item.keys.map((keyObj, kIdx) => (
+                            <div key={kIdx} className="flex flex-col gap-4">
+                                
+                                {keyObj.keyType === 'image' ? (
+                                    <div className="bg-white dark:bg-slate-900 p-6 rounded-[1.5rem] border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center gap-4 relative overflow-hidden">
+                                        <div className="absolute top-0 right-0 p-3 opacity-[0.03] text-primary">
+                                            <KeyRound size={80} />
+                                        </div>
+                                        <div className="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-1">Visual Activation Node</div>
+                                        <img src={keyObj.value} alt="QR Key" className="w-48 h-48 rounded-2xl shadow-xl border-4 border-white dark:border-slate-800" />
+                                        <div className="flex gap-3 w-full">
+                                            <a href={keyObj.value} download target="_blank" className="flex-1 bg-slate-900 dark:bg-slate-800 text-white text-xs font-bold py-3 rounded-xl text-center hover:bg-black transition">Download QR</a>
+                                            <button className="flex-1 bg-primary/10 text-primary text-xs font-bold py-3 rounded-xl hover:bg-primary/20 transition" onClick={() => {navigator.clipboard.writeText(keyObj.value); addToast("QR Link copied!", "success");}}>Copy Link</button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="bg-white dark:bg-slate-900 p-5 rounded-[1.5rem] border border-slate-200 dark:border-slate-700 shadow-sm relative group/key">
+                                        <div className="flex justify-between items-center mb-3">
+                                             <div className="flex items-center gap-2">
+                                                  <KeyRound size={14} className="text-primary" />
+                                                  <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Encrypted License Key</span>
+                                             </div>
+                                             <button 
+                                                className="text-[10px] text-primary font-black uppercase bg-primary/5 px-3 py-1.5 rounded-lg hover:bg-primary/10 transition" 
+                                                onClick={() => {navigator.clipboard.writeText(keyObj.value); addToast("Securely copied to clipboard!", "success");}}
+                                             >
+                                                {t.assets.copy}
+                                             </button>
+                                        </div>
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 select-all transition-all group-hover/key:border-primary/30">
+                                            <p className="text-theme font-mono text-sm tracking-[0.1em] font-black break-all text-center leading-relaxed">
+                                                {keyObj.value}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ))
                     ) : (
-                        <p className="text-xs text-amber-600 font-bold bg-amber-50 p-2 rounded-lg border border-amber-100 italic">{t.assets.processing}</p>
+                        <div className="p-6 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-[1.5rem] flex flex-col items-center text-center gap-2">
+                            <Clock className="text-amber-500 animate-pulse" size={24} />
+                            <p className="text-xs text-amber-600 dark:text-amber-400 font-bold tracking-tight uppercase">{t.assets.processing}</p>
+                            <p className="text-[10px] text-amber-600/60 font-medium">Standard fulfillment usually takes 1-5 minutes.</p>
+                        </div>
                     )}
+                  </div>
+
+                  {/* Vault Footer */}
+                  <div className="p-4 flex justify-between items-center text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">
+                      <span>Secure Vault Entry</span>
+                      <span>UID: {item.orderId.toString().slice(-8)}</span>
                   </div>
                 </div>
               ))

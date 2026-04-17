@@ -113,6 +113,22 @@ mongoose.connect(process.env.MONGODB_URI)
       });
       console.log('Admin account created: yassinkhaled193@gmail.com');
     }
+
+    // 2. Create Demo Admin Account if it doesn't exist
+    const demoExists = await User.findOne({ email: 'demo@keestore.app' });
+    if (!demoExists) {
+      console.log('Creating Demo Admin account...');
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash('Guest123456', salt);
+      await User.create({
+         username: 'DemoAdmin',
+         email: 'demo@keestore.app',
+         password: hashedPassword,
+         role: 'admin',
+         isEmailVerified: true 
+      });
+      console.log('Demo Admin account created: demo@keestore.app');
+    }
   })
   .catch(err => console.error('MongoDB connection error:', err));
 

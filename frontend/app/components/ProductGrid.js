@@ -11,12 +11,16 @@ import { useAuth } from "../context/AuthContext";
 import { useWishlist } from "../context/WishlistContext";
 import { translations } from "../../translations";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-export default function ProductGrid() {
+function ProductGridContent() {
+  const searchParams = useSearchParams();
+  const searchQuery = searchParams.get("search") || "";
+  const categoryFilter = searchParams.get("category") || "";
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -53,16 +57,27 @@ export default function ProductGrid() {
   }, [products]);
 
   useEffect(() => {
-    axios.get(`${API_BASE_URL}/api/products`)
+    setLoading(true);
+    // Determine the URL based on search query
+    let url = `${API_BASE_URL}/api/products`;
+    if (searchQuery) {
+        url = `${API_BASE_URL}/api/products/search?q=${searchQuery}`;
+    }
+
+    axios.get(url)
       .then(res => {
-        setProducts(res.data.slice(0, 12));
+        let filtered = res.data;
+        if (categoryFilter && categoryFilter !== "all" && !searchQuery) {
+            filtered = filtered.filter(p => p.category === categoryFilter);
+        }
+        setProducts(filtered);
         setLoading(false);
       })
       .catch(err => {
         console.error(err);
         setLoading(false);
       });
-  }, []);
+  }, [searchQuery, categoryFilter]);
 
   const handleCheckout = async (productId) => {
       if (!user) {
@@ -119,10 +134,11 @@ export default function ProductGrid() {
 
               {/* Discount Badge */}
               {hasDiscount && !isSoldOut && (
-                <div className="absolute top-3 left-3 z-20 flex flex-col gap-2">
-                  <span className="bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-lg text-center">
-                    -{discountPct}% OFF
-                  </span>
+                <div className="absolute top-3 left-3 z-30 flex flex-col gap-2 scale-110 origin-top-left">
+                  <div className="bg-red-600 text-white text-[11px] font-black px-3 py-1 rounded-lg shadow-xl flex items-center gap-1.5 border border-red-400/30">
+                    <Zap size={12} fill="currentColor"/>
+                    <span>-{discountPct}% OFF</span>
+                  </div>
                 </div>
               )}
 
@@ -162,10 +178,15 @@ export default function ProductGrid() {
               </Link>
               
               {/* Pricing row */}
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-lg font-black text-primary">{formatPrice(product.price)}</span>
+              <div className="flex items-center flex-wrap gap-2 mb-3">
+                <span className="text-2xl font-black text-primary">{formatPrice(product.price)}</span>
                 {hasDiscount && (
-                  <span className="text-sm text-slate-400 dark:text-slate-500 line-through">{formatPrice(product.originalPrice)}</span>
+                  <>
+                    <span className="text-sm text-slate-400 dark:text-slate-500 line-through decoration-red-500/50">{formatPrice(product.originalPrice)}</span>
+                    <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
+                       Save {formatPrice(product.originalPrice - product.price)}
+                    </span>
+                  </>
                 )}
               </div>
 
@@ -197,4 +218,12 @@ export default function ProductGrid() {
       })}
     </div>
   );
+}
+
+export default function ProductGrid() {
+    return (
+        <Suspense fallback={<div className="p-10 text-center">Loading Marketplace...</div>}>
+            <ProductGridContent />
+        </Suspense>
+    );
 }

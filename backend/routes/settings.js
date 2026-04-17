@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const { auth } = require('../middleware/auth');
+const { auth, adminAuth } = require('../middleware/auth');
 
 const fs = require('fs');
 
@@ -18,11 +18,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-router.post('/logo', auth, upload.single('logo'), async (req, res) => {
+router.post('/logo', adminAuth, upload.single('logo'), async (req, res) => {
     try {
-        const User = require('../models/User');
-        const u = await User.findById(req.user._id);
-        if(!u || u.role !== 'admin') return res.status(403).json({error: 'Forbidden'});
 
         res.json({ success: true, message: 'Logo successfully updated. Refresh the page to see changes.' });
     } catch(err) {

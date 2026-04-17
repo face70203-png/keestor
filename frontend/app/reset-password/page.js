@@ -24,16 +24,29 @@ function ResetContent() {
         setLoading(true);
         try {
             await axios.post(`${API_BASE_URL}/api/auth/reset-password`, { token, newPassword: password });
-            addToast("Password physically reset! Access restored.", "success");
+            addToast("Your password has been successfully reset. Access restored.", "success");
             router.push("/login");
         } catch(err) {
-            addToast(err.response?.data?.error || "Token expired or invalid", "error");
+            const errorMsg = err.response?.data?.error || "Expired or invalid link.";
+            addToast(errorMsg, "error");
+            
+            // 🛡️ Redirect to forgot password after 2 seconds if token is expired
+            if (errorMsg.includes("expired") || errorMsg.includes("invalid")) {
+                setTimeout(() => router.push("/forgot-password"), 2000);
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    if (!token) return <div className="text-center mt-20 text-slate-500 font-bold">Invalid Reset Request. Token Missing.</div>;
+    if (!token) {
+        return (
+            <div className="text-center p-10 bg-card border border-theme rounded-[2rem] shadow-xl">
+                 <p className="text-theme font-black text-xl mb-4">Invalid Reset Link</p>
+                 <button onClick={() => router.push("/forgot-password")} className="text-primary font-bold hover:underline">Request a new link</button>
+            </div>
+        );
+    }
 
     return (
         <div className="bg-white p-8 md:p-12 rounded-[2rem] shadow-xl border border-slate-200 w-full max-w-md">

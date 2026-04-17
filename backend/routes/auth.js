@@ -87,21 +87,23 @@ router.post('/register', async (req, res) => {
     
     // Generate 6-digit verification code
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationCodeExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
 
     const user = new User({ 
         username, email, password: hashedPassword, role, referralCode, referredBy,
         emailVerificationCode: verificationCode,
+        verificationCodeExpire,
         isEmailVerified: false
     });
     
     await user.save();
 
     // Send Verification Email
-        sendEmail({
-            email: user.email,
-            subject: 'Verify your KeeStore Email',
-            message: `<h1>Welcome to KeeStore!</h1><p>Your verification code is: <b style="font-size:24px; color: #3b82f6;">${verificationCode}</b></p>`
-        }).catch(e => console.error("Background Email Error (Register):", e.message));
+    sendEmail({
+        email: user.email,
+        subject: 'Verify your KeeStore Email',
+        message: `<h1>Welcome to KeeStore!</h1><p>Your verification code is: <b style="font-size:24px; color: #3b82f6;">${verificationCode}</b></p><p>This code will expire in 10 minutes.</p>`
+    }).catch(e => console.error("Background Email Error (Register):", e.message));
 
     res.status(201).json({ message: 'User registered. Check your email for verification code.', userId: user._id });
   } catch (error) {
@@ -149,11 +151,17 @@ router.post('/verify-email', async (req, res) => {
             user.otpAttempts += 1;
             if (user.otpAttempts >= 3) {
                 user.emailVerificationCode = undefined;
+                user.verificationCodeExpire = undefined;
                 await user.save();
                 return res.status(400).json({ error: 'Too many failed attempts. Request a new code.' });
             }
             await user.save();
             return res.status(400).json({ error: 'Invalid verification code' });
+        }
+
+        // Check expiry
+        if (user.verificationCodeExpire < Date.now()) {
+            return res.status(400).json({ error: 'Verification code has expired. Please request a new one.' });
         }
 
         user.isEmailVerified = true;
@@ -182,7 +190,12 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: 'Invalid email or password' });
 
-    // 🔒 Check if account is locked
+    // 🔒 Check if account is blocked
+    if (user.isBlocked) {
+        return res.status(403).json({ error: 'Your account has been suspended. Please contact support.' });
+    }
+
+    // 🔒 Check if account is locked (brute force protection)
     if (user.lockUntil && user.lockUntil > Date.now()) {
         const remaining = Math.round((user.lockUntil - Date.now()) / 60000);
         return res.status(403).json({ error: `Account locked. Try again in ${remaining} minutes.` });
@@ -205,20 +218,34 @@ router.post('/login', async (req, res) => {
     await user.save();
 
     if (!user.isEmailVerified) {
-        // Enforce 2-min cooldown for verification email resends
-        if (user.lastOtpSent && (Date.now() - user.lastOtpSent) < 2 * 60 * 1000) {
-            return res.status(429).json({ error: 'Please wait 2 minutes before requesting a new code.' });
+        // 🛡️ Logic for resending same code or new code
+        let verificationCode = user.emailVerificationCode;
+        let isNewCode = false;
+
+        if (!verificationCode || (user.verificationCodeExpire && user.verificationCodeExpire < Date.now())) {
+            // Code expired or doesn't exist, create a new one
+            verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+            user.emailVerificationCode = verificationCode;
+            user.verificationCodeExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+            user.otpAttempts = 0;
+            isNewCode = true;
+        }
+
+        // Enforce cooldown only for sending (same or new)
+        if (user.lastOtpSent && (Date.now() - user.lastOtpSent) < 1 * 60 * 1000) {
+            return res.status(429).json({ error: 'Please wait 1 minute before requesting another email.' });
         }
         
-        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-        user.emailVerificationCode = verificationCode;
-        user.otpAttempts = 0; // Reset OTP attempts for new code
         user.lastOtpSent = Date.now();
         await user.save();
         
-        sendEmail({ email: user.email, subject: 'Verify your KeeStore Email', message: `<p>Your verification code is: <b>${verificationCode}</b></p>` }).catch(e => console.error("Background Email Error (Login Verify):", e.message));
+        sendEmail({ 
+            email: user.email, 
+            subject: 'Verify your KeeStore Email', 
+            message: `<p>Your verification code is: <b>${verificationCode}</b></p><p>Expires in 10 minutes.</p>` 
+        }).catch(e => console.error("Background Email Error (Login Verify):", e.message));
         
-        return res.json({ requiresEmailVerification: true, userId: user._id });
+        return res.json({ requiresEmailVerification: true, userId: user._id, message: isNewCode ? 'New code sent.' : 'Code resent. Check your inbox.' });
     }
 
     if (user.twoFactorEnabled) {

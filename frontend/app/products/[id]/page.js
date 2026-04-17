@@ -58,30 +58,8 @@ export default function ProductDetailPage() {
 
   const { user } = useAuth();
 
-  const handleSubmitReview = async (e) => {
-    e.preventDefault();
-    if (!user) return addToast("Please login to leave a review", "error");
-    
-    setSubmittingReview(true);
-    try {
-      await axios.post(`${API_BASE_URL}/api/reviews`, {
-        productId: id,
-        rating: newRating,
-        comment: newComment
-      });
-      
-      addToast("Review submitted successfully!");
-      setNewComment("");
-      fetchReviews();
-    } catch (err) {
-      addToast(err.response?.data?.error || "Failed to submit review", "error");
-    } finally {
-      setSubmittingReview(false);
-    }
-  };
-
-  if (loading) return <div className="py-20 text-center text-slate-500">Loading digital asset...</div>;
-  if (!product) return <div className="py-20 text-center text-slate-500">Product not found.</div>;
+  if (loading) return <div className="py-20 text-center text-theme-muted">Loading digital asset...</div>;
+  if (!product) return <div className="py-20 text-center text-theme-muted">Product not found.</div>;
 
   const avgRating = reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1) : 0;
 
@@ -93,82 +71,129 @@ export default function ProductDetailPage() {
   };
 
   return (
-    <div className="py-10 max-w-6xl mx-auto" dir={dir}>
-      <Link href="/products" className="text-slate-500 hover:text-slate-900 font-bold flex items-center gap-2 mb-8 transition-colors w-fit">
+    <div className="py-10 max-w-6xl mx-auto px-4" dir={dir}>
+      <Link href="/products" className="text-theme-muted hover:text-theme font-bold flex items-center gap-2 mb-8 transition-colors w-fit">
          <ArrowLeft size={20} className={lang === 'ar' ? 'rotate-180' : ''} /> {lang === 'ar' ? 'العودة للمتجر' : 'Back to Catalog'}
       </Link>
       
-      <div className="bg-white rounded-[2rem] border border-slate-200 shadow-xl overflow-hidden flex flex-col md:flex-row">
+      <div className="bg-card rounded-[2.5rem] border border-theme shadow-2xl overflow-hidden flex flex-col md:flex-row">
          
          {/* Image Section */}
-         <div className="w-full md:w-1/2 bg-slate-50 relative min-h-[400px]">
+         <div className="w-full md:w-5/12 bg-subtle relative min-h-[400px]">
              <img src={product.imageUrl} alt={product.title} className={`absolute inset-0 w-full h-full object-cover ${product.keys?.length === 0 ? 'grayscale opacity-80' : ''}`} />
-             <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full text-slate-900 font-black shadow-sm uppercase text-xs z-20">
+             <div className="absolute top-6 left-6 bg-glass dark:bg-slate-900/80 backdrop-blur-md px-4 py-1.5 rounded-full text-theme font-black shadow-sm uppercase text-[10px] tracking-widest z-20 border border-theme">
                  {product.category || 'General Asset'}
              </div>
              {product.keys?.length === 0 && (
-                 <div className="absolute inset-0 flex items-center justify-center z-30 bg-slate-900/40 backdrop-blur-sm">
-                      <div className="bg-red-500/90 text-white font-black text-3xl px-8 py-3 rounded-xl transform -rotate-12 border-4 border-red-400 shadow-2xl backdrop-blur-md">
-                           {t.soldOut}
-                      </div>
-                 </div>
+                  <div className="absolute inset-0 flex items-center justify-center z-30 bg-slate-900/40 backdrop-blur-sm">
+                       <div className="bg-red-500 text-white font-black text-3xl px-8 py-3 rounded-2xl transform -rotate-12 border-4 border-red-400 shadow-2xl">
+                            {t.soldOut}
+                       </div>
+                  </div>
              )}
          </div>
 
          {/* Details Section */}
-         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col">
-             <h1 className="text-4xl font-black text-slate-900 leading-tight mb-2">{product.title}</h1>
+         <div className="w-full md:w-7/12 p-8 md:p-14 flex flex-col">
+             <div className="flex justify-between items-start gap-4 mb-4">
+                 <h1 className="text-4xl md:text-5xl font-black text-theme leading-[1.1] tracking-tighter">{product.title}</h1>
+                 <button 
+                    onClick={() => {
+                        navigator.clipboard.writeText(window.location.href);
+                        addToast("Link copied to clipboard!", "success");
+                    }} 
+                    className="p-3 bg-subtle text-theme-muted hover:text-primary hover:bg-primary/10 rounded-2xl transition-all shrink-0"
+                    title="Share Link"
+                 >
+                     <Icons.Share2 size={20} />
+                 </button>
+             </div>
              
-             <div className="flex items-center gap-2 mb-4">
-                 <div className="flex items-center">
+             <div className="flex items-center gap-3 mb-6">
+                 <div className="flex items-center gap-0.5">
                      {[1,2,3,4,5].map(star => (
-                       <svg key={star} className={`w-5 h-5 ${star <= Math.round(avgRating) ? 'text-yellow-400' : 'text-slate-200'}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                       <svg key={star} className={`w-5 h-5 ${star <= Math.round(avgRating) ? 'text-yellow-400' : 'text-slate-200 dark:text-slate-700'}`} fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                      ))}
                  </div>
-                 <span className="text-sm font-bold text-slate-500">{avgRating > 0 ? `${avgRating} Rating` : (lang === 'ar' ? 'لا توجد تقييمات' : 'No reviews yet')} • {reviews.length} {lang === 'ar' ? 'تقييم' : 'Reviews'}</span>
+                 <span className="text-sm font-bold text-theme-muted">{avgRating > 0 ? `${avgRating} Rating` : (lang === 'ar' ? 'لا توجد تقييمات' : 'No reviews yet')} • {reviews.length} {lang === 'ar' ? 'تقييم' : 'Reviews'}</span>
              </div>
 
-             <p className="text-3xl font-black text-primary mb-6">{formatPrice(product.price)}</p>
-
-             <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 mb-8">
-                 <h3 className="font-bold text-slate-900 mb-2">{t.description}</h3>
-                 <p className="text-slate-600 leading-relaxed text-sm whitespace-pre-wrap font-medium">{product.description}</p>
+             <div className="flex items-center flex-wrap gap-4 mb-8">
+                <p className="text-5xl font-black text-primary tracking-tighter">{formatPrice(product.price)}</p>
+                {product.originalPrice && product.originalPrice > product.price && (
+                    <div className="flex items-center gap-3">
+                        <p className="text-2xl text-theme-muted line-through opacity-40 decoration-red-500/50">{formatPrice(product.originalPrice)}</p>
+                        <div className="bg-red-600 text-white px-4 py-1.5 rounded-2xl text-[12px] font-black flex items-center gap-2 shadow-lg shadow-red-500/20 animate-pulse">
+                            <Zap size={14} fill="currentColor"/>
+                            <span>SALE: SAVE {formatPrice(product.originalPrice - product.price)}</span>
+                        </div>
+                    </div>
+                )}
              </div>
 
-             <div className="flex flex-col gap-3 mb-8">
-                 <div className="flex items-center gap-3 text-slate-600 text-sm font-bold">
-                     <ShieldCheck className="text-emerald-500" size={20}/> {lang === 'ar' ? 'خالٍ من الفيروسات بنسبة 100٪ وموثق' : '100% Virus-Free & Verified'}
+             <div className="space-y-6 mb-10">
+                <div className="bg-subtle/50 p-6 rounded-3xl border border-theme">
+                    <h3 className="font-black text-theme text-xs uppercase tracking-[0.2em] mb-4 opacity-40">{t.description}</h3>
+                    <p className="text-theme-muted leading-relaxed text-base whitespace-pre-wrap font-medium">{product.description}</p>
+                </div>
+
+                {product.activationSteps && (
+                    <div className="glass-dark p-8 rounded-3xl border border-primary/20 relative overflow-hidden group">
+                        <div className="absolute -right-4 -top-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                            <Icons.Activity size={120} />
+                        </div>
+                        <h3 className="font-black text-primary text-xs uppercase tracking-[0.2em] mb-4">Activation Protocol</h3>
+                        <p className="text-theme font-medium text-sm leading-relaxed relative z-10">{product.activationSteps}</p>
+                    </div>
+                )}
+             </div>
+
+             {product.qrCodeUrl && (
+                <div className="mb-10 flex items-center gap-6 p-6 bg-slate-900 text-white rounded-[2rem] shadow-xl border border-white/5">
+                    <div className="bg-white p-2 rounded-2xl shrink-0">
+                        <img src={product.qrCodeUrl} alt="QR Code" className="w-24 h-24" />
+                    </div>
+                    <div>
+                        <h4 className="font-black text-lg mb-1 tracking-tight">Direct Node Activation</h4>
+                        <p className="text-slate-400 text-xs font-medium leading-relaxed">Scan this secure entry point to instantly authenticate your asset through our global network.</p>
+                    </div>
+                </div>
+             )}
+
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+                 <div className="flex items-center gap-3 text-theme-muted text-sm font-bold">
+                     <Icons.ShieldCheck className="text-emerald-500" size={20}/> {lang === 'ar' ? 'خالٍ من الفيروسات بنسبة 100٪' : '100% Virus-Free & Verified'}
                  </div>
-                 <div className="flex items-center gap-3 text-slate-600 text-sm font-bold">
-                     <Zap className="text-blue-500" size={20}/> {lang === 'ar' ? 'تسليم رقمي فوري عبر الخزنة' : 'Instant Digital Delivery via Vault'}
+                 <div className="flex items-center gap-3 text-theme-muted text-sm font-bold">
+                     <Icons.Zap className="text-blue-500" size={20}/> {lang === 'ar' ? 'تسليم رقمي فوري' : 'Instant Digital Delivery'}
                  </div>
-                 <div className="flex items-center gap-3 text-slate-600 text-sm font-bold">
-                     <PackageOpen className="text-indigo-500" size={20}/> {lang === 'ar' ? 'وصول كامل لمدى الحياة' : 'Complete Lifetime Access'}
+                 <div className="flex items-center gap-3 text-theme-muted text-sm font-bold">
+                     <Icons.Layers className="text-indigo-500" size={20}/> {lang === 'ar' ? 'وصول كامل لمدى الحياة' : 'Complete Lifetime Access'}
                  </div>
-                 <div className="flex items-center gap-3 text-slate-600 text-sm font-bold">
-                     <ShoppingCart className="text-orange-500" size={20}/> {product.keys?.length > 0 ? <span className="text-emerald-600">{lang === 'ar' ? 'متوفر' : 'In Stock'} ({product.keys?.length} {lang === 'ar' ? 'متبقي' : 'Left'})</span> : <span className="text-red-500">{lang === 'ar' ? 'غير متوفر' : 'Out of Stock'}</span>}
+                 <div className="flex items-center gap-3 text-theme-muted text-sm font-bold">
+                     <Icons.ShoppingCart className="text-orange-500" size={20}/> {product.keys?.length > 0 ? <span className="text-emerald-600 font-black">{lang === 'ar' ? 'متوفر' : 'In Stock'} ({product.keys?.length})</span> : <span className="text-red-500">{lang === 'ar' ? 'غير متوفر' : 'Out of Stock'}</span>}
                  </div>
              </div>
 
-             <div className="mt-auto flex gap-4">
-                 <div className="flex items-center bg-slate-100 rounded-xl p-2 border border-slate-200">
-                     <button onClick={()=>setQty(Math.max(1, qty-1))} className="w-10 h-10 flex items-center justify-center font-black text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition-colors">-</button>
-                     <span className="w-12 text-center font-black text-slate-900">{qty}</span>
-                     <button onClick={()=>setQty(qty+1)} className="w-10 h-10 flex items-center justify-center font-black text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded-lg transition-colors">+</button>
+             <div className="mt-auto flex flex-col sm:flex-row gap-4">
+                 <div className="flex items-center bg-subtle rounded-2xl p-1.5 border border-theme">
+                     <button onClick={()=>setQty(Math.max(1, qty-1))} className="w-12 h-12 flex items-center justify-center font-black text-theme hover:bg-card rounded-xl transition-all shadow-sm">-</button>
+                     <span className="w-14 text-center font-black text-theme text-lg">{qty}</span>
+                     <button onClick={()=>setQty(qty+1)} className="w-12 h-12 flex items-center justify-center font-black text-theme hover:bg-card rounded-xl transition-all shadow-sm">+</button>
                  </div>
                  <button 
                   onClick={handleAddToCart}
                   disabled={product.keys?.length === 0}
-                  className="flex-grow bg-slate-900 hover:bg-black shadow-lg text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 transition-colors disabled:opacity-50"
+                  className="flex-grow bg-slate-900 dark:bg-slate-800 hover:scale-[1.02] active:scale-95 shadow-xl text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 transition-all disabled:opacity-50"
                  >
-                     <ShoppingCart size={20}/> {product.keys?.length === 0 ? t.soldOut : t.addToCart}
+                     <Icons.ShoppingCart size={20}/> {product.keys?.length === 0 ? t.soldOut : t.addToCart}
                  </button>
                  <button 
                   onClick={() => router.push(`/checkout?product_id=${product._id}`)}
                   disabled={product.keys?.length === 0}
-                  className="flex-grow bg-primary hover:bg-blue-700 shadow-lg text-white font-bold py-4 rounded-xl flex items-center justify-center gap-3 transition-colors disabled:opacity-50"
+                  className="flex-grow bg-primary hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/20 text-white font-black py-4 rounded-2xl flex items-center justify-center gap-3 transition-all disabled:opacity-50"
                  >
-                     {t.buyNow}
+                     <Icons.Zap size={20} /> {t.buyNow}
                  </button>
              </div>
          </div>

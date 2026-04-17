@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Ticket = require('../models/Ticket');
-const { auth } = require('../middleware/auth');
+const { auth, adminAuth } = require('../middleware/auth');
 
 // Create Ticket (User)
 router.post('/', auth, async (req, res) => {
@@ -40,11 +40,8 @@ router.put('/:id/user-reply', auth, async (req, res) => {
 });
 
 // Admin ONLY: Get All Tickets
-router.get('/all', auth, async (req, res) => {
+router.get('/all', adminAuth, async (req, res) => {
     try {
-        const User = require('../models/User');
-        const u = await User.findById(req.user._id);
-        if (!u || u.role !== 'admin') return res.status(403).json({ error: 'Admins only' });
 
         const tickets = await Ticket.find().populate('user', 'username email').sort({ createdAt: -1 });
         res.json(tickets);
@@ -52,11 +49,8 @@ router.get('/all', auth, async (req, res) => {
 });
 
 // Admin ONLY: Reply to Ticket
-router.put('/:id/reply', auth, async (req, res) => {
+router.put('/:id/reply', adminAuth, async (req, res) => {
     try {
-        const User = require('../models/User');
-        const u = await User.findById(req.user._id);
-        if (!u || u.role !== 'admin') return res.status(403).json({ error: 'Admins only' });
 
         const ticket = await Ticket.findById(req.params.id);
         if (!ticket) return res.status(404).json({ error: 'Not found' });

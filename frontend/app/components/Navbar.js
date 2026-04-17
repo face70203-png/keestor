@@ -27,9 +27,12 @@ export default function Navbar() {
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isCurrencyPickerOpen, setIsCurrencyPickerOpen] = useState(false);
+  const [isSearchOverlayOpen, setIsSearchOverlayOpen] = useState(false);
   const [currencySearch, setCurrencySearch] = useState("");
   const searchRef = useRef(null);
+  const profileRef = useRef(null);
 
   const cartItemsCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -38,6 +41,9 @@ export default function Navbar() {
     const handleClickOutside = (event) => {
       if (searchRef.current && !searchRef.current.contains(event.target)) {
         setShowResults(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setIsProfileDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -85,8 +91,7 @@ export default function Navbar() {
               </div>
           </div>
         </Link>
-        
-        {/* 📱 Mobile Menu Trigger */}
+               {/* 📱 Mobile Menu Trigger */}
         <button onClick={() => setIsMenuOpen(true)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
             <Menu size={24} />
         </button>
@@ -106,7 +111,8 @@ export default function Navbar() {
              {searchQuery && (
                <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-colors text-slate-400 hover:text-slate-600">
                  <X size={14} />
-               </button>
+               </button>           
+
              )}
           </div>
 
@@ -235,6 +241,11 @@ export default function Navbar() {
               )}
             </button>
 
+             {/* 🔍 Mobile Search Trigger */}
+            <button onClick={() => setIsSearchOverlayOpen(true)} className="lg:hidden p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-300">
+                <Search size={22} />
+            </button>
+
             {/* 🛒 Cart */}
             <Link href="/cart" className="relative flex items-center justify-center p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-300">
               <ShoppingCart size={22} />
@@ -247,26 +258,64 @@ export default function Navbar() {
         </div>
         
         {!loading && user ? (
-          <>
-             {user.role === 'admin' ? (
-                 <Link href="/admin" className="text-primary hover:text-blue-700 font-bold transition-colors flex items-center gap-2">
-                   <ShieldCheck size={20} />
-                   <span className="hidden sm:inline">Admin</span>
-                 </Link>
-             ) : (
-                 <Link href="/dashboard" className="text-slate-600 dark:text-slate-300 hover:text-primary font-medium transition-colors flex items-center gap-2">
-                   <LayoutDashboard size={20} />
-                   <span className="hidden sm:inline">{t.dashboard}</span>
-                 </Link>
-             )}
-            
-            <div className="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 rounded-full pl-4 pr-1 py-1 border border-slate-200 dark:border-slate-700 shadow-sm shrink-0">
-               <span className="text-sm font-bold text-slate-800 dark:text-slate-200">{user.username}</span>
-               <button onClick={logout} className="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center hover:bg-red-200 dark:hover:bg-red-900/60 transition-colors" title="Logout">
-                 <LogOut size={16} strokeWidth={2.5} />
-               </button>
-            </div>
-          </>
+          <div className="flex items-center gap-3 relative" ref={profileRef}>
+            {/* 👤 Profile Trigger */}
+            <button 
+              onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
+              className="flex items-center gap-2 p-1 pr-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-full transition-all border border-slate-200 dark:border-slate-700 group"
+            >
+              <div className="w-8 h-8 rounded-full overflow-hidden bg-primary border-2 border-white dark:border-slate-900 shadow-sm relative">
+                {user.profilePicture ? (
+                  <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-white text-xs font-black">
+                    {user.username?.charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
+              <span className="text-xs font-black text-slate-700 dark:text-slate-200 hidden md:inline group-hover:text-primary transition-colors">{user.username}</span>
+            </button>
+
+            {/* 🔽 Profile Dropdown */}
+            {isProfileDropdownOpen && (
+              <div className="absolute top-full right-0 mt-3 w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] shadow-2xl p-2 z-[60] animate-in slide-in-from-top-2 duration-200">
+                <div className="px-5 py-4 mb-2 border-b border-slate-100 dark:border-slate-800">
+                  <p className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Identity Verified</p>
+                  <p className="text-sm font-black truncate text-slate-900 dark:text-white">{user.username}</p>
+                  <p className="text-[11px] font-medium text-slate-400 truncate">{user.email}</p>
+                </div>
+                
+                <div className="space-y-1">
+                  <Link href="/dashboard" onClick={() => setIsProfileDropdownOpen(false)} className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 group transition-all">
+                    <div className="flex items-center gap-3">
+                      <LayoutDashboard size={18} className="text-slate-400 group-hover:text-primary transition-colors" />
+                      <span className="text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white">{lang === 'ar' ? 'لوحة التحكم' : 'Client Area'}</span>
+                    </div>
+                    <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </Link>
+                  
+                  <Link href="/dashboard/settings" onClick={() => setIsProfileDropdownOpen(false)} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 group transition-all">
+                    <Settings size={18} className="text-slate-400 group-hover:text-primary transition-colors" />
+                    <span className="text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white">{lang === 'ar' ? 'الإعدادات' : 'Security Settings'}</span>
+                  </Link>
+  
+                  {user.role === 'admin' && (
+                    <Link href="/admin" onClick={() => setIsProfileDropdownOpen(false)} className="flex items-center gap-3 p-3 rounded-2xl bg-primary/5 text-primary hover:bg-primary/10 group transition-all">
+                      <ShieldCheck size={18} className="group-hover:scale-110 transition-transform" />
+                      <span className="text-sm font-black italic">COMMAND CENTER</span>
+                    </Link>
+                  )}
+                </div>
+
+                <div className="h-px bg-slate-100 dark:bg-slate-800 my-2 mx-2" />
+                
+                <button onClick={logout} className="w-full flex items-center gap-3 p-3 rounded-2xl hover:bg-red-50 dark:hover:bg-red-950/30 group transition-all">
+                  <LogOut size={18} className="text-red-400 group-hover:text-red-600" />
+                  <span className="text-sm font-bold text-red-500 group-hover:text-red-700">Terminate Session</span>
+                </button>
+              </div>
+            )}
+          </div>
         ) : !loading ? (
           <div className="flex items-center gap-4 shrink-0">
             <Link href="/login" className="text-slate-600 dark:text-slate-300 hover:text-primary font-bold flex items-center gap-2 transition-colors">
@@ -279,6 +328,69 @@ export default function Navbar() {
         ) : null}
       </div>
     </nav>
+
+    {/* 🔍 Fullscreen Search Overlay (Mobile/Tablet) */}
+    {isSearchOverlayOpen && (
+       <div className="fixed inset-0 z-[200] bg-white dark:bg-slate-950 flex flex-col animate-in fade-in zoom-in-95 duration-200">
+          <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center gap-4">
+             <div className="relative flex-grow">
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-primary" />
+                <input 
+                  autoFocus
+                  type="text" 
+                  placeholder={lang === 'ar' ? 'ابحث عن أي شيء...' : 'Search for anything...'}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-slate-100 dark:bg-slate-900 border-none rounded-2xl py-3 pl-12 pr-4 text-slate-900 dark:text-white font-bold outline-none ring-2 ring-primary/10"
+                />
+             </div>
+             <button onClick={() => setIsSearchOverlayOpen(false)} className="p-3 bg-slate-100 dark:bg-slate-800 rounded-2xl font-black text-xs uppercase text-slate-500">
+                {lang === 'ar' ? 'إغلاق' : 'Close'}
+             </button>
+          </div>
+          <div className="flex-grow overflow-y-auto p-4">
+             {isSearching ? (
+                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                   <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                   <p className="font-black text-slate-400 text-xs uppercase tracking-widest">Searching Ecosystem...</p>
+                </div>
+             ) : searchResults.length > 0 ? (
+                <div className="space-y-4">
+                   {searchResults.map(p => (
+                      <Link key={p._id} href={`/products/${p._id}`} onClick={() => setIsSearchOverlayOpen(false)} className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-slate-800">
+                         <div className="w-16 h-16 rounded-2xl overflow-hidden bg-slate-200">
+                            <img src={p.imageUrl} alt="" className="w-full h-full object-cover" />
+                         </div>
+                         <div className="flex-grow">
+                            <h4 className="font-black text-slate-900 dark:text-white text-sm leading-tight mb-1">{p.title}</h4>
+                            <div className="flex items-center gap-2">
+                               <span className="text-sm font-black text-primary">{formatPrice(p.price)}</span>
+                               <span className="text-[10px] font-bold text-slate-400 uppercase">{p.category}</span>
+                            </div>
+                         </div>
+                      </Link>
+                   ))}
+                </div>
+             ) : searchQuery.length > 1 ? (
+                <div className="py-20 text-center">
+                   <p className="font-black text-slate-300 dark:text-slate-700 text-4xl uppercase tracking-tighter mb-2 italic">No Result</p>
+                   <p className="text-slate-500 text-sm font-bold">Try searching for Cars, Scripts, or Maps</p>
+                </div>
+             ) : (
+                <div className="py-10">
+                   <h5 className="font-black text-[10px] text-slate-400 uppercase tracking-widest mb-6 px-2">Popular Searches</h5>
+                   <div className="flex flex-wrap gap-2">
+                      {['Scripts', 'Cars', 'Maps', 'Packages', 'Keys'].map(tag => (
+                         <button key={tag} onClick={() => setSearchQuery(tag)} className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-full font-bold text-sm text-slate-600 dark:text-slate-300">
+                            {tag}
+                         </button>
+                      ))}
+                   </div>
+                </div>
+             )}
+          </div>
+       </div>
+    )}
 
     {/* 📱 Mobile Drawer Overlay */}
     {isMenuOpen && (
@@ -302,6 +414,30 @@ export default function Navbar() {
                       className="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-2xl py-3 pl-12 focus:ring-2 focus:ring-primary/20 text-sm"
                     />
                 </div>
+
+                 {user && (
+                    <div className="bg-subtle p-6 rounded-[2rem] border border-theme mb-8" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="w-14 h-14 rounded-full overflow-hidden bg-primary border-2 border-white dark:border-slate-800 shadow-xl">
+                                {user.profilePicture ? (
+                                    <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-white text-xl font-black">
+                                        {user.username?.charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+                            </div>
+                            <div>
+                                <h4 className="font-black text-theme truncate w-32">{user.username}</h4>
+                                <p className="text-xs font-bold text-primary uppercase tracking-widest">{user.role}</p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                             <Link href="/dashboard" className="bg-card p-3 rounded-2xl text-center text-xs font-black shadow-sm border border-theme">DASHBOARD</Link>
+                             <Link href="/dashboard/settings" className="bg-card p-3 rounded-2xl text-center text-xs font-black shadow-sm border border-theme">SETTINGS</Link>
+                        </div>
+                    </div>
+                )}
 
                 <Link href="/" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 font-bold transition-colors">
                     <Key size={20} className="text-primary"/>

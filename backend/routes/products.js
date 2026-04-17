@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
-const { auth } = require('../middleware/auth');
+const { auth, adminAuth } = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -96,7 +96,7 @@ router.get('/search', async (req, res) => {
 
     const products = await Product.find({
       title: { $regex: query, $options: 'i' }
-    }).limit(10).select('title price imageUrl category');
+    }).select('title price imageUrl category keys saleEndDate');
 
     res.json(products);
   } catch (error) {
@@ -106,14 +106,8 @@ router.get('/search', async (req, res) => {
 
 // Admin ONLY routes
 // Add a target product
-router.post('/', auth, upload.single('image'), async (req, res) => { // Upload single image field
+router.post('/', adminAuth, upload.single('image'), async (req, res) => { // Upload single image field
   try {
-    const User = require('../models/User');
-    const userRole = await User.findById(req.user._id);
-    if (!userRole || userRole.role !== 'admin') {
-       return res.status(403).json({ error: 'Access denied: Admins only' });
-    }
-    
     // Check if req.file exists
     let finalizedImageUrl = req.body.imageUrl || '';
     if (req.file) {
@@ -149,41 +143,46 @@ router.post('/', auth, upload.single('image'), async (req, res) => { // Upload s
 });
 
 // Add keys to a product (Admin only)
-router.post('/:id/keys', auth, async (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
+router.post('/:id/keys', adminAuth, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
     
-    // keys expected to be an array of strings
-    if (Array.isArray(req.body.keys)) {
-       product.keys = [...product.keys, ...req.body.keys];
-       await product.save();
-       clearPCache();
-       res.json(product);
-    } else {
-       res.status(400).json({ error: 'Keys must be an array' });
-    }
+     // keys expected to be an array of { value, keyType } or strings
+     if (Array.isArray(req.body.keys)) {
+        const processedKeys = req.body.keys.map(k => {
+            if (typeof k === 'string') return { value: k, keyType: 'text' };
+            return k; // Assume already { value, keyType }
+        });
+        product.keys = [...product.keys, ...processedKeys];
+        await product.save();
+        clearPCache();
+        res.json(product);
+     } else {
+        res.status(400).json({ error: 'Keys must be an array' });
+     }
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
 });
 
 // Overwrite all keys for a product (Admin only)
-router.put('/:id/keys/overwrite', auth, async (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
+router.put('/:id/keys/overwrite', adminAuth, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
     
-    // Overwrite the keys array completely
     if (Array.isArray(req.body.keys)) {
-        product.keys = req.body.keys.map(k => k.trim()).filter(k => k !== "");
+        const processedKeys = req.body.keys.map(k => {
+            if (typeof k === 'string') return { value: k, keyType: 'text' };
+            return k;
+        });
+        product.keys = processedKeys;
         await product.save();
         clearPCache();
         res.json(product);
     } else {
-       res.status(400).json({ error: 'Keys must be an array' });
+        res.status(400).json({ error: 'Keys must be an array' });
     }
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -191,8 +190,7 @@ router.put('/:id/keys/overwrite', auth, async (req, res) => {
 });
 
 // Update Product
-router.put('/:id', auth, upload.single('image'), async (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
+router.put('/:id', adminAuth, upload.single('image'), async (req, res) => {
   try {
     const updateData = { ...req.body };
     if (req.file) {
@@ -214,8 +212,7 @@ router.put('/:id', auth, upload.single('image'), async (req, res) => {
 });
 
 // Delete product
-router.delete('/:id', auth, async (req, res) => {
-  if (req.user.role !== 'admin') return res.status(403).json({ error: 'Access denied' });
+router.delete('/:id', adminAuth, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (product) {

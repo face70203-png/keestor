@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const { auth } = require('../middleware/auth');
+const { auth, adminAuth } = require('../middleware/auth');
 
 // Get current user profile
 router.get('/me', auth, async (req, res) => {
@@ -32,10 +32,8 @@ router.get('/referrals', auth, async (req, res) => {
 });
 
 // Get all users (Admin Only)
-router.get('/', auth, async (req, res) => {
+router.get('/', adminAuth, async (req, res) => {
   try {
-    const adminCheck = await User.findById(req.user._id);
-    if (!adminCheck || adminCheck.role !== 'admin') return res.status(403).json({ error: 'Admins only' });
 
     const users = await User.find({}, '-password').sort({ createdAt: -1 });
     res.json(users);
@@ -45,10 +43,8 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Update User Wallet Balance (Admin Only)
-router.put('/:id/wallet', auth, async (req, res) => {
+router.put('/:id/wallet', adminAuth, async (req, res) => {
   try {
-    const adminCheck = await User.findById(req.user._id);
-    if (!adminCheck || adminCheck.role !== 'admin') return res.status(403).json({ error: 'Admins only' });
 
     const { balance } = req.body;
     const targetUser = await User.findById(req.params.id);
@@ -64,10 +60,8 @@ router.put('/:id/wallet', auth, async (req, res) => {
 });
 
 // Update User Role (Admin Only)
-router.put('/:id/role', auth, async (req, res) => {
+router.put('/:id/role', adminAuth, async (req, res) => {
     try {
-      const adminCheck = await User.findById(req.user._id);
-      if (!adminCheck || adminCheck.role !== 'admin') return res.status(403).json({ error: 'Admins only' });
   
       const { role } = req.body;
       const targetUser = await User.findById(req.params.id);
@@ -83,16 +77,61 @@ router.put('/:id/role', auth, async (req, res) => {
   });
 
 // Delete User (Admin Only)
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', adminAuth, async (req, res) => {
   try {
-    const adminCheck = await User.findById(req.user._id);
-    if (!adminCheck || adminCheck.role !== 'admin') return res.status(403).json({ error: 'Admins only' });
 
     await User.findByIdAndDelete(req.params.id);
     res.json({ message: 'User permanently deleted' });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// Block User (Admin Only)
+router.put('/:id/block', adminAuth, async (req, res) => {
+    try {
+
+        const targetUser = await User.findByIdAndUpdate(req.params.id, { isBlocked: true }, { new: true });
+        if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+        res.json({ message: 'User blocked successfully', user: targetUser });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Unblock User (Admin Only)
+router.put('/:id/unblock', adminAuth, async (req, res) => {
+    try {
+
+        const targetUser = await User.findByIdAndUpdate(req.params.id, { isBlocked: false }, { new: true });
+        if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+        res.json({ message: 'User unblocked successfully', user: targetUser });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Send Message/Email to User (Admin Only)
+router.post('/:id/message', adminAuth, async (req, res) => {
+    try {
+
+        const { subject, message } = req.body;
+        const targetUser = await User.findById(req.params.id);
+        if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+        const sendEmail = require('../utils/sendEmail');
+        await sendEmail({
+            email: targetUser.email,
+            subject: subject || 'Message from KeeStore Admin',
+            message: `<h1>Hello ${targetUser.username},</h1><p>${message}</p>`
+        });
+
+        res.json({ message: 'Email sent successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 module.exports = router;

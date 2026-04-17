@@ -1,130 +1,143 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #2563eb; /* Professional Blue */
-  --color-secondary: #0f172a; /* Slate 900 */
+  --color-primary: #3b82f6; /* SAPPHIRE BLUE */
+  --color-secondary: #0f172a; /* SLATE 900 */
 }
 
-/* ==============================
-   LIGHT MODE (default)
-   ============================== */
+/* ============================================================
+   DESIGN SYSTEM: PREMIUM SLATE & DEEP ONYX
+   ============================================================ */
+
 @layer base {
   :root {
+    /* Premium Slate (Light) */
     --bg: #f8fafc;
     --bg-card: #ffffff;
     --bg-subtle: #f1f5f9;
     --border: #e2e8f0;
     --text: #0f172a;
     --text-muted: #64748b;
-    --glass-bg: rgba(255, 255, 255, 0.9);
-    --glass-border: rgba(0, 0, 0, 0.05);
+    --primary: #2563eb;
+    --primary-glow: rgba(37, 99, 235, 0.08);
+    --glass-bg: rgba(255, 255, 255, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.5);
     --scrollbar-track: #f1f5f9;
     --scrollbar-thumb: #cbd5e1;
-    --scrollbar-thumb-hover: #94a3b8;
+    --scrollbar-hover: #94a3b8;
   }
 
-  /* ==============================
-     DARK MODE — html.dark
-     ============================== */
   html.dark {
-    --bg: #0a0f1e;
-    --bg-card: #111827;
-    --bg-subtle: #1e293b;
+    /* Deep Onyx (Dark) */
+    --bg: #020617; /* REAL ONYX */
+    --bg-card: #0f172a; /* SLATE 900 */
+    --bg-subtle: #1e293b; /* SLATE 800 */
     --border: #1e293b;
-    --text: #f1f5f9;
-    --text-muted: #94a3b8;
-    --glass-bg: rgba(15, 23, 42, 0.85);
-    --glass-border: rgba(255, 255, 255, 0.06);
-    --scrollbar-track: #0f172a;
-    --scrollbar-thumb: #334155;
-    --scrollbar-thumb-hover: #475569;
+    --text: #f1f5f9; /* SLATE 100 */
+    --text-muted: #94a3b8; /* SLATE 400 */
+    --primary: #3b82f6; /* SAPPHIRE */
+    --primary-glow: rgba(59, 130, 246, 0.15);
+    --glass-bg: rgba(2, 6, 23, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.03);
+    --scrollbar-track: #020617;
+    --scrollbar-thumb: #1e293b;
+    --scrollbar-hover: #334155;
   }
 }
 
-/* ==============================
-   BASE STYLES
-   ============================== */
+/* ============================================================
+   GLOBAL RESET & SMOOTHING
+   ============================================================ */
+
 *, *::before, *::after {
-  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease;
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.2s ease;
 }
 
 body {
   color: var(--text);
   background: var(--bg);
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* ==============================
-   GLASSMORPHISM (theme-aware)
-   ============================== */
+/* ============================================================
+   PREMIUM GLASSMORPHISM
+   ============================================================ */
+
 .glass {
   background: var(--glass-bg) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-color: var(--glass-border) !important;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-/* ==============================
-   CARD / SURFACE UTILITIES
-   ============================== */
-.bg-card {
-  background-color: var(--bg-card);
-}
-.bg-subtle {
-  background-color: var(--bg-subtle);
-}
-.border-theme {
-  border-color: var(--border);
-}
-.text-theme {
-  color: var(--text);
-}
-.text-muted {
-  color: var(--text-muted);
+.glass-dark {
+  background: rgba(15, 23, 42, 0.8) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
 }
 
-/* ==============================
-   DISCOUNT BADGE ANIMATION
-   ============================== */
-@keyframes discount-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+
+.bg-card { background-color: var(--bg-card); }
+.bg-subtle { background-color: var(--bg-subtle); }
+.border-theme { border-color: var(--border); }
+.text-theme { color: var(--text); }
+.text-theme-muted { color: var(--text-muted); }
+
+/* Animation: Floating Pulse */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
 }
-.discount-badge {
-  animation: discount-pulse 2s ease-in-out infinite;
+.animate-float {
+  animation: float 4s ease-in-out infinite;
 }
 
-/* ==============================
-   LIVE SEARCH RESULTS
-   ============================== */
-.search-results {
-  backdrop-filter: blur(12px);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+/* Mobile-First Grid Optimization */
+@media (max-width: 640px) {
+  .mobile-touch-p { padding: 1rem; }
+  .mobile-font-tight { letter-spacing: -0.01em; }
 }
 
-/* ==============================
-   GLOW
-   ============================== */
-.glow-primary {
-  box-shadow: 0 0 20px rgba(37, 99, 235, 0.3);
-}
+/* ============================================================
+   SCROLLBAR (PREMIUM SLIM)
+   ============================================================ */
 
-/* ==============================
-   SCROLLBAR
-   ============================== */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
+  height: 10px;
 }
+
 ::-webkit-scrollbar-track {
   background: var(--scrollbar-track);
 }
+
 ::-webkit-scrollbar-thumb {
   background: var(--scrollbar-thumb);
-  border-radius: 4px;
+  border: 3px solid var(--scrollbar-track);
+  border-radius: 10px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover);
+  background: var(--scrollbar-hover);
+}
+
+/* ============================================================
+   TAILWIND OVERRIDES & EXTENSIONS
+   ============================================================ */
+
+.shadow-premium {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+.primary-glow {
+  box-shadow: 0 0 20px var(--primary-glow);
 }

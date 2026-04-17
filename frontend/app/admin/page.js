@@ -56,8 +56,26 @@ export default function AdminDashboard() {
   const [selectedProductId, setSelectedProductId] = useState("");
   const [editingProductKeys, setEditingProductKeys] = useState(null);
   const [editKeysText, setEditKeysText] = useState("");
+  
+  // Advanced Product Editing
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editPrice, setEditPrice] = useState("");
+  const [editOriginalPrice, setEditOriginalPrice] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editCategory, setEditCategory] = useState("General");
+  const [editImageUrl, setEditImageUrl] = useState("");
+  const [editSaleEndDate, setEditSaleEndDate] = useState("");
+
   const [promoCode, setPromoCode] = useState("");
   const [promoDiscount, setPromoDiscount] = useState("");
+
+  // User Management State
+  const [messagingUser, setMessagingUser] = useState(null);
+  const [messageSubject, setMessageSubject] = useState("");
+  const [messageBody, setMessageBody] = useState("");
+  const [isBlocking, setIsBlocking] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
 
   const fetchData = async () => {
     if (!user || user.role !== 'admin') return;
@@ -122,17 +140,53 @@ export default function AdminDashboard() {
       } catch(err) { alert("Failed: " + err.message); } finally { setSubmitting(false); }
   };
 
+  const [keyType, setKeyType] = useState("text"); // 'text' or 'image'
+
   const handleAddKeys = async (e) => {
       e.preventDefault();
       if(!selectedProductId || !newKeys) return alert("Select product and enter keys");
       try {
-          const keysArray = newKeys.split(',').map(k => k.trim()).filter(k => k);
+          const keysArray = newKeys.split(',').map(k => ({
+              value: k.trim(),
+              keyType: keyType
+          })).filter(k => k.value);
+
           await axios.post(`${API_BASE_URL}/api/products/${selectedProductId}/keys`, {
               keys: keysArray
           });
-          alert(`Added ${keysArray.length} keys successfully!`);
+          alert(`Added ${keysArray.length} ${keyType} keys successfully!`);
           setNewKeys(""); fetchData();
       } catch(err) { alert("Failed to add keys"); }
+  };
+
+  const handleUpdateProduct = async (e) => {
+      e.preventDefault();
+      setSubmitting(true);
+      try {
+          await axios.put(`${API_BASE_URL}/api/products/${editingProduct._id}`, {
+              title: editTitle,
+              price: Number(editPrice),
+              originalPrice: editOriginalPrice ? Number(editOriginalPrice) : undefined,
+              description: editDescription,
+              category: editCategory,
+              imageUrl: editImageUrl,
+              saleEndDate: editSaleEndDate
+          });
+          alert("Inventory Record Updated Successfully!");
+          setEditingProduct(null);
+          fetchData();
+      } catch(err) { alert("Update Failed: " + err.message); } finally { setSubmitting(false); }
+  };
+
+  const openEditModal = (p) => {
+      setEditingProduct(p);
+      setEditTitle(p.title || "");
+      setEditPrice(p.price || "");
+      setEditOriginalPrice(p.originalPrice || "");
+      setEditDescription(p.description || "");
+      setEditCategory(p.category || "General");
+      setEditImageUrl(p.imageUrl || "");
+      setEditSaleEndDate(p.saleEndDate ? new Date(p.saleEndDate).toISOString().slice(0, 16) : "");
   };
 
   const handleOverwriteKeys = async () => {
@@ -210,6 +264,39 @@ export default function AdminDashboard() {
           await axios.put(`${API_BASE_URL}/api/users/${userId}/role`, { role: 'admin' });
           alert("User is now an Administrator."); fetchData();
       } catch(e) { alert(e.message); }
+  };
+
+  const handleBlockUser = async (userId, currentlyBlocked) => {
+      const action = currentlyBlocked ? 'unblock' : 'block';
+      if(!confirm(`Are you sure you want to ${action} this user?`)) return;
+      try {
+          await axios.put(`${API_BASE_URL}/api/users/${userId}/${action}`);
+          alert(`User ${action}ed successfully.`); fetchData();
+      } catch(e) { alert(e.message); }
+  };
+
+  const handleDeleteUser = async (userId) => {
+      if(!confirm("PERMANENTLY DELETE this user account? This cannot be undone.")) return;
+      try {
+          await axios.delete(`${API_BASE_URL}/api/users/${userId}`);
+          alert("Account erased from database."); fetchData();
+      } catch(e) { alert(e.message); }
+  };
+
+  const handleSendMessage = async (e) => {
+      e.preventDefault();
+      if(!messagingUser) return;
+      setSubmitting(true);
+      try {
+          await axios.post(`${API_BASE_URL}/api/users/${messagingUser._id}/message`, {
+              subject: messageSubject,
+              message: messageBody
+          });
+          alert("Professional notification sent to user.");
+          setMessagingUser(null);
+          setMessageSubject("");
+          setMessageBody("");
+      } catch(e) { alert(e.message); } finally { setSubmitting(false); }
   };
 
   if (!mounted || loading || !user) return <div className="text-center mt-20">Loading Command Center...</div>;
@@ -292,6 +379,21 @@ export default function AdminDashboard() {
       )}
 
       <main className="flex-1 p-6 md:p-12 overflow-y-auto w-full bg-slate-50/50">
+          
+          {user?.email === 'demo@keestore.app' && (
+             <div className="mb-8 p-6 bg-amber-50 border-2 border-amber-200 rounded-[2rem] flex flex-col md:flex-row items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-500">
+                <div className="flex items-center gap-4 text-amber-800">
+                   <div className="w-12 h-12 bg-amber-200 rounded-2xl flex items-center justify-center text-amber-900 shrink-0">
+                      <ShieldCheck size={24} />
+                   </div>
+                   <div>
+                      <h3 className="font-black text-lg leading-tight uppercase tracking-tight">Read-Only Demo Mode</h3>
+                      <p className="text-sm font-bold opacity-75">You are currently viewing the system as a specialized auditor. Any modification attempts will be blocked.</p>
+                   </div>
+                </div>
+                <div className="bg-amber-900 text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-[0.2em]">Live Demonstration</div>
+             </div>
+          )}
           
           {/* Top Bar for Mobile/Quick Actions */}
           {!loadingStats && activeTab === 'overview' && (
@@ -607,14 +709,7 @@ export default function AdminDashboard() {
                                          <td className="py-2 px-4 font-bold text-slate-800 text-sm overflow-hidden truncate max-w-[200px]">{p.title}</td>
                                          <td className="py-2 px-4 text-emerald-600 font-bold">{formatPrice(p.price)}</td>
                                          <td className="py-2 px-4 text-right">
-                                             <button onClick={async () => {
-                                                 const newPrice = prompt(`Enter new price for ${p.title} (Current: ${p.price}):`);
-                                                 if (!newPrice || isNaN(newPrice)) return;
-                                                 try {
-                                                     await axios.put(`${API_BASE_URL}/api/products/${p._id}`, { price: parseFloat(newPrice) });
-                                                     alert("Product Updated!"); fetchData();
-                                                 } catch(e) { alert("Failed to update."); }
-                                             }} className="text-blue-500 hover:text-blue-700 p-2"><Edit size={16}/></button>
+                                             <button onClick={() => openEditModal(p)} className="text-blue-500 hover:text-blue-700 p-2"><Edit size={16}/></button>
                                              
                                              <button onClick={async () => {
                                                  if(!confirm(`Delete ${p.title} entirely?`)) return;
@@ -647,21 +742,36 @@ export default function AdminDashboard() {
                      <div className="bg-white p-8 rounded-2xl border border-indigo-100 shadow-md relative overflow-hidden">
                          <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
                          <h3 className="text-xl font-bold mb-6 text-slate-900">Inject Batch Licenses</h3>
+                         <div className="flex gap-2 mb-6 bg-slate-100 p-1 rounded-xl">
+                            <button onClick={()=>setKeyType('text')} className={`flex-1 py-2 rounded-lg font-black text-xs transition-all ${keyType==='text'?'bg-white shadow-sm text-primary':'text-slate-500'}`}>TEXT KEYS</button>
+                            <button onClick={()=>setKeyType('image')} className={`flex-1 py-2 rounded-lg font-black text-xs transition-all ${keyType==='image'?'bg-white shadow-sm text-primary':'text-slate-500'}`}>IMAGE/QR KEYS</button>
+                         </div>
                          <form onSubmit={handleAddKeys} className="flex flex-col gap-5">
                              <div>
                                  <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Select Target Product Engine</label>
                                  <select value={selectedProductId} onChange={(e)=>setSelectedProductId(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-indigo-500 text-slate-900">
                                      <option value="" disabled>Select...</option>
-                                     {products.map(p => <option key={p._id} value={p._id}>{p.title} (Stock: {p.keys.length})</option>)}
+                                     {products.map(p => <option key={p._id} value={p._id}>{p.title} (In Stock: {p.keys.length})</option>)}
                                  </select>
                              </div>
                              <div>
-                                 <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Data Payload (Comma Separated)</label>
-                                 <textarea placeholder="LICENSE-123, LICENSE-456, G2A-ABCD-EFGH" rows="6" value={newKeys} onChange={(e)=>setNewKeys(e.target.value)} required className="w-full bg-slate-900 border border-slate-800 rounded-xl py-4 px-4 outline-none focus:border-indigo-500 text-emerald-400 font-mono text-sm resize-none"></textarea>
-                                 <p className="text-xs text-slate-400 mt-2">Any format accepted. Extracted exactly to customer display upon purchase.</p>
+                                 <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                                    {keyType === 'text' ? 'Data Payload (Comma Separated)' : 'Image URLs (Comma Separated URLs)'}
+                                 </label>
+                                 <textarea 
+                                    placeholder={keyType === 'text' ? "LICENSE-123, LICENSE-456" : "https://img.com/qr1.png, https://img.com/qr2.png"} 
+                                    rows="6" 
+                                    value={newKeys} 
+                                    onChange={(e)=>setNewKeys(e.target.value)} 
+                                    required 
+                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-4 px-4 outline-none focus:border-indigo-500 text-emerald-400 font-mono text-sm resize-none"
+                                 ></textarea>
+                                 <p className="text-xs text-slate-400 mt-2">
+                                    {keyType === 'text' ? 'Standard license strings.' : 'Provide direct image links for QR codes / eSIM profiles.'}
+                                 </p>
                              </div>
                              <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 text-white font-black py-4 rounded-xl transition-all">
-                                 Deposit Vault Data
+                                 Deposit {keyType.toUpperCase()} Data
                              </button>
                          </form>
                      </div>
@@ -683,7 +793,7 @@ export default function AdminDashboard() {
                                          </div>
                                          <button onClick={() => {
                                              setEditingProductKeys(p);
-                                             setEditKeysText(p.keys ? p.keys.join('\n') : "");
+                                             setEditKeysText(p.keys ? p.keys.map(k=>k.value).join('\n') : "");
                                          }} className="px-3 py-1 bg-slate-100 hover:bg-indigo-50 text-indigo-600 text-xs font-bold rounded-md transition-colors border border-transparent hover:border-indigo-100">
                                              Manage
                                          </button>
@@ -694,7 +804,71 @@ export default function AdminDashboard() {
                      </div>
                  </div>
 
-                 {editingProductKeys && (
+                  {editingProduct && (
+                      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in">
+                          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden slide-in-from-bottom-8">
+                              <div className="flex justify-between items-center p-8 border-b border-slate-100 bg-slate-50/50">
+                                  <div>
+                                      <h3 className="text-2xl font-black text-slate-900 tracking-tight">Modify Inventory Asset</h3>
+                                      <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{editingProduct.title}</p>
+                                  </div>
+                                  <button onClick={()=>setEditingProduct(null)} className="p-3 bg-white text-slate-400 hover:text-red-500 rounded-2xl shadow-sm transition-all border border-slate-100"><XCircle size={24}/></button>
+                              </div>
+                              <form onSubmit={handleUpdateProduct} className="flex-grow p-8 overflow-y-auto space-y-6">
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                      <div>
+                                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Asset Label</label>
+                                          <input type="text" value={editTitle} onChange={(e)=>setEditTitle(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900" />
+                                      </div>
+                                      <div>
+                                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Collection/Category</label>
+                                          <select value={editCategory} onChange={(e)=>setEditCategory(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900">
+                                              <option value="General">General</option>
+                                              <option value="Software">Software</option>
+                                              <option value="Game Keys">Game Keys</option>
+                                              <option value="Subscriptions">Subscriptions</option>
+                                              <option value="eSIM">eSIM / QR Assets</option>
+                                          </select>
+                                      </div>
+                                  </div>
+
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                      <div>
+                                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-emerald-600">Current Selling Price</label>
+                                          <input type="number" value={editPrice} onChange={(e)=>setEditPrice(e.target.value)} required className="w-full bg-emerald-50 border border-emerald-100 rounded-2xl py-3 px-4 outline-none focus:border-emerald-500 font-black text-emerald-700" />
+                                      </div>
+                                      <div>
+                                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Original Price (For Discount Display)</label>
+                                          <input type="number" value={editOriginalPrice} onChange={(e)=>setEditOriginalPrice(e.target.value)} placeholder="e.g. 100" className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-400" />
+                                      </div>
+                                  </div>
+
+                                  <div>
+                                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Technical specifications / Description</label>
+                                      <textarea value={editDescription} onChange={(e)=>setEditDescription(e.target.value)} rows="4" className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-4 outline-none focus:border-primary text-slate-700 text-sm font-medium resize-none"></textarea>
+                                  </div>
+
+                                  <div>
+                                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Visual Asset URL</label>
+                                      <input type="text" value={editImageUrl} onChange={(e)=>setEditImageUrl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 outline-none focus:border-primary font-mono text-xs text-slate-500" />
+                                  </div>
+                                  
+                                  <div>
+                                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-red-500">Sale Expiration (Optional)</label>
+                                      <input type="datetime-local" value={editSaleEndDate} onChange={(e)=>setEditSaleEndDate(e.target.value)} className="w-full bg-red-50 border border-red-100 rounded-2xl py-3 px-4 outline-none focus:border-red-500 font-bold text-red-600" />
+                                  </div>
+                              </form>
+                              <div className="p-8 border-t border-slate-100 flex justify-end gap-4 bg-slate-50/50">
+                                  <button onClick={()=>setEditingProduct(null)} className="px-8 py-4 font-bold text-slate-600 bg-white border border-slate-200 rounded-2xl hover:bg-slate-100 transition-all">Discard Changes</button>
+                                  <button onClick={handleUpdateProduct} disabled={submitting} className="px-10 py-4 font-black text-white bg-primary hover:bg-blue-700 shadow-xl shadow-primary/20 rounded-2xl transition-all disabled:opacity-50">
+                                      {submitting ? "Applying Changes..." : "Commit Update"}
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
+                  )}
+                  
+                  {editingProductKeys && (
                      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
                          <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden slide-in-from-bottom-4">
                              <div className="flex justify-between items-center p-6 border-b border-slate-100">
