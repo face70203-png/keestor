@@ -11,10 +11,12 @@ const generateInvoiceHTML = (order) => {
                 <p style="margin: 0; font-size: 15px; font-weight: 800; color: #0f172a;">${item.title}</p>
                 <div style="margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0; font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 13px; color: #2563eb;">
                     <div style="font-size: 10px; font-weight: 900; color: #94a3b8; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.05em;">Digital License Key</div>
-                    ${item.keys?.map(k => k.keyType === 'image' 
-                        ? `<div style="margin-top:8px;"><img src="${k.value}" style="max-width:140px; border-radius:10px; border:2px solid #ffffff; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" alt="Activation QR" /></div>` 
-                        : `<span style="display:block; margin-top:4px; word-break:break-all; font-weight: 700;">${k.value}</span>`
-                    ).join('') || '<span style="color: #94a3b8;">Pending Generation...</span>'}
+                    ${item.keys && item.keys.length > 0 && item.keys.some(k => k && k.value) 
+                        ? item.keys.filter(k => k && k.value).map(k => k.keyType === 'image' 
+                            ? `<div style="margin-top:8px;"><img src="${k.value}" style="max-width:140px; border-radius:10px; border:2px solid #ffffff; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);" alt="Activation QR" /></div>` 
+                            : `<span style="display:block; margin-top:4px; word-break:break-all; font-weight: 700;">${k.value}</span>`
+                        ).join('') 
+                        : (order.deliveredKey && order.deliveredKey !== 'Awaiting checkout...' ? `<span style="display:block; margin-top:4px; word-break:break-all; font-weight: 700;">${order.deliveredKey}</span>` : '<span style="color: #94a3b8;">Pending Generation...</span>')}
                 </div>
             </td>
             <td style="padding: 20px 0; vertical-align: top; text-align: right;">

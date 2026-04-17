@@ -153,7 +153,7 @@ function DashboardContent() {
                  <button onClick={()=>router.push('/products')} className="mt-8 bg-primary hover:bg-blue-700 text-white font-bold px-8 py-3 rounded-2xl transition shadow-lg shadow-primary/20">Explore Marketplace</button>
               </div>
             ) : (
-                orders.flatMap(o => o.items.map(item => ({ ...item, orderId: o._id, date: o.createdAt }))).map((item, idx) => (
+                orders.flatMap(o => o.items.map(item => ({ ...item, orderId: o._id, date: o.createdAt, deliveredKey: o.deliveredKey }))).map((item, idx) => (
                 <div key={idx} className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-4 border border-slate-200 dark:border-slate-800 shadow-xl shadow-slate-200/50 dark:shadow-none flex flex-col group hover:border-primary transition-all duration-500 overflow-hidden relative">
                   
                   {/* Premium Header with Image */}
@@ -176,8 +176,8 @@ function DashboardContent() {
                   
                   {/* Keys Container */}
                   <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] p-5 flex flex-col gap-4 border border-slate-100 dark:border-slate-800/50">
-                    {item.keys && item.keys.length > 0 ? (
-                        item.keys.map((keyObj, kIdx) => (
+                    {item.keys && item.keys.length > 0 && item.keys.some(k => k.value) ? (
+                        item.keys.filter(k => k.value).map((keyObj, kIdx) => (
                             <div key={kIdx} className="flex flex-col gap-4">
                                 
                                 {keyObj.keyType === 'image' ? (
@@ -216,13 +216,38 @@ function DashboardContent() {
                                         </div>
                                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 select-all transition-all group-hover/key:border-primary/30">
                                             <p className="text-theme font-mono text-sm tracking-[0.1em] font-black break-all text-center leading-relaxed">
-                                                {keyObj.value || 'DECRYPTING...'}
+                                                {keyObj.value}
                                             </p>
                                         </div>
                                     </div>
                                 )}
                             </div>
                         ))
+                    ) : item.deliveredKey ? (
+                        <div className="flex flex-col gap-4">
+                            <div className="bg-white dark:bg-slate-900 p-5 rounded-[1.5rem] border border-slate-200 dark:border-slate-700 shadow-sm relative group/key">
+                                <div className="flex justify-between items-center mb-3">
+                                     <div className="flex items-center gap-2">
+                                          <KeyRound size={14} className="text-primary" />
+                                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Legacy License Key</span>
+                                     </div>
+                                     <button 
+                                        className="text-[10px] text-primary font-black uppercase bg-primary/5 px-3 py-1.5 rounded-lg hover:bg-primary/10 transition" 
+                                         onClick={() => {
+                                             navigator.clipboard.writeText(item.deliveredKey); 
+                                             addToast("Securely copied to clipboard!", "success");
+                                         }}
+                                     >
+                                        {t.assets.copy}
+                                     </button>
+                                </div>
+                                <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 select-all transition-all group-hover/key:border-primary/30">
+                                    <p className="text-theme font-mono text-sm tracking-[0.1em] font-black break-all text-center leading-relaxed">
+                                        {item.deliveredKey}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
                     ) : (
                         <div className="p-6 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-[1.5rem] flex flex-col items-center text-center gap-2">
                             <Clock className="text-amber-500 animate-pulse" size={24} />

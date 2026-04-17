@@ -39,7 +39,8 @@ router.post('/create-checkout-session', auth, async (req, res) => {
         title: p.product.title,
         price: p.product.price,
         quantity: p.quantity,
-        imageUrl: p.product.imageUrl
+        imageUrl: p.product.imageUrl,
+        activationSteps: p.product.activationSteps
     }));
 
     const totalCalculated = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -150,6 +151,7 @@ router.post('/pay-wallet', auth, async (req, res) => {
            price: item.product.price,
            quantity: item.quantity,
            imageUrl: item.product.imageUrl,
+           activationSteps: item.product.activationSteps,
            keys: itemKeys
        });
     }

@@ -2,13 +2,15 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { PackageSearch, Search, ShoppingCart, LayoutGrid } from "lucide-react";
+import { PackageSearch, Search, ShoppingCart, LayoutGrid, Zap } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useToast } from "../context/ToastContext";
 import { useLanguage } from "../context/LanguageContext";
 import { translations } from "../../translations";
 import { useAuth } from "../context/AuthContext";
 import Link from "next/link";
+
+import { useCurrency } from "../context/CurrencyContext";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -23,6 +25,7 @@ export default function ProductsPage() {
   const { lang } = useLanguage();
   const t = translations[lang].product;
   const { user } = useAuth();
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     axios.get(`${API_BASE_URL}/api/products`)
@@ -81,6 +84,11 @@ export default function ProductsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {filteredProducts.map((product) => {
           const isSoldOut = product.keys?.length === 0;
+          const hasDiscount = product.originalPrice && product.originalPrice > product.price;
+          const discountPct = hasDiscount
+            ? Math.round((1 - product.price / product.originalPrice) * 100)
+            : 0;
+
           return (
             <div key={product._id} className={`bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm transition-all flex flex-col group ${isSoldOut ? 'opacity-75 grayscale-[0.3]' : 'hover:shadow-xl'}`}>
               <Link href={`/products/${product._id}`} className={`h-48 overflow-hidden relative block ${isSoldOut ? 'pointer-events-none' : ''}`}>
@@ -99,8 +107,17 @@ export default function ProductsPage() {
                   </div>
                 )}
 
+                {hasDiscount && !isSoldOut && (
+                  <div className="absolute top-3 left-3 z-30 flex flex-col gap-2 scale-110 origin-top-left">
+                    <div className="bg-red-600 text-white text-[11px] font-black px-3 py-1 rounded-lg shadow-xl flex items-center gap-1.5 border border-red-400/30">
+                      <Zap size={12} fill="currentColor"/>
+                      <span>-{discountPct}% OFF</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="absolute top-4 right-4 z-20 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-slate-900 font-bold shadow-sm">
-                  ${parseFloat(product.price).toFixed(2)}
+                  {formatPrice(product.price)}
                 </div>
                 <div className="absolute top-4 left-4 z-20 bg-primary/90 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-bold uppercase shadow-sm">
                   {t.categories[product.category] || product.category || t.categories['General']}
@@ -111,6 +128,18 @@ export default function ProductsPage() {
                 <Link href={`/products/${product._id}`}>
                     <h3 className="text-xl font-bold mb-2 text-slate-900 line-clamp-1 hover:text-primary transition-colors">{product.title}</h3>
                 </Link>
+                <div className="flex items-center flex-wrap gap-2 mb-2">
+                  <span className="text-xl font-black text-primary">{formatPrice(product.price)}</span>
+                  {hasDiscount && (
+                    <>
+                      <span className="text-xs text-slate-400 line-through decoration-red-500/50">{formatPrice(product.originalPrice)}</span>
+                      <span className="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
+                         Save {formatPrice(product.originalPrice - product.price)}
+                      </span>
+                    </>
+                  )}
+                </div>
+                
                 <p className="text-slate-500 text-sm mb-6 flex-grow line-clamp-2">{product.description}</p>
                 
                 <div className="flex items-center gap-3">

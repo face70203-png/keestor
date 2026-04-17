@@ -11,7 +11,8 @@ const orderSchema = new mongoose.Schema({
     keys: [{
       value: String,
       keyType: { type: String, enum: ['text', 'image'], default: 'text' }
-    }] 
+    }],
+    activationSteps: String
   }],
   totalAmount: { type: Number, required: true },
   deliveredKey: { type: String }, // For legacy/backward compatibility (summary of all keys)
