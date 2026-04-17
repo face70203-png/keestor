@@ -7,7 +7,7 @@ import {
   Settings, KeyRound, ArrowUpRight, Search,
   Users, Trash2, Edit, Ticket, Tag, Reply, XCircle,
   Download, LogOut, ShieldCheck, Mail, UserX,
-  ShieldX, Ban, Lock
+  ShieldX, Ban, Lock, AlertTriangle, Check, Info, RefreshCw
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -42,6 +42,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [tab, setTab] = useState('products');
   const [submitting, setSubmitting] = useState(false);
+  const [diagLogs, setDiagLogs] = useState([]);
 
   // Form states
   const [title, setTitle] = useState("");
@@ -93,20 +94,22 @@ export default function AdminDashboard() {
     if (!user || user.role !== 'admin') return;
     setLoadingStats(true);
     try {
-      const [prodRes, ordRes, usersRes, tRes, cRes, statsRes] = await Promise.all([
-         axios.get(`${API_BASE_URL}/api/products`),
-         axios.get(`${API_BASE_URL}/api/orders/all`),
-         axios.get(`${API_BASE_URL}/api/users`),
-         axios.get(`${API_BASE_URL}/api/tickets/all`),
-         axios.get(`${API_BASE_URL}/api/coupons`),
-         axios.get(`${API_BASE_URL}/api/analytics/stats`)
-      ]);
-      setProducts(prodRes.data);
-      setOrders(ordRes.data);
-      setUsers(usersRes.data);
-      setTickets(tRes.data);
-      setCoupons(cRes.data);
-      setStats(statsRes.data);
+       const [prodRes, ordRes, usersRes, tRes, cRes, statsRes, diagRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/api/products`),
+          axios.get(`${API_BASE_URL}/api/orders/all`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
+          axios.get(`${API_BASE_URL}/api/users`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
+          axios.get(`${API_BASE_URL}/api/tickets/all`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
+          axios.get(`${API_BASE_URL}/api/coupons`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
+          axios.get(`${API_BASE_URL}/api/analytics/stats`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
+          axios.get(`${API_BASE_URL}/api/diagnostics/logs`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+       ]);
+       setProducts(prodRes.data);
+       setOrders(ordRes.data);
+       setUsers(usersRes.data);
+       setTickets(tRes.data);
+       setCoupons(cRes.data);
+       setStats(statsRes.data);
+       setDiagLogs(diagRes.data);
     } catch (err) { 
       console.error("Admin Fetch Error:", err); 
     } finally {
@@ -400,6 +403,9 @@ export default function AdminDashboard() {
              </button>
              <button onClick={()=>setActiveTab('audit')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='audit'?'bg-red-600 text-white shadow-lg shadow-red-100':'text-slate-600 hover:bg-slate-100'}`}>
                  <ShieldCheck size={20}/> Security Audit
+             </button>
+             <button onClick={()=>setActiveTab('diagnostics')} className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all ${activeTab==='diagnostics'?'bg-indigo-500 text-white shadow-lg shadow-indigo-100':'text-slate-600 hover:bg-slate-100'}`}>
+                 <Activity size={20}/> System Health
              </button>
              
              <div className="h-px bg-slate-100 my-4" />
@@ -1146,6 +1152,87 @@ export default function AdminDashboard() {
                       </div>
                   </div>
               </div>
+          )}
+          
+          {activeTab === 'diagnostics' && (
+               <div className="space-y-6">
+                   <div className="flex justify-between items-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-[2rem] shadow-sm">
+                       <div>
+                           <h2 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-3">
+                               <Activity className="text-indigo-500" /> System Diagnostics
+                           </h2>
+                           <p className="text-sm text-slate-500 font-medium">Monitoring real-time email delivery and background services</p>
+                       </div>
+                       <div className="flex gap-2">
+                           <button onClick={fetchData} className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 hover:bg-slate-200 transition shadow-sm border border-slate-200 dark:border-slate-700">
+                                <RefreshCw size={16} /> Force Sync
+                           </button>
+                           <button 
+                               onClick={async () => {
+                                   if(!confirm("Wipe all diagnostic history?")) return;
+                                   await axios.delete(`${API_BASE_URL}/api/diagnostics/logs/clear`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+                                   fetchData();
+                               }}
+                               className="bg-red-50 dark:bg-red-900/10 text-red-600 px-6 py-3 rounded-xl font-bold text-sm tracking-tight border border-red-100 dark:border-red-900/20 hover:bg-red-600 hover:text-white transition-all flex items-center gap-2"
+                           >
+                               <Trash2 size={16} /> Clear Audit
+                           </button>
+                       </div>
+                   </div>
+
+                   <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2rem] shadow-xl overflow-hidden overflow-x-auto">
+                       <table className="w-full text-left min-w-[800px]">
+                           <thead>
+                               <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+                                   <th className="px-6 py-5 text-[10px] font-black uppercase text-slate-400">Timestamp</th>
+                                   <th className="px-6 py-5 text-[10px] font-black uppercase text-slate-400">Module</th>
+                                   <th className="px-6 py-5 text-[10px] font-black uppercase text-slate-400">Type</th>
+                                   <th className="px-6 py-5 text-[10px] font-black uppercase text-slate-400">Message / Outcome</th>
+                                   <th className="px-6 py-5 text-[10px] font-black uppercase text-slate-400">Diagnostic Data</th>
+                               </tr>
+                           </thead>
+                           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                               {diagLogs.length === 0 ? (
+                                   <tr className="bg-white dark:bg-slate-900">
+                                       <td colSpan="5" className="px-6 py-20 text-center text-slate-400 font-bold">No diagnostic logs recorded yet.</td>
+                                   </tr>
+                               ) : diagLogs.map((log, idx) => (
+                                   <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group bg-white dark:bg-slate-900">
+                                       <td className="px-6 py-5 text-xs text-slate-500 font-mono whitespace-nowrap">{new Date(log.timestamp).toLocaleString()}</td>
+                                       <td className="px-6 py-5">
+                                           <span className="text-[10px] font-black px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg uppercase">{log.module}</span>
+                                       </td>
+                                       <td className="px-6 py-5">
+                                           <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tight ${
+                                               log.type.includes('SUCCESS') ? 'bg-emerald-100 text-emerald-600' : 
+                                               log.type.includes('FAILURE') ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'
+                                           }`}>
+                                               {log.type.includes('SUCCESS') ? <Check size={10} /> : <AlertTriangle size={10} />}
+                                               {log.type.replace('_', ' ')}
+                                           </div>
+                                       </td>
+                                       <td className="px-6 py-5 max-w-xs">
+                                           <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">{log.message}</p>
+                                           <p className="text-[10px] text-slate-400 mt-1 truncate">Recipient: {log.metadata?.recipient || 'N/A'} • Provider: {log.metadata?.provider || 'N/A'}</p>
+                                       </td>
+                                       <td className="px-6 py-5">
+                                           {log.details ? (
+                                               <button 
+                                                   onClick={() => alert(`Error Stack / Details:\n\n${JSON.stringify(log.details, null, 2)}`)}
+                                                   className="text-xs font-black text-indigo-500 hover:text-indigo-600 underline flex items-center gap-1"
+                                               >
+                                                   <Info size={12} /> View Error Trace
+                                               </button>
+                                           ) : (
+                                               <span className="text-[10px] text-slate-300 uppercase font-black tracking-widest">Normal Ops</span>
+                                           )}
+                                       </td>
+                                   </tr>
+                               ))}
+                           </tbody>
+                       </table>
+                   </div>
+               </div>
           )}
           
           {editingProductKeys && (

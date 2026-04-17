@@ -1,6 +1,7 @@
 const axios = require('axios');
 const nodemailer = require('nodemailer');
 const generateInvoicePDF = require('./generateInvoicePDF');
+const SystemLog = require('../models/SystemLog');
 
 /**
  * Generates a high-end, premium HTML invoice/order success email.
@@ -171,14 +172,50 @@ const sendEmail = async (options) => {
                 timeout: 15000 
             });
             console.log(`[VAULT-MAIL] Delivered successfully via API: ${response.data.id}`);
+            
+            // 📝 Log Success
+            await SystemLog.create({
+                type: 'EMAIL_SUCCESS',
+                level: 'info',
+                module: 'Mailer',
+                message: `Email delivered to ${options.email}`,
+                metadata: {
+                    recipient: options.email,
+                    provider: 'Resend',
+                    orderId: options.order ? options.order._id : null
+                }
+            }).catch(e => console.error("Log Error:", e.message));
+
             return { success: true, method: 'API' };
         } catch (apiError) {
             console.warn(`[VAULT-MAIL] API Pipeline interrupted: ${apiError.message}. Switching to SMTP Fallback...`);
+            
+            // 📝 Log Warning/Failure for API
+            await SystemLog.create({
+                type: 'EMAIL_FAILURE',
+                level: 'warn',
+                module: 'Mailer (API)',
+                message: `Resend API failed: ${apiError.message}`,
+                details: apiError.response?.data || apiError.stack,
+                metadata: {
+                    recipient: options.email,
+                    provider: 'Resend',
+                    orderId: options.order ? options.order._id : null
+                }
+            }).catch(e => console.error("Log Error:", e.message));
         }
     } 
 
     // --- STRATEGY 2: SMTP FALLBACK (Redundant) ---
     if (!smtpUser || !smtpPass) {
+        await SystemLog.create({
+            type: 'EMAIL_FAILURE',
+            level: 'error',
+            module: 'Mailer',
+            message: 'No SMTP credentials provided for fallback',
+            metadata: { recipient: options.email }
+        }).catch(e => console.error("Log Error:", e.message));
+
         throw new Error("Critical Failure: No valid mail providers configured (API/SMTP).");
     }
 
@@ -202,9 +239,38 @@ const sendEmail = async (options) => {
         const info = await transporter.sendMail(mailOptions);
 
         console.log(`[VAULT-MAIL] Delivered successfully via SMTP: ${info.messageId}`);
+        
+        // 📝 Log Success (SMTP)
+        await SystemLog.create({
+            type: 'EMAIL_SUCCESS',
+            level: 'info',
+            module: 'Mailer',
+            message: `Email delivered to ${options.email} via SMTP fallback`,
+            metadata: {
+                recipient: options.email,
+                provider: 'SMTP',
+                orderId: options.order ? options.order._id : null
+            }
+        }).catch(e => console.error("Log Error:", e.message));
+
         return { success: true, method: 'SMTP' };
     } catch (smtpError) {
         console.error(`[VAULT-MAIL] SMTP Pipeline failed:`, smtpError.message);
+        
+        // 📝 Log Critical Failure
+        await SystemLog.create({
+            type: 'EMAIL_FAILURE',
+            level: 'error',
+            module: 'Mailer (SMTP)',
+            message: `SMTP failed: ${smtpError.message}`,
+            details: smtpError.stack,
+            metadata: {
+                recipient: options.email,
+                provider: 'SMTP',
+                orderId: options.order ? options.order._id : null
+            }
+        }).catch(e => console.error("Log Error:", e.message));
+
         throw new Error(`Global mail delivery failure: ${smtpError.message}`);
     }
 };

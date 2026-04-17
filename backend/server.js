@@ -14,6 +14,7 @@ const settingsRoutes = require('./routes/settings');
 const reviewRoutes = require('./routes/reviews');
 const analyticsRoutes = require('./routes/analytics');
 const contactRoutes = require('./routes/contact');
+const diagnosticRoutes = require('./routes/diagnostics');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const cookieParser = require('cookie-parser');
@@ -144,6 +145,7 @@ app.use('/api/settings', settingsRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/contact', contactRoutes);
+app.use('/api/diagnostics', diagnosticRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
