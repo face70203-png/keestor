@@ -77,6 +77,8 @@ export default function AdminDashboard() {
   const [messageBody, setMessageBody] = useState("");
   const [isBlocking, setIsBlocking] = useState(false);
   const [userSearch, setUserSearch] = useState("");
+  const [orderSearch, setOrderSearch] = useState("");
+  const [productSearch, setProductSearch] = useState("");
 
   const fetchData = async () => {
     if (!user || user.role !== 'admin') return;
@@ -466,32 +468,32 @@ export default function AdminDashboard() {
              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                  <div className="flex justify-between items-center mb-8">
                      <div>
-                         <h1 className="text-4xl font-black text-slate-900 tracking-tight">Global Snapshot</h1>
-                         <p className="text-slate-500 font-medium">Real-time performance analytics and warehouse logistics.</p>
+                         <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Global Snapshot</h1>
+                         <p className="text-slate-500 dark:text-slate-400 font-medium">Real-time performance analytics and warehouse logistics.</p>
                      </div>
                  </div>
 
                  {/* Stats Cards */}
                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                     <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                         <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-4"><Activity size={24}/></div>
-                         <p className="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">Lifetime Revenue</p>
-                         <h3 className="text-3xl font-black text-slate-900">{formatPrice(totalRevenue)}</h3>
+                     <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                         <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl flex items-center justify-center mb-4"><Activity size={24}/></div>
+                         <p className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Lifetime Revenue</p>
+                         <h3 className="text-3xl font-black text-slate-900 dark:text-white">{formatPrice(totalRevenue)}</h3>
                      </div>
-                     <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                         <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4"><ShoppingBag size={24}/></div>
-                         <p className="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">Items Dispatched</p>
-                         <h3 className="text-3xl font-black text-slate-900">{totalKeysSold}</h3>
+                     <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                         <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center mb-4"><ShoppingBag size={24}/></div>
+                         <p className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Items Dispatched</p>
+                         <h3 className="text-3xl font-black text-slate-900 dark:text-white">{totalKeysSold}</h3>
                      </div>
-                     <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                         <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-4"><KeyRound size={24}/></div>
-                         <p className="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">Vault Inventory</p>
-                         <h3 className="text-3xl font-black text-slate-900">{totalStock}</h3>
+                     <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                         <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-2xl flex items-center justify-center mb-4"><KeyRound size={24}/></div>
+                         <p className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Vault Inventory</p>
+                         <h3 className="text-3xl font-black text-slate-900 dark:text-white">{totalStock}</h3>
                      </div>
-                     <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                         <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-2xl flex items-center justify-center mb-4"><Users size={24}/></div>
-                         <p className="text-slate-500 text-xs font-black uppercase tracking-widest mb-1">Active Accounts</p>
-                         <h3 className="text-3xl font-black text-slate-900">{users.length}</h3>
+                     <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                         <div className="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-2xl flex items-center justify-center mb-4"><Users size={24}/></div>
+                         <p className="text-slate-500 dark:text-slate-400 text-xs font-black uppercase tracking-widest mb-1">Active Accounts</p>
+                         <h3 className="text-3xl font-black text-slate-900 dark:text-white">{users.length}</h3>
                      </div>
                  </div>
 
@@ -505,16 +507,29 @@ export default function AdminDashboard() {
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                   <div className="flex justify-between items-center mb-8">
                      <div>
-                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">User CRM</h1>
-                        <p className="text-slate-500">Control global user accounts and wallet balances directly.</p>
+                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">User CRM</h1>
+                        <p className="text-slate-500 dark:text-slate-400">Control global user accounts and wallet balances directly.</p>
                      </div>
                   </div>
 
-                  <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
+                      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center">
+                          <Search className="text-slate-400 mr-3" size={20} />
+                          <input 
+                            type="text" 
+                            placeholder="Search users by name or email..." 
+                            value={userSearch}
+                            onChange={(e)=>setUserSearch(e.target.value)}
+                            className="bg-transparent border-none outline-none w-full text-slate-900 dark:text-white" 
+                          />
+                      </div>
+                  </div>
+
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                      <div className="overflow-x-auto w-full">
                          <table className="w-full text-left whitespace-nowrap">
                              <thead>
-                                 <tr className="border-b border-slate-200 text-slate-500 text-xs uppercase bg-slate-50">
+                                 <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs uppercase bg-slate-50 dark:bg-slate-800/50">
                                      <th className="py-4 px-6 font-bold">Username</th>
                                      <th className="py-4 px-6 font-bold">Registration Date</th>
                                      <th className="py-4 px-6 font-bold">Role</th>
@@ -523,35 +538,39 @@ export default function AdminDashboard() {
                                  </tr>
                              </thead>
                              <tbody>
-                                 {users.map(u => (
-                                     <tr key={u._id} className="border-b border-slate-100 hover:bg-slate-50">
+                                 {users.filter(u => 
+                                      u.username.toLowerCase().includes(userSearch.toLowerCase()) || 
+                                      u.email.toLowerCase().includes(userSearch.toLowerCase())
+                                  ).map(u => (
+                                     <tr key={u._id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                         <td className="py-4 px-6 font-bold text-slate-800 dark:text-slate-100">
                                             {u.username} <br/><span className="text-xs font-normal text-slate-400">{u.email}</span>
                                             {u.referralCode && <div className="text-[10px] text-emerald-500 font-mono mt-1">Ref: {u.referralCode}</div>}
                                             {u.isBlocked && <div className="mt-1 inline-block bg-red-100 text-red-600 px-2 py-0.5 rounded text-[10px] font-black uppercase">Blocked / Banned</div>}
                                          </td>
-                                         <td className="py-4 px-6 text-sm text-slate-500">{new Date(u.createdAt).toLocaleDateString()}</td>
+                                         <td className="py-4 px-6 text-sm text-slate-500 dark:text-slate-400">{new Date(u.createdAt).toLocaleDateString()}</td>
                                          <td className="py-4 px-6">
-                                            <span className={`px-3 py-1 rounded-md text-xs font-black ${u.role==='admin'?'bg-primary text-white':'bg-slate-200 text-slate-600'}`}>
+                                            <span className={`px-3 py-1 rounded-md text-xs font-black ${u.role==='admin'?'bg-primary text-white':'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
                                                 {u.role.toUpperCase()}
                                             </span>
                                          </td>
-                                         <td className="py-4 px-6 font-black text-emerald-600 text-lg">
+                                         <td className="py-4 px-6 font-black text-emerald-600 dark:text-emerald-400 text-lg">
                                              {formatPrice(u.walletBalance || 0)}
                                          </td>
                                          <td className="py-4 px-6 text-right">
                                              <div className="flex items-center justify-end gap-2">
-                                                 <button onClick={() => setMessagingUser(u)} className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors" title="Send Notification">
+                                                 <button onClick={() => setMessagingUser(u)} className="p-2 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors" title="Send Notification">
                                                      <Mail size={16}/>
                                                  </button>
-                                                 <button onClick={() => handleChangeWallet(u._id, u.walletBalance)} className="p-2 bg-slate-100 hover:bg-emerald-100 text-emerald-600 rounded-lg transition-colors" title="Edit Balance">
+                                                 <button onClick={() => handleChangeWallet(u._id, u.walletBalance)} className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors" title="Edit Balance">
                                                      <Edit size={16}/>
                                                  </button>
                                                  {u.role !== 'admin' && (
                                                      <>
-                                                        <button onClick={() => handleBlockUser(u._id, u.isBlocked)} className={`p-2 rounded-lg transition-colors ${u.isBlocked ? 'bg-red-500 text-white' : 'bg-slate-100 hover:bg-red-100 text-red-600'}`} title={u.isBlocked ? 'Unblock User' : 'Block User'}>
+                                                        <button onClick={() => handleBlockUser(u._id, u.isBlocked)} className={`p-2 rounded-lg transition-colors ${u.isBlocked ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-slate-800 hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'}`} title={u.isBlocked ? 'Unblock User' : 'Block User'}>
                                                             <Ban size={16}/>
                                                         </button>
-                                                        <button onClick={() => handleDeleteUser(u._id)} className="p-2 bg-slate-100 hover:bg-red-600 hover:text-white text-slate-400 rounded-lg transition-colors" title="Delete Account">
+                                                        <button onClick={() => handleDeleteUser(u._id)} className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-red-600 hover:text-white text-slate-400 rounded-lg transition-colors" title="Delete Account">
                                                             <UserX size={16}/>
                                                         </button>
                                                      </>
@@ -574,23 +593,32 @@ export default function AdminDashboard() {
              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                  <div className="flex justify-between items-center mb-8">
                      <div>
-                         <h1 className="text-3xl font-black text-slate-900 tracking-tight">History Ledger</h1>
-                         <p className="text-slate-500">All transactional data recorded globally.</p>
+                         <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">History Ledger</h1>
+                         <p className="text-slate-500 dark:text-slate-400">All transactional data recorded globally.</p>
                      </div>
-                     <button onClick={handleWipeHistory} className="bg-red-50 hover:bg-red-500 text-red-600 hover:text-white px-4 py-2 rounded-xl text-sm font-bold transition-all inline-flex items-center gap-2">
+                     <button onClick={handleWipeHistory} className="bg-red-50 dark:bg-red-900/20 hover:bg-red-500 text-red-600 dark:text-red-400 hover:text-white px-4 py-2 rounded-xl text-sm font-bold transition-all inline-flex items-center gap-2">
                          <Trash2 size={16}/> Redact All History
                      </button>
                  </div>
                  
-                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                     <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center">
-                         <Search className="text-slate-400 mr-3" size={20} />
-                         <input type="text" placeholder="Search by Order ID, User, or Status..." className="bg-transparent border-none outline-none w-full text-slate-900" />
-                     </div>
+                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
+                      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center">
+                          <Search className="text-slate-400 mr-3" size={20} />
+                          <input 
+                            type="text" 
+                            placeholder="Search by Order ID, User, or Status..." 
+                            value={orderSearch}
+                            onChange={(e)=>setOrderSearch(e.target.value)}
+                            className="bg-transparent border-none outline-none w-full text-slate-900 dark:text-white" 
+                          />
+                      </div>
+                 </div>
+
+                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                      <div className="overflow-x-auto w-full">
                          <table className="w-full text-left whitespace-nowrap">
                              <thead>
-                                 <tr className="border-b border-slate-200 text-slate-500 text-xs uppercase bg-white">
+                                 <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs uppercase bg-white dark:bg-slate-900">
                                      <th className="py-4 px-6 font-bold">Date</th>
                                      <th className="py-4 px-6 font-bold">Order UID</th>
                                      <th className="py-4 px-6 font-bold">Buyer</th>
@@ -600,19 +628,23 @@ export default function AdminDashboard() {
                                  </tr>
                              </thead>
                              <tbody>
-                                 {orders.map(o => (
-                                     <tr key={o._id} className="border-b border-slate-100 hover:bg-slate-50">
-                                         <td className="py-4 px-6 text-sm text-slate-500">{new Date(o.createdAt).toLocaleDateString()}</td>
+                                 {orders.filter(o => 
+                                      o._id.toLowerCase().includes(orderSearch.toLowerCase()) || 
+                                      (o.user?.username || '').toLowerCase().includes(orderSearch.toLowerCase()) ||
+                                      o.status.toLowerCase().includes(orderSearch.toLowerCase())
+                                  ).map(o => (
+                                     <tr key={o._id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                         <td className="py-4 px-6 text-sm text-slate-500 dark:text-slate-400">{new Date(o.createdAt).toLocaleDateString()}</td>
                                          <td className="py-4 px-6 font-mono text-xs text-slate-400">{o._id.substring(0, 8)}...</td>
-                                         <td className="py-4 px-6 font-bold text-slate-800">{o.user?.username || 'Redacted User'}</td>
-                                         <td className="py-4 px-6 text-slate-600 font-bold">{formatPrice(o.totalAmount || 0)}</td>
+                                         <td className="py-4 px-6 font-bold text-slate-800 dark:text-slate-100">{o.user?.username || 'Redacted User'}</td>
+                                         <td className="py-4 px-6 text-slate-600 dark:text-slate-300 font-bold">{formatPrice(o.totalAmount || 0)}</td>
                                          <td className="py-4 px-6">
                                             {o.status === 'success' ? (
-                                                <div className="max-w-[150px] truncate font-mono text-xs bg-emerald-50 text-emerald-600 px-2 py-1 rounded border border-emerald-100">
+                                                <div className="max-w-[150px] truncate font-mono text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded border border-emerald-100 dark:border-emerald-800">
                                                     {o.deliveredKey || 'View Dashboard'}
                                                 </div>
                                             ) : (
-                                                <div className="max-w-[150px] truncate font-mono text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded border border-slate-200">
+                                                <div className="max-w-[150px] truncate font-mono text-xs bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">
                                                     Pending / Abandoned
                                                 </div>
                                             )}
@@ -636,22 +668,22 @@ export default function AdminDashboard() {
          {activeTab === 'catalog' && (
              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8">
                  <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight">Product Catalog Planner</h1>
-                    <p className="text-slate-500 mt-1">Publish new digital assets to the live store immediately.</p>
+                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Product Catalog Planner</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1">Publish new digital assets to the live store immediately.</p>
                  </div>
 
-                 <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm max-w-4xl">
-                     <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-900"><Plus size={20} className="text-primary"/> Create Asset Form</h3>
+                 <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-4xl">
+                     <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-900 dark:text-white"><Plus size={20} className="text-primary"/> Create Asset Form</h3>
                      <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          
                          <div className="md:col-span-2">
-                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Title</label>
-                             <input type="text" placeholder="Ex: Advanced Police System V2" value={title} onChange={(e)=>setTitle(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" />
+                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Title</label>
+                             <input type="text" placeholder="Ex: Advanced Police System V2" value={title} onChange={(e)=>setTitle(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
                          </div>
 
                          <div>
-                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Category</label>
-                             <select value={category} onChange={(e)=>setCategory(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900">
+                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Category</label>
+                             <select value={category} onChange={(e)=>setCategory(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white">
                                 <option value="General">General</option>
                                 <option value="Scripts">FiveM Scripts</option>
                                 <option value="Vehicles">Vehicles</option>
@@ -661,45 +693,45 @@ export default function AdminDashboard() {
                          </div>
 
                          <div>
-                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Sale Price (USD) ✨</label>
-                             <input type="number" step="0.01" placeholder="49.99" value={price} onChange={(e)=>setPrice(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" />
+                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Sale Price (USD) ✨</label>
+                             <input type="number" step="0.01" placeholder="49.99" value={price} onChange={(e)=>setPrice(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
                          </div>
 
                          <div>
-                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">
                                Original Price (Before Discount) 
                                <span className="text-slate-400 normal-case font-normal ml-1">— Optional</span>
                              </label>
-                             <input type="number" step="0.01" placeholder="69.99 (leave empty if no discount)" value={originalPrice} onChange={(e)=>setOriginalPrice(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" />
+                             <input type="number" step="0.01" placeholder="69.99 (leave empty if no discount)" value={originalPrice} onChange={(e)=>setOriginalPrice(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
                              {originalPrice && price && parseFloat(originalPrice) > parseFloat(price) && (
                                <div className="mt-2 flex items-center gap-2">
-                                 <span className="bg-red-50 text-red-600 border border-red-200 text-xs font-black px-3 py-1 rounded-full">
+                                 <span className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 text-xs font-black px-3 py-1 rounded-full">
                                    -{Math.round((1 - parseFloat(price) / parseFloat(originalPrice)) * 100)}% OFF
                                  </span>
-                                 <span className="text-xs text-slate-400">Preview: <s className="text-slate-400">${parseFloat(originalPrice).toFixed(2)}</s> → <strong className="text-emerald-600">${parseFloat(price).toFixed(2)}</strong></span>
+                                 <span className="text-xs text-slate-400">Preview: <s className="text-slate-400">${parseFloat(originalPrice).toFixed(2)}</s> → <strong className="text-emerald-600 dark:text-emerald-400">${parseFloat(price).toFixed(2)}</strong></span>
                                </div>
                              )}
                          </div>
 
                          <div>
-                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">
                                Sale Expiry Date (Countdown) ⏱️
                                <span className="text-slate-400 normal-case font-normal ml-1">— Optional</span>
                              </label>
-                             <input type="datetime-local" value={saleEndDate} onChange={(e)=>setSaleEndDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" />
+                             <input type="datetime-local" value={saleEndDate} onChange={(e)=>setSaleEndDate(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
                              <p className="text-[10px] text-slate-400 mt-1">Leave empty if this is a permanent discount.</p>
                          </div>
 
                          <div className="md:col-span-2">
-                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Upload Thumbnail Image</label>
-                             <input type="file" accept="image/*" onChange={(e)=>setImageFile(e.target.files[0])} className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-4 outline-none focus:border-primary text-slate-900" />
+                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Upload Thumbnail Image</label>
+                             <input type="file" accept="image/*" onChange={(e)=>setImageFile(e.target.files[0])} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
                              <p className="text-xs text-slate-400 mt-2">Or provide an external URL below if you don't want to upload:</p>
-                             <input type="url" placeholder="https://imgur.com/... (Optional Fallback)" value={imageUrl} onChange={(e)=>setImageUrl(e.target.value)} className="w-full mt-2 bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" />
+                             <input type="url" placeholder="https://imgur.com/... (Optional Fallback)" value={imageUrl} onChange={(e)=>setImageUrl(e.target.value)} className="w-full mt-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
                          </div>
 
                          <div className="md:col-span-2">
-                             <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Description</label>
-                             <textarea placeholder="Write compelling features..." rows="4" value={description} onChange={(e)=>setDescription(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 resize-none"></textarea>
+                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Description</label>
+                             <textarea placeholder="Write compelling features..." rows="4" value={description} onChange={(e)=>setDescription(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white resize-none"></textarea>
                          </div>
 
                          <div className="md:col-span-2 pt-4">
@@ -710,12 +742,24 @@ export default function AdminDashboard() {
                      </form>
                  </div>
 
-                 <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm max-w-4xl mt-4">
-                    <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-900"><FolderOpen size={20} className="text-primary"/> Live Products Management</h3>
+                 <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-4xl mt-4">
+                    <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white"><FolderOpen size={20} className="text-primary"/> Live Products Management</h3>
+                        <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2 flex items-center w-64">
+                            <Search size={16} className="text-slate-400 mr-2"/>
+                            <input 
+                                type="text" 
+                                placeholder="Filter products..." 
+                                value={productSearch}
+                                onChange={(e)=>setProductSearch(e.target.value)}
+                                className="bg-transparent border-none outline-none text-xs w-full text-slate-900 dark:text-white"
+                            />
+                        </div>
+                    </div>
                     <div className="overflow-x-auto w-full">
                          <table className="w-full text-left whitespace-nowrap">
                              <thead>
-                                 <tr className="border-b border-slate-200 text-slate-500 text-xs uppercase bg-white">
+                                 <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs uppercase bg-white dark:bg-slate-900">
                                      <th className="py-2 px-4 font-bold">Image</th>
                                      <th className="py-2 px-4 font-bold">Product</th>
                                      <th className="py-2 px-4 font-bold">Price</th>
@@ -723,11 +767,14 @@ export default function AdminDashboard() {
                                  </tr>
                              </thead>
                              <tbody>
-                                 {products.map(p => (
-                                     <tr key={p._id} className="border-b border-slate-100 items-center">
+                                 {products.filter(p => 
+                                     p.title.toLowerCase().includes(productSearch.toLowerCase()) ||
+                                     p.category.toLowerCase().includes(productSearch.toLowerCase())
+                                 ).map(p => (
+                                     <tr key={p._id} className="border-b border-slate-100 dark:border-slate-800 items-center">
                                          <td className="py-2 px-4"><img src={p.imageUrl} alt="" className="w-10 h-10 object-cover rounded-md" /></td>
-                                         <td className="py-2 px-4 font-bold text-slate-800 text-sm overflow-hidden truncate max-w-[200px]">{p.title}</td>
-                                         <td className="py-2 px-4 text-emerald-600 font-bold">{formatPrice(p.price)}</td>
+                                         <td className="py-2 px-4 font-bold text-slate-800 dark:text-slate-100 text-sm overflow-hidden truncate max-w-[200px]">{p.title}</td>
+                                         <td className="py-2 px-4 text-emerald-600 dark:text-emerald-400 font-bold">{formatPrice(p.price)}</td>
                                          <td className="py-2 px-4 text-right">
                                              <button onClick={() => openEditModal(p)} className="text-blue-500 hover:text-blue-700 p-2"><Edit size={16}/></button>
                                              
@@ -752,30 +799,30 @@ export default function AdminDashboard() {
          {activeTab === 'vault' && (
              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8">
                  <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
                         <Database className="text-indigo-600"/> Digital Vault Logistics
                     </h1>
-                    <p className="text-slate-500 mt-2">Restock license keys and digital assets assigned to products.</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2">Restock license keys and digital assets assigned to products.</p>
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="bg-white p-8 rounded-2xl border border-indigo-100 shadow-md relative overflow-hidden">
+                     <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-indigo-100 dark:border-indigo-900 shadow-md relative overflow-hidden">
                          <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
-                         <h3 className="text-xl font-bold mb-6 text-slate-900">Inject Batch Licenses</h3>
-                         <div className="flex gap-2 mb-6 bg-slate-100 p-1 rounded-xl">
-                            <button onClick={()=>setKeyType('text')} className={`flex-1 py-2 rounded-lg font-black text-xs transition-all ${keyType==='text'?'bg-white shadow-sm text-primary':'text-slate-500'}`}>TEXT KEYS</button>
-                            <button onClick={()=>setKeyType('image')} className={`flex-1 py-2 rounded-lg font-black text-xs transition-all ${keyType==='image'?'bg-white shadow-sm text-primary':'text-slate-500'}`}>IMAGE/QR KEYS</button>
+                         <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">Inject Batch Licenses</h3>
+                         <div className="flex gap-2 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                            <button onClick={()=>setKeyType('text')} className={`flex-1 py-2 rounded-lg font-black text-xs transition-all ${keyType==='text'?'bg-white dark:bg-slate-700 shadow-sm text-primary':'text-slate-500 dark:text-slate-400'}`}>TEXT KEYS</button>
+                            <button onClick={()=>setKeyType('image')} className={`flex-1 py-2 rounded-lg font-black text-xs transition-all ${keyType==='image'?'bg-white dark:bg-slate-700 shadow-sm text-primary':'text-slate-500 dark:text-slate-400'}`}>IMAGE/QR KEYS</button>
                          </div>
                          <form onSubmit={handleAddKeys} className="flex flex-col gap-5">
                              <div>
-                                 <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Select Target Product Engine</label>
-                                 <select value={selectedProductId} onChange={(e)=>setSelectedProductId(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-indigo-500 text-slate-900">
+                                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Select Target Product Engine</label>
+                                 <select value={selectedProductId} onChange={(e)=>setSelectedProductId(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-indigo-500 text-slate-900 dark:text-white">
                                      <option value="" disabled>Select...</option>
                                      {products.map(p => <option key={p._id} value={p._id}>{p.title} (In Stock: {p.keys.length})</option>)}
                                  </select>
                              </div>
                              <div>
-                                 <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">
+                                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">
                                     {keyType === 'text' ? 'Data Payload (Comma Separated)' : 'Image URLs (Comma Separated URLs)'}
                                  </label>
                                  <textarea 
@@ -796,25 +843,25 @@ export default function AdminDashboard() {
                          </form>
                      </div>
 
-                     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
-                         <div className="p-6 border-b border-slate-100">
-                             <h3 className="text-lg font-bold text-slate-900">Current Stock Levels</h3>
+                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+                         <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Current Stock Levels</h3>
                          </div>
                          <div className="p-2 overflow-y-auto max-h-[400px]">
                              {products.map(p => (
-                                 <div key={p._id} className="flex justify-between items-center p-4 border-b border-slate-50 last:border-0 hover:bg-slate-50 rounded-lg">
+                                 <div key={p._id} className="flex justify-between items-center p-4 border-b border-slate-50 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg">
                                      <div>
-                                         <p className="font-bold text-slate-800 text-sm">{p.title}</p>
+                                         <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">{p.title}</p>
                                          <p className="text-xs text-slate-400">{p.category}</p>
                                      </div>
                                      <div className="flex items-center gap-3">
-                                         <div className={`px-3 py-1 rounded-md text-xs font-black ${p.keys.length > 5 ? 'bg-emerald-100 text-emerald-700' : p.keys.length > 0 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                                         <div className={`px-3 py-1 rounded-md text-xs font-black ${p.keys.length > 5 ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : p.keys.length > 0 ? 'bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400' : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
                                              {p.keys.length} QTY
                                          </div>
                                          <button onClick={() => {
                                              setEditingProductKeys(p);
                                              setEditKeysText(p.keys ? p.keys.map(k=>k.value).join('\n') : "");
-                                         }} className="px-3 py-1 bg-slate-100 hover:bg-indigo-50 text-indigo-600 text-xs font-bold rounded-md transition-colors border border-transparent hover:border-indigo-100">
+                                         }} className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-md transition-colors border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800">
                                              Manage
                                          </button>
                                      </div>
@@ -826,23 +873,23 @@ export default function AdminDashboard() {
 
                   {editingProduct && (
                       <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in">
-                          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden slide-in-from-bottom-8">
-                              <div className="flex justify-between items-center p-8 border-b border-slate-100 bg-slate-50/50">
+                          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden slide-in-from-bottom-8">
+                              <div className="flex justify-between items-center p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
                                   <div>
-                                      <h3 className="text-2xl font-black text-slate-900 tracking-tight">Modify Inventory Asset</h3>
-                                      <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{editingProduct.title}</p>
+                                      <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Modify Inventory Asset</h3>
+                                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{editingProduct.title}</p>
                                   </div>
-                                  <button onClick={()=>setEditingProduct(null)} className="p-3 bg-white text-slate-400 hover:text-red-500 rounded-2xl shadow-sm transition-all border border-slate-100"><XCircle size={24}/></button>
+                                  <button onClick={()=>setEditingProduct(null)} className="p-3 bg-white dark:bg-slate-800 text-slate-400 hover:text-red-500 rounded-2xl shadow-sm transition-all border border-slate-100 dark:border-slate-700"><XCircle size={24}/></button>
                               </div>
                               <form onSubmit={handleUpdateProduct} className="flex-grow p-8 overflow-y-auto space-y-6">
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                       <div>
                                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Asset Label</label>
-                                          <input type="text" value={editTitle} onChange={(e)=>setEditTitle(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900" />
+                                          <input type="text" value={editTitle} onChange={(e)=>setEditTitle(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900 dark:text-white" />
                                       </div>
                                       <div>
                                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Collection/Category</label>
-                                          <select value={editCategory} onChange={(e)=>setEditCategory(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900">
+                                          <select value={editCategory} onChange={(e)=>setEditCategory(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900 dark:text-white">
                                               <option value="General">General</option>
                                               <option value="Software">Software</option>
                                               <option value="Game Keys">Game Keys</option>
@@ -855,31 +902,31 @@ export default function AdminDashboard() {
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                       <div>
                                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-emerald-600">Current Selling Price</label>
-                                          <input type="number" value={editPrice} onChange={(e)=>setEditPrice(e.target.value)} required className="w-full bg-emerald-50 border border-emerald-100 rounded-2xl py-3 px-4 outline-none focus:border-emerald-500 font-black text-emerald-700" />
+                                          <input type="number" value={editPrice} onChange={(e)=>setEditPrice(e.target.value)} required className="w-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-2xl py-3 px-4 outline-none focus:border-emerald-500 font-black text-emerald-700 dark:text-emerald-400" />
                                       </div>
                                       <div>
                                           <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Original Price (For Discount Display)</label>
-                                          <input type="number" value={editOriginalPrice} onChange={(e)=>setEditOriginalPrice(e.target.value)} placeholder="e.g. 100" className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-400" />
+                                          <input type="number" value={editOriginalPrice} onChange={(e)=>setEditOriginalPrice(e.target.value)} placeholder="e.g. 100" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-400" />
                                       </div>
                                   </div>
 
                                   <div>
                                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Technical specifications / Description</label>
-                                      <textarea value={editDescription} onChange={(e)=>setEditDescription(e.target.value)} rows="4" className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-4 outline-none focus:border-primary text-slate-700 text-sm font-medium resize-none"></textarea>
+                                      <textarea value={editDescription} onChange={(e)=>setEditDescription(e.target.value)} rows="4" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 px-4 outline-none focus:border-primary text-slate-700 dark:text-slate-300 text-sm font-medium resize-none"></textarea>
                                   </div>
 
                                   <div>
                                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Visual Asset URL</label>
-                                      <input type="text" value={editImageUrl} onChange={(e)=>setEditImageUrl(e.target.value)} className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3 px-4 outline-none focus:border-primary font-mono text-xs text-slate-500" />
+                                      <input type="text" value={editImageUrl} onChange={(e)=>setEditImageUrl(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-mono text-xs text-slate-500" />
                                   </div>
                                   
                                   <div>
                                       <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-red-500">Sale Expiration (Optional)</label>
-                                      <input type="datetime-local" value={editSaleEndDate} onChange={(e)=>setEditSaleEndDate(e.target.value)} className="w-full bg-red-50 border border-red-100 rounded-2xl py-3 px-4 outline-none focus:border-red-500 font-bold text-red-600" />
+                                      <input type="datetime-local" value={editSaleEndDate} onChange={(e)=>setEditSaleEndDate(e.target.value)} className="w-full bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-2xl py-3 px-4 outline-none focus:border-red-500 font-bold text-red-600 dark:text-red-400" />
                                   </div>
                               </form>
-                              <div className="p-8 border-t border-slate-100 flex justify-end gap-4 bg-slate-50/50">
-                                  <button onClick={()=>setEditingProduct(null)} className="px-8 py-4 font-bold text-slate-600 bg-white border border-slate-200 rounded-2xl hover:bg-slate-100 transition-all">Discard Changes</button>
+                              <div className="p-8 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-4 bg-slate-50/50 dark:bg-slate-800/50">
+                                  <button onClick={()=>setEditingProduct(null)} className="px-8 py-4 font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-600 transition-all">Discard Changes</button>
                                   <button onClick={handleUpdateProduct} disabled={submitting} className="px-10 py-4 font-black text-white bg-primary hover:bg-blue-700 shadow-xl shadow-primary/20 rounded-2xl transition-all disabled:opacity-50">
                                       {submitting ? "Applying Changes..." : "Commit Update"}
                                   </button>
@@ -890,15 +937,15 @@ export default function AdminDashboard() {
                   
                   {editingProductKeys && (
                      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-                         <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden slide-in-from-bottom-4">
-                             <div className="flex justify-between items-center p-6 border-b border-slate-100">
+                         <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden slide-in-from-bottom-4">
+                             <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800">
                                  <div>
-                                     <h3 className="text-xl font-black text-slate-900">Manage Keys: {editingProductKeys.title}</h3>
-                                     <p className="text-xs text-slate-500 font-medium">Edit, remove, or organize existing licenses below (One per line).</p>
+                                     <h3 className="text-xl font-black text-slate-900 dark:text-white">Manage Keys: {editingProductKeys.title}</h3>
+                                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Edit, remove, or organize existing licenses below (One per line).</p>
                                  </div>
-                                 <button onClick={()=>setEditingProductKeys(null)} className="p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-900 rounded-xl transition-colors"><XCircle size={24}/></button>
+                                 <button onClick={()=>setEditingProductKeys(null)} className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors"><XCircle size={24}/></button>
                              </div>
-                             <div className="flex-grow p-6 overflow-y-auto bg-slate-50">
+                             <div className="flex-grow p-6 overflow-y-auto bg-slate-50 dark:bg-slate-950">
                                  <textarea 
                                      value={editKeysText} 
                                      onChange={(e)=>setEditKeysText(e.target.value)}
@@ -907,8 +954,8 @@ export default function AdminDashboard() {
                                      placeholder="Enter keys here, one per line..."
                                  ></textarea>
                              </div>
-                             <div className="p-6 border-t border-slate-100 flex justify-end gap-3 bg-white">
-                                 <button onClick={()=>setEditingProductKeys(null)} className="px-6 py-3 font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors">Cancel</button>
+                             <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-white dark:bg-slate-900">
+                                 <button onClick={()=>setEditingProductKeys(null)} className="px-6 py-3 font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors">Cancel</button>
                                  <button onClick={handleOverwriteKeys} className="px-6 py-3 font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-md rounded-xl transition-all">Save Changes</button>
                              </div>
                          </div>
@@ -921,27 +968,27 @@ export default function AdminDashboard() {
          {activeTab === 'promo' && (
              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8">
                  <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
                         <Tag className="text-pink-600"/> Promo Code Engine
                     </h1>
-                    <p className="text-slate-500 mt-2">Generate discount campaigns to drive sales and traffic.</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-2">Generate discount campaigns to drive sales and traffic.</p>
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="bg-white p-8 rounded-2xl border border-pink-100 shadow-md">
-                         <h3 className="text-xl font-bold mb-6 text-slate-900">Issue New Code</h3>
+                     <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-pink-100 dark:border-pink-900 shadow-md">
+                         <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">Issue New Code</h3>
                          <form onSubmit={handleCreatePromo} className="flex flex-col gap-5">
                              <div>
-                                 <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Promo Code</label>
-                                 <input type="text" placeholder="SUMMER50" value={promoCode} onChange={(e)=>setPromoCode(e.target.value.toUpperCase())} required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-pink-500 font-mono font-bold text-slate-900" />
+                                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Promo Code</label>
+                                 <input type="text" placeholder="SUMMER50" value={promoCode} onChange={(e)=>setPromoCode(e.target.value.toUpperCase())} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-pink-500 font-mono font-bold text-slate-900 dark:text-white" />
                              </div>
                              <div>
-                                 <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Discount Percentage (%)</label>
-                                 <input type="number" placeholder="20" min="1" max="100" value={promoDiscount} onChange={(e)=>setPromoDiscount(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-pink-500 text-slate-900 font-bold" />
+                                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Discount Percentage (%)</label>
+                                 <input type="number" placeholder="20" min="1" max="100" value={promoDiscount} onChange={(e)=>setPromoDiscount(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-pink-500 text-slate-900 dark:text-white font-bold" />
                              </div>
                              <div>
-                                 <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Usage Limit (0 for Unlimited)</label>
-                                 <input type="number" placeholder="10" min="0" value={promoUses} onChange={(e)=>setPromoUses(e.target.value)} required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-pink-500 text-slate-900" />
+                                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Usage Limit (0 for Unlimited)</label>
+                                 <input type="number" placeholder="10" min="0" value={promoUses} onChange={(e)=>setPromoUses(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-pink-500 text-slate-900 dark:text-white" />
                              </div>
                              <button type="submit" className="bg-pink-600 hover:bg-pink-700 shadow-lg text-white font-black py-4 rounded-xl transition-all">
                                  Generate Global Code
@@ -949,15 +996,15 @@ export default function AdminDashboard() {
                          </form>
                      </div>
 
-                     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                         <div className="p-6 border-b border-slate-100">
-                             <h3 className="text-lg font-bold text-slate-900">Active Campaigns</h3>
+                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                         <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Active Campaigns</h3>
                          </div>
                          <div className="p-2 overflow-y-auto max-h-[400px]">
                              {coupons.map(c => (
-                                 <div key={c._id} className="flex justify-between items-center p-4 border-b border-slate-50 hover:bg-slate-50 rounded-lg group">
+                                 <div key={c._id} className="flex justify-between items-center p-4 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
                                      <div>
-                                         <p className="font-bold text-pink-600 font-mono tracking-wider">{c.code}</p>
+                                         <p className="font-bold text-pink-600 dark:text-pink-400 font-mono tracking-wider">{c.code}</p>
                                          <p className="text-xs text-slate-400 font-bold">-{c.discountPercent}% OFF</p>
                                      </div>
                                      <div className="flex items-center gap-4">
@@ -975,64 +1022,67 @@ export default function AdminDashboard() {
 
          {/* SUPPORT DESK */}
          {activeTab === 'support' && (
-             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8">
-                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <Ticket className="text-orange-500"/> Support Desk
-                    </h1>
-                    <p className="text-slate-500 mt-2">Manage customer queries and helpdesk tickets.</p>
-                 </div>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-between items-center mb-8">
+                       <div>
+                          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Support Desk</h1>
+                          <p className="text-slate-500 dark:text-slate-400">Manage user inquiries and technical assistance requests.</p>
+                       </div>
+                  </div>
 
-                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 max-w-5xl">
-                     {tickets.map(t => (
-                         <div key={t._id} className="mb-4 bg-slate-50 border border-slate-200 rounded-xl p-5 hover:border-orange-200 transition-colors">
-                             <div className="flex justify-between items-center mb-3 border-b border-slate-200 pb-3">
-                                 <div>
-                                     <h3 className="font-bold text-slate-900">{t.subject}</h3>
-                                     <p className="text-xs text-slate-500">From: {t.user?.username || 'Unknown'} | {new Date(t.createdAt).toLocaleDateString()}</p>
-                                 </div>
-                                 <span className={`px-3 py-1 rounded-md text-xs font-black uppercase ${t.status==='open'?'bg-orange-100 text-orange-600':t.status==='answered'?'bg-blue-100 text-blue-600':'bg-slate-200 text-slate-600'}`}>{t.status}</span>
-                             </div>
-                             
-                             <div className="flex flex-col gap-3 mb-4 max-h-[300px] overflow-y-auto px-2">
-                               {t.messages && t.messages.map((m, i) => (
-                                   <div key={i} className={`p-3 rounded-xl border ${m.sender === 'admin' ? 'bg-blue-50 border-blue-100 ml-6 text-blue-900' : 'bg-white border-slate-200 mr-6 text-slate-700 shadow-sm'}`}>
-                                       <p className={`text-xs font-bold uppercase mb-1 ${m.sender === 'admin' ? 'text-blue-800' : 'text-slate-500'}`}>
-                                           {m.sender === 'admin' ? 'Support Agent (You)' : 'Customer'}
-                                       </p>
-                                       <p className="text-sm whitespace-pre-wrap">{m.text}</p>
-                                   </div>
-                               ))}
-                             </div>
-
-                             <div className="flex justify-end gap-3 border-t border-slate-100 pt-3">
-                                 {t.status !== 'closed' && (
-                                     <>
-                                         <button onClick={()=>handleReplyTicket(t._id)} className="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-lg transition-colors"><Reply size={14}/> Reply to Customer</button>
-                                         <button onClick={()=>handleCloseTicket(t._id)} className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold rounded-lg transition-colors"><XCircle size={14}/> Close Ticket</button>
-                                     </>
-                                 )}
-                             </div>
-                         </div>
-                     ))}
-                     {tickets.length === 0 && <p className="text-center text-slate-500 font-bold py-10">No pending tickets. Good job!</p>}
-                 </div>
-             </div>
-         )}
+                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                      <div className="overflow-x-auto w-full">
+                          <table className="w-full text-left whitespace-nowrap">
+                              <thead>
+                                  <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs uppercase bg-slate-50 dark:bg-slate-800/50">
+                                      <th className="py-4 px-6 font-bold">User</th>
+                                      <th className="py-4 px-6 font-bold">Inquiry</th>
+                                      <th className="py-4 px-6 font-bold">Status</th>
+                                      <th className="py-4 px-6 font-bold text-right">Actions</th>
+                                  </tr>
+                              </thead>
+                              <tbody>
+                                  {tickets.map(t => (
+                                      <tr key={t._id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                          <td className="py-4 px-6">
+                                              <p className="font-bold text-slate-800 dark:text-slate-100">{t.userName}</p>
+                                              <p className="text-xs text-slate-500 dark:text-slate-400">{t.userEmail}</p>
+                                          </td>
+                                          <td className="py-4 px-6 max-w-[300px] truncate scrollbar-hide">
+                                              <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">{t.subject}</p>
+                                              <p className="text-xs text-slate-500 dark:text-slate-400">{t.message}</p>
+                                          </td>
+                                          <td className="py-4 px-6">
+                                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${t.status === 'open' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                                  {t.status}
+                                              </span>
+                                          </td>
+                                          <td className="py-4 px-6 text-right space-x-2">
+                                              <button onClick={() => handleReplyTicket(t._id)} className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 transition-colors"><Reply size={16}/></button>
+                                              <button onClick={() => handleCloseTicket(t._id)} className="p-2 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-lg hover:bg-red-50 hover:text-red-500 transition-colors"><XCircle size={16}/></button>
+                                          </td>
+                                      </tr>
+                                  ))}
+                              </tbody>
+                          </table>
+                      </div>
+                  </div>
+              </div>
+          )}
          
          {/* SYSTEM SETTINGS */}
          {activeTab === 'settings' && (
-             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
-                        <Settings className="text-slate-900"/> System Settings
-                    </h1>
-                    <p className="text-slate-500 mt-2">Manage global configurations for the storefront.</p>
-                 </div>
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                  <div className="flex justify-between items-center mb-8">
+                       <div>
+                          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">System Settings</h1>
+                          <p className="text-slate-500 dark:text-slate-400">Global configuration and platform aesthetics.</p>
+                       </div>
+                  </div>
 
-                 <div className="mt-8 bg-white p-8 rounded-2xl border border-slate-200 shadow-sm max-w-xl">
-                     <h3 className="text-xl font-bold mb-6 text-slate-900">Upload Store Logo</h3>
-                     <p className="text-slate-500 text-sm mb-4">Replaces the logo in the Navbar and Footer. Best dimensions: 150x50px.</p>
+                  <div className="mt-8 bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-xl">
+                      <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">Upload Store Logo</h3>
+                      <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">Replaces the logo in the Navbar and Footer. Best dimensions: 150x50px.</p>
                      <form onSubmit={async (e)=>{
                          e.preventDefault();
                          const file = e.target.logo.files[0];
@@ -1045,6 +1095,48 @@ export default function AdminDashboard() {
                      }}>
                          <input type="file" name="logo" accept="image/png, image/jpeg, image/svg+xml" required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-slate-400 mb-4 text-slate-900" />
                          <button type="submit" className="bg-slate-900 hover:bg-black text-white font-bold px-6 py-3 rounded-xl transition-colors">Apply Global Logo</button>
+                     </form>
+                 </div>
+             </div>
+         )}
+
+         {/* MESSAGING MODAL */}
+         {messagingUser && (
+             <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in">
+                 <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-lg shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden slide-in-from-bottom-8">
+                     <div className="p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
+                         <div>
+                             <h3 className="text-xl font-black text-slate-900 dark:text-white">Direct Notification</h3>
+                             <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-1">Recieving: {messagingUser.username}</p>
+                         </div>
+                         <button onClick={() => setMessagingUser(null)} className="p-2 text-slate-400 hover:text-red-500 transition-colors"><XCircle size={24}/></button>
+                     </div>
+                     <form onSubmit={handleSendMessage} className="p-8 space-y-6">
+                         <div>
+                             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block">Subject</label>
+                             <input 
+                               type="text" 
+                               value={messageSubject} 
+                               onChange={(e)=>setMessageSubject(e.target.value)} 
+                               placeholder="Updates about your order..." 
+                               required 
+                               className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900 dark:text-white" 
+                             />
+                         </div>
+                         <div>
+                             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block">Message Content (HTML Supported)</label>
+                             <textarea 
+                               value={messageBody} 
+                               onChange={(e)=>setMessageBody(e.target.value)} 
+                               required 
+                               rows="5"
+                               className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 px-4 outline-none focus:border-primary text-slate-700 dark:text-slate-300 text-sm font-medium resize-none shadow-inner"
+                               placeholder="Write your message here..."
+                             ></textarea>
+                         </div>
+                         <button type="submit" disabled={submitting} className="w-full bg-slate-900 dark:bg-slate-100 hover:bg-black dark:hover:bg-white text-white dark:text-slate-900 font-black py-4 rounded-2xl shadow-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                            {submitting ? "Transmitting..." : <><Mail size={18}/> Send Vault Notification</>}
+                         </button>
                      </form>
                  </div>
              </div>
