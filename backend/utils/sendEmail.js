@@ -75,7 +75,12 @@ const generateInvoiceHTML = (order) => {
                                             <td style="padding-top: 12px; font-size: 12px; font-weight: 500; color: #94a3b8;">Payment Method</td>
                                             <td style="padding-top: 12px; text-align: right; font-size: 12px; font-weight: 700; color: #0f172a;">${order.cardBrand?.toUpperCase() || 'Stripe'} •••• ${order.cardLast4}</td>
                                         </tr>
-                                        ` : ''}
+                                        ` : `
+                                        <tr>
+                                            <td style="padding-top: 12px; font-size: 12px; font-weight: 500; color: #94a3b8;">Payment Method</td>
+                                            <td style="padding-top: 12px; text-align: right; font-size: 12px; font-weight: 700; color: #0f172a;">KeeWallet Interior Balance</td>
+                                        </tr>
+                                        `}
                                     </table>
                                 </div>
 

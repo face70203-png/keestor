@@ -158,10 +158,23 @@ router.post('/pay-wallet', auth, async (req, res) => {
        status: 'success',
        items: orderItemsFinal,
        totalAmount: totalAmount,
-       deliveredKey: deliveredKeysArr.join(', '),
+       deliveredKey: deliveredKeysArr.map(k => k.value).join(', '),
        product: orderItemsFinal[0].productId 
     });
     await order.save();
+
+    // 📧 SEND SUCCESS EMAIL
+    try {
+        const sendEmail = require('../utils/sendEmail');
+        await sendEmail({
+            email: user.email,
+            subject: `Order Success - KeeStore #${order._id.toString().slice(-6)}`,
+            message: 'PLACEHOLDER', // Will be replaced by invoice template
+            order: order
+        });
+    } catch (emailErr) {
+        console.error("Wallet Fulfillment Email Error:", emailErr.message);
+    }
 
     // 🤝 REFERRAL REWARD LOGIC (Grant $5 to inviter on first purchase)
     if (user.referredBy) {

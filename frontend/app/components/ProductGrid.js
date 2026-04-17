@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import axios from "axios";
 import { ShoppingCart, Zap, Heart } from "lucide-react";
 import { useCart } from "../context/CartContext";

@@ -6,7 +6,8 @@ import {
   LayoutDashboard, ShoppingBag, FolderOpen, 
   Settings, KeyRound, ArrowUpRight, Search,
   Users, Trash2, Edit, Ticket, Tag, Reply, XCircle,
-  Download, LogOut, ShieldCheck
+  Download, LogOut, ShieldCheck, Mail, UserX,
+  ShieldX, Ban, Lock
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -284,13 +285,24 @@ export default function AdminDashboard() {
   };
 
   const handleSendMessage = async (e) => {
-      e.preventDefault();
+      if(e) e.preventDefault();
       if(!messagingUser) return;
+      
+      let subject = messageSubject;
+      let body = messageBody;
+      
+      if (!subject || !body) {
+          subject = prompt(`Enter message subject for ${messagingUser.username}:`, "Important Store Update");
+          if (!subject) return setMessagingUser(null);
+          body = prompt(`Enter message content (HTML supported):`);
+          if (!body) return setMessagingUser(null);
+      }
+
       setSubmitting(true);
       try {
           await axios.post(`${API_BASE_URL}/api/users/${messagingUser._id}/message`, {
-              subject: messageSubject,
-              message: messageBody
+              subject,
+              message: body
           });
           alert("Professional notification sent to user.");
           setMessagingUser(null);
@@ -513,9 +525,9 @@ export default function AdminDashboard() {
                              <tbody>
                                  {users.map(u => (
                                      <tr key={u._id} className="border-b border-slate-100 hover:bg-slate-50">
-                                         <td className="py-4 px-6 font-bold text-slate-800">
                                             {u.username} <br/><span className="text-xs font-normal text-slate-400">{u.email}</span>
                                             {u.referralCode && <div className="text-[10px] text-emerald-500 font-mono mt-1">Ref: {u.referralCode}</div>}
+                                            {u.isBlocked && <div className="mt-1 inline-block bg-red-100 text-red-600 px-2 py-0.5 rounded text-[10px] font-black uppercase">Blocked / Banned</div>}
                                          </td>
                                          <td className="py-4 px-6 text-sm text-slate-500">{new Date(u.createdAt).toLocaleDateString()}</td>
                                          <td className="py-4 px-6">
@@ -528,13 +540,21 @@ export default function AdminDashboard() {
                                          </td>
                                          <td className="py-4 px-6 text-right">
                                              <div className="flex items-center justify-end gap-2">
-                                                 <button onClick={() => handleChangeWallet(u._id, u.walletBalance)} className="p-2 bg-slate-100 hover:bg-emerald-100 text-emerald-600 rounded-lg transition-colors" title="Force Edit Balance">
+                                                 <button onClick={() => setMessagingUser(u)} className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors" title="Send Notification">
+                                                     <Mail size={16}/>
+                                                 </button>
+                                                 <button onClick={() => handleChangeWallet(u._id, u.walletBalance)} className="p-2 bg-slate-100 hover:bg-emerald-100 text-emerald-600 rounded-lg transition-colors" title="Edit Balance">
                                                      <Edit size={16}/>
                                                  </button>
                                                  {u.role !== 'admin' && (
-                                                     <button onClick={() => handlePromoteAdmin(u._id)} className="p-2 bg-slate-100 hover:bg-primary text-blue-600 rounded-lg transition-colors text-xs font-bold" title="Promote to Admin">
-                                                         Promote
-                                                     </button>
+                                                     <>
+                                                        <button onClick={() => handleBlockUser(u._id, u.isBlocked)} className={`p-2 rounded-lg transition-colors ${u.isBlocked ? 'bg-red-500 text-white' : 'bg-slate-100 hover:bg-red-100 text-red-600'}`} title={u.isBlocked ? 'Unblock User' : 'Block User'}>
+                                                            <Ban size={16}/>
+                                                        </button>
+                                                        <button onClick={() => handleDeleteUser(u._id)} className="p-2 bg-slate-100 hover:bg-red-600 hover:text-white text-slate-400 rounded-lg transition-colors" title="Delete Account">
+                                                            <UserX size={16}/>
+                                                        </button>
+                                                     </>
                                                  )}
                                              </div>
                                          </td>
