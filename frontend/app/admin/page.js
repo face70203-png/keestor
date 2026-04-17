@@ -170,7 +170,8 @@ export default function AdminDashboard() {
           
           if (keyType === 'text') {
               if(!newKeys) return alert("Enter keys");
-              const keysArray = newKeys.split(',').map(k => ({
+              // Split by newlines, commas, or spaces to handle any paste format
+              const keysArray = newKeys.split(/[\n, ]+/).map(k => ({
                   value: k.trim(),
                   keyType: 'text'
               })).filter(k => k.value);
@@ -232,7 +233,7 @@ export default function AdminDashboard() {
       if(!editingProductKeys) return;
       if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
       try {
-          const keysArray = editKeysText.split('\n').map(k => k.trim()).filter(k => k);
+          const keysArray = editKeysText.split(/[\n, ]+/).map(k => k.trim()).filter(k => k);
           await axios.put(`${API_BASE_URL}/api/products/${editingProductKeys._id}/keys/overwrite`, {
               keys: keysArray
           });
