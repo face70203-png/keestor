@@ -1,5 +1,6 @@
 const axios = require('axios');
 const nodemailer = require('nodemailer');
+const generateInvoicePDF = require('./generateInvoicePDF');
 
 /**
  * Generates a high-end, premium HTML invoice/order success email.
@@ -130,16 +131,34 @@ const sendEmail = async (options) => {
     const smtpPass = (process.env.SMTP_PASS || "").replace(/\s+/g, '');
     const fromAddress = `${process.env.FROM_NAME || 'KeeStore Vault'} <${process.env.FROM_EMAIL || smtpUser || 'no-reply@keestore.com'}>`;
 
+    // Determine plugins/attachments
+    let attachments = [];
+    if (options.order) {
+        try {
+            const pdfBase64 = await generateInvoicePDF(options.order);
+            attachments.push({
+                filename: `KeeStore_Invoice_${options.order._id.toString().slice(-12).toUpperCase()}.pdf`,
+                content: pdfBase64,
+                encoding: 'base64'
+            });
+        } catch (err) {
+            console.error("[VAULT-MAIL] PDF Generation failed:", err.message);
+        }
+    }
+
     // --- STRATEGY 1: RESEND API (Zero Latency) ---
     if (resendKey) {
         console.log(`[VAULT-MAIL] Initializing Resend Pipeline...`);
         try {
-            const response = await axios.post('https://api.resend.com/emails', {
+            const payload = {
                 from: fromAddress,
                 to: options.email,
                 subject: options.subject,
                 html: finalMessage
-            }, {
+            };
+            if (attachments.length > 0) payload.attachments = attachments;
+
+            const response = await axios.post('https://api.resend.com/emails', payload, {
                 headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
                 timeout: 15000 
             });
@@ -164,12 +183,15 @@ const sendEmail = async (options) => {
             tls: { rejectUnauthorized: false }
         });
 
-        const info = await transporter.sendMail({
+        const mailOptions = {
             from: fromAddress,
             to: options.email,
             subject: options.subject,
             html: finalMessage,
-        });
+        };
+        if (attachments.length > 0) mailOptions.attachments = attachments;
+
+        const info = await transporter.sendMail(mailOptions);
 
         console.log(`[VAULT-MAIL] Delivered successfully via SMTP: ${info.messageId}`);
         return { success: true, method: 'SMTP' };
