@@ -1,3 +1,6 @@
+const axios = require('axios');
+const nodemailer = require('nodemailer');
+
 /**
  * Generates a high-end, premium HTML invoice/order success email.
  */

@@ -137,9 +137,11 @@ router.post('/pay-wallet', auth, async (req, res) => {
     for (let item of productsToUpdate) {
        const itemKeys = [];
        for(let i=0; i<item.quantity; i++) {
-           const key = item.product.keys.shift();
-           itemKeys.push(key);
-           deliveredKeysArr.push(key);
+           let key = item.product.keys.shift();
+           // Robust check: wrap string keys into objects for fulfillment
+           const keyObj = (typeof key === 'string') ? { value: key, keyType: 'text' } : key;
+           itemKeys.push(keyObj);
+           deliveredKeysArr.push(keyObj);
        }
        await item.product.save();
        orderItemsFinal.push({
@@ -211,8 +213,10 @@ const fulfillOrder = async (orderId, sessionId) => {
            if (!prod) continue;
            
            // Dispense n keys from the product's keys array
-           const dispensed = prod.keys.splice(0, item.quantity);
-           item.keys = dispensed; // Copy the { value, keyType } objects
+           const dispensed = prod.keys.splice(0, item.quantity).map(k => 
+               (typeof k === 'string') ? { value: k, keyType: 'text' } : k
+           );
+           item.keys = dispensed; // Always store as { value, keyType } objects
            deliveredKeysArr.push(...dispensed.map(k => k.value)); // For the summary string
            await prod.save();
        }
@@ -300,7 +304,18 @@ router.get('/my-orders', auth, async (req, res) => {
     const orders = await Order.find({ user: req.user._id, status: 'success' })
       .populate('product', 'title imageUrl description price')
       .sort({ createdAt: -1 });
-    res.json(orders);
+
+    // 🔄 Backward Compatibility: Ensure all keys are objects { value, keyType }
+    const formattedOrders = orders.map(order => {
+        const orderObj = order.toObject();
+        orderObj.items = orderObj.items.map(item => ({
+            ...item,
+            keys: (item.keys || []).map(k => (typeof k === 'string') ? { value: k, keyType: 'text' } : k)
+        }));
+        return orderObj;
+    });
+
+    res.json(formattedOrders);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

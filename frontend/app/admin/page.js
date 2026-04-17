@@ -118,6 +118,7 @@ export default function AdminDashboard() {
 
   const handleAddProduct = async (e) => {
       e.preventDefault();
+      if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
       setSubmitting(true);
       try {
           const formData = new FormData();
@@ -147,6 +148,7 @@ export default function AdminDashboard() {
 
   const handleAddKeys = async (e) => {
       e.preventDefault();
+      if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
       if(!selectedProductId || !newKeys) return alert("Select product and enter keys");
       try {
           const keysArray = newKeys.split(',').map(k => ({
@@ -164,6 +166,7 @@ export default function AdminDashboard() {
 
   const handleUpdateProduct = async (e) => {
       e.preventDefault();
+      if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
       setSubmitting(true);
       try {
           await axios.put(`${API_BASE_URL}/api/products/${editingProduct._id}`, {
@@ -194,6 +197,7 @@ export default function AdminDashboard() {
 
   const handleOverwriteKeys = async () => {
       if(!editingProductKeys) return;
+      if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
       try {
           const keysArray = editKeysText.split('\n').map(k => k.trim()).filter(k => k);
           await axios.put(`${API_BASE_URL}/api/products/${editingProductKeys._id}/keys/overwrite`, {
@@ -206,6 +210,7 @@ export default function AdminDashboard() {
 
   const handleCreatePromo = async (e) => {
       e.preventDefault();
+      if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
       try {
           await axios.post(`${API_BASE_URL}/api/coupons`, { code: promoCode, discountPercent: Number(promoDiscount), maxUses: Number(promoUses) });
           alert("Promo Code Created!");
@@ -214,6 +219,7 @@ export default function AdminDashboard() {
   };
 
   const handleDeletePromo = async (id) => {
+      if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
       try {
           await axios.delete(`${API_BASE_URL}/api/coupons/${id}`);
           fetchData();
@@ -221,6 +227,7 @@ export default function AdminDashboard() {
   };
 
   const handleReplyTicket = async (id) => {
+      if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
       const reply = prompt("Enter your reply to the user:");
       if (!reply) return;
       try {
@@ -230,6 +237,7 @@ export default function AdminDashboard() {
   };
 
   const handleCloseTicket = async (id) => {
+      if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
       try {
           await axios.put(`${API_BASE_URL}/api/tickets/${id}/close`, {});
           fetchData();
@@ -237,6 +245,7 @@ export default function AdminDashboard() {
   };
 
   const handleWipeHistory = async () => {
+     if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
      if(!confirm("WARNING! Wipe ALL transaction history entirely?")) return;
      try {
          await axios.delete(`${API_BASE_URL}/api/orders/wipe/all`);
@@ -245,6 +254,7 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteOrder = async (id) => {
+      if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
       if(!confirm("Wipe this specific transaction from ledger?")) return;
       try {
           await axios.delete(`${API_BASE_URL}/api/orders/${id}`);
@@ -253,6 +263,7 @@ export default function AdminDashboard() {
   };
 
   const handleChangeWallet = async (userId, currentBal) => {
+    if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
     const val = prompt(`Set absolute wallet balance (Current: $${currentBal}):`, currentBal);
     if(val === null || isNaN(val)) return;
     try {
@@ -270,6 +281,7 @@ export default function AdminDashboard() {
   };
 
   const handleBlockUser = async (userId, currentlyBlocked) => {
+      if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
       const action = currentlyBlocked ? 'unblock' : 'block';
       if(!confirm(`Are you sure you want to ${action} this user?`)) return;
       try {
@@ -279,6 +291,7 @@ export default function AdminDashboard() {
   };
 
   const handleDeleteUser = async (userId) => {
+      if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
       if(!confirm("PERMANENTLY DELETE this user account? This cannot be undone.")) return;
       try {
           await axios.delete(`${API_BASE_URL}/api/users/${userId}`);
@@ -288,6 +301,7 @@ export default function AdminDashboard() {
 
   const handleSendMessage = async (e) => {
       if(e) e.preventDefault();
+      if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Notifications are disabled.");
       if(!messagingUser) return;
       
       let subject = messageSubject;
@@ -464,7 +478,7 @@ export default function AdminDashboard() {
             </div>
           )}
          
-         {activeTab === 'overview' && (
+          {activeTab === 'overview' && (
              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                  <div className="flex justify-between items-center mb-8">
                      <div>
@@ -500,647 +514,648 @@ export default function AdminDashboard() {
                  {/* Optimized Charts Section via Dynamic Import */}
                  <AdminCharts stats={stats} />
              </div>
-         )}
+          )}
 
-         {/* USERS CRM MANAGEMENT */}
-         {activeTab === 'users' && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex justify-between items-center mb-8">
-                     <div>
-                        <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">User CRM</h1>
-                        <p className="text-slate-500 dark:text-slate-400">Control global user accounts and wallet balances directly.</p>
-                     </div>
-                  </div>
-
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
-                      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center">
-                          <Search className="text-slate-400 mr-3" size={20} />
-                          <input 
-                            type="text" 
-                            placeholder="Search users by name or email..." 
-                            value={userSearch}
-                            onChange={(e)=>setUserSearch(e.target.value)}
-                            className="bg-transparent border-none outline-none w-full text-slate-900 dark:text-white" 
-                          />
+          {/* USERS CRM MANAGEMENT */}
+          {activeTab === 'users' && (
+               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                   <div className="flex justify-between items-center mb-8">
+                      <div>
+                         <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">User CRM</h1>
+                         <p className="text-slate-500 dark:text-slate-400">Control global user accounts and wallet balances directly.</p>
                       </div>
-                  </div>
+                   </div>
 
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                     <div className="overflow-x-auto w-full">
-                         <table className="w-full text-left whitespace-nowrap">
-                             <thead>
-                                 <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs uppercase bg-slate-50 dark:bg-slate-800/50">
-                                     <th className="py-4 px-6 font-bold">Username</th>
-                                     <th className="py-4 px-6 font-bold">Registration Date</th>
-                                     <th className="py-4 px-6 font-bold">Role</th>
-                                     <th className="py-4 px-6 font-bold">Wallet Balance</th>
-                                     <th className="py-4 px-6 font-bold text-right">Master Controls</th>
-                                 </tr>
-                             </thead>
-                             <tbody>
-                                 {users.filter(u => 
-                                      u.username.toLowerCase().includes(userSearch.toLowerCase()) || 
-                                      u.email.toLowerCase().includes(userSearch.toLowerCase())
-                                  ).map(u => (
-                                     <tr key={u._id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                         <td className="py-4 px-6 font-bold text-slate-800 dark:text-slate-100">
-                                            {u.username} <br/><span className="text-xs font-normal text-slate-400">{u.email}</span>
-                                            {u.referralCode && <div className="text-[10px] text-emerald-500 font-mono mt-1">Ref: {u.referralCode}</div>}
-                                            {u.isBlocked && <div className="mt-1 inline-block bg-red-100 text-red-600 px-2 py-0.5 rounded text-[10px] font-black uppercase">Blocked / Banned</div>}
-                                         </td>
-                                         <td className="py-4 px-6 text-sm text-slate-500 dark:text-slate-400">{new Date(u.createdAt).toLocaleDateString()}</td>
-                                         <td className="py-4 px-6">
-                                            <span className={`px-3 py-1 rounded-md text-xs font-black ${u.role==='admin'?'bg-primary text-white':'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
-                                                {u.role.toUpperCase()}
-                                            </span>
-                                         </td>
-                                         <td className="py-4 px-6 font-black text-emerald-600 dark:text-emerald-400 text-lg">
-                                             {formatPrice(u.walletBalance || 0)}
-                                         </td>
-                                         <td className="py-4 px-6 text-right">
-                                             <div className="flex items-center justify-end gap-2">
-                                                 <button onClick={() => setMessagingUser(u)} className="p-2 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors" title="Send Notification">
-                                                     <Mail size={16}/>
-                                                 </button>
-                                                 <button onClick={() => handleChangeWallet(u._id, u.walletBalance)} className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors" title="Edit Balance">
-                                                     <Edit size={16}/>
-                                                 </button>
-                                                 {u.role !== 'admin' && (
-                                                     <>
-                                                        <button onClick={() => handleBlockUser(u._id, u.isBlocked)} className={`p-2 rounded-lg transition-colors ${u.isBlocked ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-slate-800 hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'}`} title={u.isBlocked ? 'Unblock User' : 'Block User'}>
-                                                            <Ban size={16}/>
-                                                        </button>
-                                                        <button onClick={() => handleDeleteUser(u._id)} className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-red-600 hover:text-white text-slate-400 rounded-lg transition-colors" title="Delete Account">
-                                                            <UserX size={16}/>
-                                                        </button>
-                                                     </>
-                                                 )}
-                                             </div>
-                                         </td>
-                                     </tr>
-                                 ))}
-                             </tbody>
-                         </table>
-                         {users.length === 0 && <p className="text-center text-slate-400 py-6 font-bold">Loading CRM...</p>}
-                     </div>
-                 </div>
-              </div>
-         )}
-
-
-         {/* ORDERS MANAGEMENT */}
-         {activeTab === 'orders' && (
-             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                 <div className="flex justify-between items-center mb-8">
-                     <div>
-                         <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">History Ledger</h1>
-                         <p className="text-slate-500 dark:text-slate-400">All transactional data recorded globally.</p>
-                     </div>
-                     <button onClick={handleWipeHistory} className="bg-red-50 dark:bg-red-900/20 hover:bg-red-500 text-red-600 dark:text-red-400 hover:text-white px-4 py-2 rounded-xl text-sm font-bold transition-all inline-flex items-center gap-2">
-                         <Trash2 size={16}/> Redact All History
-                     </button>
-                 </div>
-                 
-                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
-                      <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center">
-                          <Search className="text-slate-400 mr-3" size={20} />
-                          <input 
-                            type="text" 
-                            placeholder="Search by Order ID, User, or Status..." 
-                            value={orderSearch}
-                            onChange={(e)=>setOrderSearch(e.target.value)}
-                            className="bg-transparent border-none outline-none w-full text-slate-900 dark:text-white" 
-                          />
-                      </div>
-                 </div>
-
-                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                     <div className="overflow-x-auto w-full">
-                         <table className="w-full text-left whitespace-nowrap">
-                             <thead>
-                                 <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs uppercase bg-white dark:bg-slate-900">
-                                     <th className="py-4 px-6 font-bold">Date</th>
-                                     <th className="py-4 px-6 font-bold">Order UID</th>
-                                     <th className="py-4 px-6 font-bold">Buyer</th>
-                                     <th className="py-4 px-6 font-bold">Amount</th>
-                                     <th className="py-4 px-6 font-bold">Status</th>
-                                     <th className="py-4 px-6 font-bold text-right">Delete</th>
-                                 </tr>
-                             </thead>
-                             <tbody>
-                                 {orders.filter(o => 
-                                      o._id.toLowerCase().includes(orderSearch.toLowerCase()) || 
-                                      (o.user?.username || '').toLowerCase().includes(orderSearch.toLowerCase()) ||
-                                      o.status.toLowerCase().includes(orderSearch.toLowerCase())
-                                  ).map(o => (
-                                     <tr key={o._id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                         <td className="py-4 px-6 text-sm text-slate-500 dark:text-slate-400">{new Date(o.createdAt).toLocaleDateString()}</td>
-                                         <td className="py-4 px-6 font-mono text-xs text-slate-400">{o._id.substring(0, 8)}...</td>
-                                         <td className="py-4 px-6 font-bold text-slate-800 dark:text-slate-100">{o.user?.username || 'Redacted User'}</td>
-                                         <td className="py-4 px-6 text-slate-600 dark:text-slate-300 font-bold">{formatPrice(o.totalAmount || 0)}</td>
-                                         <td className="py-4 px-6">
-                                            {o.status === 'success' ? (
-                                                <div className="max-w-[150px] truncate font-mono text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded border border-emerald-100 dark:border-emerald-800">
-                                                    {o.deliveredKey || 'View Dashboard'}
-                                                </div>
-                                            ) : (
-                                                <div className="max-w-[150px] truncate font-mono text-xs bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">
-                                                    Pending / Abandoned
-                                                </div>
-                                            )}
-                                         </td>
-                                         <td className="py-4 px-6 text-right">
-                                             <button onClick={() => handleDeleteOrder(o._id)} className="text-slate-400 hover:text-red-500 transition-colors p-2">
-                                                 <Trash2 size={16}/>
-                                             </button>
-                                         </td>
-                                     </tr>
-                                 ))}
-                             </tbody>
-                         </table>
-                         {orders.length === 0 && <p className="text-center text-slate-400 py-6">Ledger is clean.</p>}
-                     </div>
-                 </div>
-             </div>
-         )}
-
-         {/* CATALOG HUB */}
-         {activeTab === 'catalog' && (
-             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8">
-                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Product Catalog Planner</h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-1">Publish new digital assets to the live store immediately.</p>
-                 </div>
-
-                 <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-4xl">
-                     <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-900 dark:text-white"><Plus size={20} className="text-primary"/> Create Asset Form</h3>
-                     <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                         
-                         <div className="md:col-span-2">
-                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Title</label>
-                             <input type="text" placeholder="Ex: Advanced Police System V2" value={title} onChange={(e)=>setTitle(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
-                         </div>
-
-                         <div>
-                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Category</label>
-                             <select value={category} onChange={(e)=>setCategory(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white">
-                                <option value="General">General</option>
-                                <option value="Scripts">FiveM Scripts</option>
-                                <option value="Vehicles">Vehicles</option>
-                                <option value="Maps">Maps & MLOs</option>
-                                <option value="Software">Other Software</option>
-                             </select>
-                         </div>
-
-                         <div>
-                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Sale Price (USD) ✨</label>
-                             <input type="number" step="0.01" placeholder="49.99" value={price} onChange={(e)=>setPrice(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
-                         </div>
-
-                         <div>
-                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">
-                               Original Price (Before Discount) 
-                               <span className="text-slate-400 normal-case font-normal ml-1">— Optional</span>
-                             </label>
-                             <input type="number" step="0.01" placeholder="69.99 (leave empty if no discount)" value={originalPrice} onChange={(e)=>setOriginalPrice(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
-                             {originalPrice && price && parseFloat(originalPrice) > parseFloat(price) && (
-                               <div className="mt-2 flex items-center gap-2">
-                                 <span className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 text-xs font-black px-3 py-1 rounded-full">
-                                   -{Math.round((1 - parseFloat(price) / parseFloat(originalPrice)) * 100)}% OFF
-                                 </span>
-                                 <span className="text-xs text-slate-400">Preview: <s className="text-slate-400">${parseFloat(originalPrice).toFixed(2)}</s> → <strong className="text-emerald-600 dark:text-emerald-400">${parseFloat(price).toFixed(2)}</strong></span>
-                               </div>
-                             )}
-                         </div>
-
-                         <div>
-                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">
-                               Sale Expiry Date (Countdown) ⏱️
-                               <span className="text-slate-400 normal-case font-normal ml-1">— Optional</span>
-                             </label>
-                             <input type="datetime-local" value={saleEndDate} onChange={(e)=>setSaleEndDate(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
-                             <p className="text-[10px] text-slate-400 mt-1">Leave empty if this is a permanent discount.</p>
-                         </div>
-
-                         <div className="md:col-span-2">
-                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Upload Thumbnail Image</label>
-                             <input type="file" accept="image/*" onChange={(e)=>setImageFile(e.target.files[0])} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
-                             <p className="text-xs text-slate-400 mt-2">Or provide an external URL below if you don't want to upload:</p>
-                             <input type="url" placeholder="https://imgur.com/... (Optional Fallback)" value={imageUrl} onChange={(e)=>setImageUrl(e.target.value)} className="w-full mt-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
-                         </div>
-
-                         <div className="md:col-span-2">
-                             <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Description</label>
-                             <textarea placeholder="Write compelling features..." rows="4" value={description} onChange={(e)=>setDescription(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white resize-none"></textarea>
-                         </div>
-
-                         <div className="md:col-span-2 pt-4">
-                             <button type="submit" disabled={submitting} className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-4 rounded-xl disabled:opacity-50 transition-colors shadow-md">
-                                 {submitting ? "Pushing to Cloud..." : "Publish to Storefront"}
-                             </button>
-                         </div>
-                     </form>
-                 </div>
-
-                 <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-4xl mt-4">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white"><FolderOpen size={20} className="text-primary"/> Live Products Management</h3>
-                        <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2 flex items-center w-64">
-                            <Search size={16} className="text-slate-400 mr-2"/>
-                            <input 
-                                type="text" 
-                                placeholder="Filter products..." 
-                                value={productSearch}
-                                onChange={(e)=>setProductSearch(e.target.value)}
-                                className="bg-transparent border-none outline-none text-xs w-full text-slate-900 dark:text-white"
-                            />
-                        </div>
-                    </div>
-                    <div className="overflow-x-auto w-full">
-                         <table className="w-full text-left whitespace-nowrap">
-                             <thead>
-                                 <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs uppercase bg-white dark:bg-slate-900">
-                                     <th className="py-2 px-4 font-bold">Image</th>
-                                     <th className="py-2 px-4 font-bold">Product</th>
-                                     <th className="py-2 px-4 font-bold">Price</th>
-                                     <th className="py-2 px-4 font-bold text-right">Actions</th>
-                                 </tr>
-                             </thead>
-                             <tbody>
-                                 {products.filter(p => 
-                                     p.title.toLowerCase().includes(productSearch.toLowerCase()) ||
-                                     p.category.toLowerCase().includes(productSearch.toLowerCase())
-                                 ).map(p => (
-                                     <tr key={p._id} className="border-b border-slate-100 dark:border-slate-800 items-center">
-                                         <td className="py-2 px-4"><img src={p.imageUrl} alt="" className="w-10 h-10 object-cover rounded-md" /></td>
-                                         <td className="py-2 px-4 font-bold text-slate-800 dark:text-slate-100 text-sm overflow-hidden truncate max-w-[200px]">{p.title}</td>
-                                         <td className="py-2 px-4 text-emerald-600 dark:text-emerald-400 font-bold">{formatPrice(p.price)}</td>
-                                         <td className="py-2 px-4 text-right">
-                                             <button onClick={() => openEditModal(p)} className="text-blue-500 hover:text-blue-700 p-2"><Edit size={16}/></button>
-                                             
-                                             <button onClick={async () => {
-                                                 if(!confirm(`Delete ${p.title} entirely?`)) return;
-                                                 try {
-                                                     await axios.delete(`${API_BASE_URL}/api/products/${p._id}`);
-                                                     alert("Product Deleted!"); fetchData();
-                                                 } catch(e) { alert("Failed to delete."); }
-                                             }} className="text-red-400 hover:text-red-600 p-2"><Trash2 size={16}/></button>
-                                         </td>
-                                     </tr>
-                                 ))}
-                             </tbody>
-                         </table>
-                    </div>
-                 </div>
-             </div>
-         )}
-
-         {/* DIGITAL VAULT (KEYS RESTOCK) */}
-         {activeTab === 'vault' && (
-             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8">
-                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-                        <Database className="text-indigo-600"/> Digital Vault Logistics
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2">Restock license keys and digital assets assigned to products.</p>
-                 </div>
-
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-indigo-100 dark:border-indigo-900 shadow-md relative overflow-hidden">
-                         <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
-                         <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">Inject Batch Licenses</h3>
-                         <div className="flex gap-2 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-                            <button onClick={()=>setKeyType('text')} className={`flex-1 py-2 rounded-lg font-black text-xs transition-all ${keyType==='text'?'bg-white dark:bg-slate-700 shadow-sm text-primary':'text-slate-500 dark:text-slate-400'}`}>TEXT KEYS</button>
-                            <button onClick={()=>setKeyType('image')} className={`flex-1 py-2 rounded-lg font-black text-xs transition-all ${keyType==='image'?'bg-white dark:bg-slate-700 shadow-sm text-primary':'text-slate-500 dark:text-slate-400'}`}>IMAGE/QR KEYS</button>
-                         </div>
-                         <form onSubmit={handleAddKeys} className="flex flex-col gap-5">
-                             <div>
-                                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Select Target Product Engine</label>
-                                 <select value={selectedProductId} onChange={(e)=>setSelectedProductId(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-indigo-500 text-slate-900 dark:text-white">
-                                     <option value="" disabled>Select...</option>
-                                     {products.map(p => <option key={p._id} value={p._id}>{p.title} (In Stock: {p.keys.length})</option>)}
-                                 </select>
-                             </div>
-                             <div>
-                                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">
-                                    {keyType === 'text' ? 'Data Payload (Comma Separated)' : 'Image URLs (Comma Separated URLs)'}
-                                 </label>
-                                 <textarea 
-                                    placeholder={keyType === 'text' ? "LICENSE-123, LICENSE-456" : "https://img.com/qr1.png, https://img.com/qr2.png"} 
-                                    rows="6" 
-                                    value={newKeys} 
-                                    onChange={(e)=>setNewKeys(e.target.value)} 
-                                    required 
-                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-4 px-4 outline-none focus:border-indigo-500 text-emerald-400 font-mono text-sm resize-none"
-                                 ></textarea>
-                                 <p className="text-xs text-slate-400 mt-2">
-                                    {keyType === 'text' ? 'Standard license strings.' : 'Provide direct image links for QR codes / eSIM profiles.'}
-                                 </p>
-                             </div>
-                             <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 text-white font-black py-4 rounded-xl transition-all">
-                                 Deposit {keyType.toUpperCase()} Data
-                             </button>
-                         </form>
-                     </div>
-
-                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
-                         <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Current Stock Levels</h3>
-                         </div>
-                         <div className="p-2 overflow-y-auto max-h-[400px]">
-                             {products.map(p => (
-                                 <div key={p._id} className="flex justify-between items-center p-4 border-b border-slate-50 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg">
-                                     <div>
-                                         <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">{p.title}</p>
-                                         <p className="text-xs text-slate-400">{p.category}</p>
-                                     </div>
-                                     <div className="flex items-center gap-3">
-                                         <div className={`px-3 py-1 rounded-md text-xs font-black ${p.keys.length > 5 ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : p.keys.length > 0 ? 'bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400' : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
-                                             {p.keys.length} QTY
-                                         </div>
-                                         <button onClick={() => {
-                                             setEditingProductKeys(p);
-                                             setEditKeysText(p.keys ? p.keys.map(k=>k.value).join('\n') : "");
-                                         }} className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-md transition-colors border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800">
-                                             Manage
-                                         </button>
-                                     </div>
-                                 </div>
-                             ))}
-                         </div>
-                     </div>
-                 </div>
-
-                  {editingProduct && (
-                      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in">
-                          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden slide-in-from-bottom-8">
-                              <div className="flex justify-between items-center p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
-                                  <div>
-                                      <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Modify Inventory Asset</h3>
-                                      <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{editingProduct.title}</p>
-                                  </div>
-                                  <button onClick={()=>setEditingProduct(null)} className="p-3 bg-white dark:bg-slate-800 text-slate-400 hover:text-red-500 rounded-2xl shadow-sm transition-all border border-slate-100 dark:border-slate-700"><XCircle size={24}/></button>
-                              </div>
-                              <form onSubmit={handleUpdateProduct} className="flex-grow p-8 overflow-y-auto space-y-6">
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                      <div>
-                                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Asset Label</label>
-                                          <input type="text" value={editTitle} onChange={(e)=>setEditTitle(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900 dark:text-white" />
-                                      </div>
-                                      <div>
-                                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Collection/Category</label>
-                                          <select value={editCategory} onChange={(e)=>setEditCategory(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900 dark:text-white">
-                                              <option value="General">General</option>
-                                              <option value="Software">Software</option>
-                                              <option value="Game Keys">Game Keys</option>
-                                              <option value="Subscriptions">Subscriptions</option>
-                                              <option value="eSIM">eSIM / QR Assets</option>
-                                          </select>
-                                      </div>
-                                  </div>
-
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                      <div>
-                                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-emerald-600">Current Selling Price</label>
-                                          <input type="number" value={editPrice} onChange={(e)=>setEditPrice(e.target.value)} required className="w-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-2xl py-3 px-4 outline-none focus:border-emerald-500 font-black text-emerald-700 dark:text-emerald-400" />
-                                      </div>
-                                      <div>
-                                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Original Price (For Discount Display)</label>
-                                          <input type="number" value={editOriginalPrice} onChange={(e)=>setEditOriginalPrice(e.target.value)} placeholder="e.g. 100" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-400" />
-                                      </div>
-                                  </div>
-
-                                  <div>
-                                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Technical specifications / Description</label>
-                                      <textarea value={editDescription} onChange={(e)=>setEditDescription(e.target.value)} rows="4" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 px-4 outline-none focus:border-primary text-slate-700 dark:text-slate-300 text-sm font-medium resize-none"></textarea>
-                                  </div>
-
-                                  <div>
-                                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Visual Asset URL</label>
-                                      <input type="text" value={editImageUrl} onChange={(e)=>setEditImageUrl(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-mono text-xs text-slate-500" />
-                                  </div>
-                                  
-                                  <div>
-                                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-red-500">Sale Expiration (Optional)</label>
-                                      <input type="datetime-local" value={editSaleEndDate} onChange={(e)=>setEditSaleEndDate(e.target.value)} className="w-full bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-2xl py-3 px-4 outline-none focus:border-red-500 font-bold text-red-600 dark:text-red-400" />
-                                  </div>
-                              </form>
-                              <div className="p-8 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-4 bg-slate-50/50 dark:bg-slate-800/50">
-                                  <button onClick={()=>setEditingProduct(null)} className="px-8 py-4 font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-600 transition-all">Discard Changes</button>
-                                  <button onClick={handleUpdateProduct} disabled={submitting} className="px-10 py-4 font-black text-white bg-primary hover:bg-blue-700 shadow-xl shadow-primary/20 rounded-2xl transition-all disabled:opacity-50">
-                                      {submitting ? "Applying Changes..." : "Commit Update"}
-                                  </button>
-                              </div>
-                          </div>
-                      </div>
-                  )}
-                  
-                  {editingProductKeys && (
-                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
-                         <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden slide-in-from-bottom-4">
-                             <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800">
-                                 <div>
-                                     <h3 className="text-xl font-black text-slate-900 dark:text-white">Manage Keys: {editingProductKeys.title}</h3>
-                                     <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Edit, remove, or organize existing licenses below (One per line).</p>
-                                 </div>
-                                 <button onClick={()=>setEditingProductKeys(null)} className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors"><XCircle size={24}/></button>
-                             </div>
-                             <div className="flex-grow p-6 overflow-y-auto bg-slate-50 dark:bg-slate-950">
-                                 <textarea 
-                                     value={editKeysText} 
-                                     onChange={(e)=>setEditKeysText(e.target.value)}
-                                     spellCheck="false"
-                                     className="w-full h-[400px] bg-slate-900 border border-slate-800 rounded-xl py-4 px-4 outline-none focus:border-indigo-500 text-emerald-400 font-mono text-sm resize-none whitespace-pre"
-                                     placeholder="Enter keys here, one per line..."
-                                 ></textarea>
-                             </div>
-                             <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-white dark:bg-slate-900">
-                                 <button onClick={()=>setEditingProductKeys(null)} className="px-6 py-3 font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors">Cancel</button>
-                                 <button onClick={handleOverwriteKeys} className="px-6 py-3 font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-md rounded-xl transition-all">Save Changes</button>
-                             </div>
-                         </div>
-                     </div>
-                 )}
-             </div>
-         )}
-         
-         {/* PROMO ENGINE */}
-         {activeTab === 'promo' && (
-             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8">
-                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
-                        <Tag className="text-pink-600"/> Promo Code Engine
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400 mt-2">Generate discount campaigns to drive sales and traffic.</p>
-                 </div>
-
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-pink-100 dark:border-pink-900 shadow-md">
-                         <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">Issue New Code</h3>
-                         <form onSubmit={handleCreatePromo} className="flex flex-col gap-5">
-                             <div>
-                                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Promo Code</label>
-                                 <input type="text" placeholder="SUMMER50" value={promoCode} onChange={(e)=>setPromoCode(e.target.value.toUpperCase())} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-pink-500 font-mono font-bold text-slate-900 dark:text-white" />
-                             </div>
-                             <div>
-                                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Discount Percentage (%)</label>
-                                 <input type="number" placeholder="20" min="1" max="100" value={promoDiscount} onChange={(e)=>setPromoDiscount(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-pink-500 text-slate-900 dark:text-white font-bold" />
-                             </div>
-                             <div>
-                                 <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Usage Limit (0 for Unlimited)</label>
-                                 <input type="number" placeholder="10" min="0" value={promoUses} onChange={(e)=>setPromoUses(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-pink-500 text-slate-900 dark:text-white" />
-                             </div>
-                             <button type="submit" className="bg-pink-600 hover:bg-pink-700 shadow-lg text-white font-black py-4 rounded-xl transition-all">
-                                 Generate Global Code
-                             </button>
-                         </form>
-                     </div>
-
-                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                         <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                             <h3 className="text-lg font-bold text-slate-900 dark:text-white">Active Campaigns</h3>
-                         </div>
-                         <div className="p-2 overflow-y-auto max-h-[400px]">
-                             {coupons.map(c => (
-                                 <div key={c._id} className="flex justify-between items-center p-4 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
-                                     <div>
-                                         <p className="font-bold text-pink-600 dark:text-pink-400 font-mono tracking-wider">{c.code}</p>
-                                         <p className="text-xs text-slate-400 font-bold">-{c.discountPercent}% OFF</p>
-                                     </div>
-                                     <div className="flex items-center gap-4">
-                                         <p className="text-xs text-slate-500">{c.maxUses === 0 ? 'Unlimited' : `${c.currentUses}/${c.maxUses} Used`}</p>
-                                         <button onClick={() => handleDeletePromo(c._id)} className="text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
-                                     </div>
-                                 </div>
-                             ))}
-                             {coupons.length === 0 && <p className="text-center text-slate-400 py-6">No active coupons.</p>}
-                         </div>
-                     </div>
-                 </div>
-             </div>
-         )}
-
-         {/* SUPPORT DESK */}
-         {activeTab === 'support' && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex justify-between items-center mb-8">
-                       <div>
-                          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Support Desk</h1>
-                          <p className="text-slate-500 dark:text-slate-400">Manage user inquiries and technical assistance requests.</p>
+                   <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
+                       <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center">
+                           <Search className="text-slate-400 mr-3" size={20} />
+                           <input 
+                             type="text" 
+                             placeholder="Search users by name or email..." 
+                             value={userSearch}
+                             onChange={(e)=>setUserSearch(e.target.value)}
+                             className="bg-transparent border-none outline-none w-full text-slate-900 dark:text-white" 
+                           />
                        </div>
-                  </div>
+                   </div>
 
-                  <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                   <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
                       <div className="overflow-x-auto w-full">
                           <table className="w-full text-left whitespace-nowrap">
                               <thead>
                                   <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs uppercase bg-slate-50 dark:bg-slate-800/50">
-                                      <th className="py-4 px-6 font-bold">User</th>
-                                      <th className="py-4 px-6 font-bold">Inquiry</th>
-                                      <th className="py-4 px-6 font-bold">Status</th>
-                                      <th className="py-4 px-6 font-bold text-right">Actions</th>
+                                      <th className="py-4 px-6 font-bold">Username</th>
+                                      <th className="py-4 px-6 font-bold">Registration Date</th>
+                                      <th className="py-4 px-6 font-bold">Role</th>
+                                      <th className="py-4 px-6 font-bold">Wallet Balance</th>
+                                      <th className="py-4 px-6 font-bold text-right">Master Controls</th>
                                   </tr>
                               </thead>
                               <tbody>
-                                  {tickets.map(t => (
-                                      <tr key={t._id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                  {users.filter(u => 
+                                       u.username.toLowerCase().includes(userSearch.toLowerCase()) || 
+                                       u.email.toLowerCase().includes(userSearch.toLowerCase())
+                                   ).map(u => (
+                                      <tr key={u._id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                          <td className="py-4 px-6 font-bold text-slate-800 dark:text-slate-100">
+                                             {u.username} <br/><span className="text-xs font-normal text-slate-400">{u.email}</span>
+                                             {u.referralCode && <div className="text-[10px] text-emerald-500 font-mono mt-1">Ref: {u.referralCode}</div>}
+                                             {u.isBlocked && <div className="mt-1 inline-block bg-red-100 text-red-600 px-2 py-0.5 rounded text-[10px] font-black uppercase">Blocked / Banned</div>}
+                                          </td>
+                                          <td className="py-4 px-6 text-sm text-slate-500 dark:text-slate-400">{new Date(u.createdAt).toLocaleDateString()}</td>
                                           <td className="py-4 px-6">
-                                              <p className="font-bold text-slate-800 dark:text-slate-100">{t.userName}</p>
-                                              <p className="text-xs text-slate-500 dark:text-slate-400">{t.userEmail}</p>
+                                             <span className={`px-3 py-1 rounded-md text-xs font-black ${u.role==='admin'?'bg-primary text-white':'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
+                                                 {u.role.toUpperCase()}
+                                             </span>
                                           </td>
-                                          <td className="py-4 px-6 max-w-[300px] truncate scrollbar-hide">
-                                              <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">{t.subject}</p>
-                                              <p className="text-xs text-slate-500 dark:text-slate-400">{t.message}</p>
+                                          <td className="py-4 px-6 font-black text-emerald-600 dark:text-emerald-400 text-lg">
+                                              {formatPrice(u.walletBalance || 0)}
                                           </td>
-                                          <td className="py-4 px-6">
-                                              <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${t.status === 'open' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
-                                                  {t.status}
-                                              </span>
-                                          </td>
-                                          <td className="py-4 px-6 text-right space-x-2">
-                                              <button onClick={() => handleReplyTicket(t._id)} className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 transition-colors"><Reply size={16}/></button>
-                                              <button onClick={() => handleCloseTicket(t._id)} className="p-2 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-lg hover:bg-red-50 hover:text-red-500 transition-colors"><XCircle size={16}/></button>
+                                          <td className="py-4 px-6 text-right">
+                                              <div className="flex items-center justify-end gap-2">
+                                                  <button onClick={() => setMessagingUser(u)} className="p-2 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-lg transition-colors" title="Send Notification">
+                                                      <Mail size={16}/>
+                                                  </button>
+                                                  <button onClick={() => handleChangeWallet(u._id, u.walletBalance)} className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-emerald-100 dark:hover:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 rounded-lg transition-colors" title="Edit Balance">
+                                                      <Edit size={16}/>
+                                                  </button>
+                                                  {u.role !== 'admin' && (
+                                                      <>
+                                                         <button onClick={() => handleBlockUser(u._id, u.isBlocked)} className={`p-2 rounded-lg transition-colors ${u.isBlocked ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-slate-800 hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400'}`} title={u.isBlocked ? 'Unblock User' : 'Block User'}>
+                                                             <Ban size={16}/>
+                                                         </button>
+                                                         <button onClick={() => handleDeleteUser(u._id)} className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-red-600 hover:text-white text-slate-400 rounded-lg transition-colors" title="Delete Account">
+                                                             <UserX size={16}/>
+                                                         </button>
+                                                      </>
+                                                  )}
+                                              </div>
                                           </td>
                                       </tr>
                                   ))}
                               </tbody>
                           </table>
+                          {users.length === 0 && <p className="text-center text-slate-400 py-6 font-bold">Loading CRM...</p>}
+                      </div>
+                   </div>
+               </div>
+          )}
+
+
+          {/* ORDERS MANAGEMENT */}
+          {activeTab === 'orders' && (
+               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                   <div className="flex justify-between items-center mb-8">
+                       <div>
+                           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">History Ledger</h1>
+                           <p className="text-slate-500 dark:text-slate-400">All transactional data recorded globally.</p>
+                       </div>
+                       <button onClick={handleWipeHistory} className="bg-red-50 dark:bg-red-900/20 hover:bg-red-500 text-red-600 dark:text-red-400 hover:text-white px-4 py-2 rounded-xl text-sm font-bold transition-all inline-flex items-center gap-2">
+                           <Trash2 size={16}/> Redact All History
+                       </button>
+                   </div>
+                   
+                   <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden mb-8">
+                        <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center">
+                            <Search className="text-slate-400 mr-3" size={20} />
+                            <input 
+                              type="text" 
+                              placeholder="Search by Order ID, User, or Status..." 
+                              value={orderSearch}
+                              onChange={(e)=>setOrderSearch(e.target.value)}
+                              className="bg-transparent border-none outline-none w-full text-slate-900 dark:text-white" 
+                            />
+                        </div>
+                   </div>
+
+                   <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                       <div className="overflow-x-auto w-full">
+                           <table className="w-full text-left whitespace-nowrap">
+                               <thead>
+                                   <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs uppercase bg-white dark:bg-slate-900">
+                                       <th className="py-4 px-6 font-bold">Date</th>
+                                       <th className="py-4 px-6 font-bold">Order UID</th>
+                                       <th className="py-4 px-6 font-bold">Buyer</th>
+                                       <th className="py-4 px-6 font-bold">Amount</th>
+                                       <th className="py-4 px-6 font-bold">Status</th>
+                                       <th className="py-4 px-6 font-bold text-right">Delete</th>
+                                   </tr>
+                               </thead>
+                               <tbody>
+                                   {orders.filter(o => 
+                                        o._id.toLowerCase().includes(orderSearch.toLowerCase()) || 
+                                        (o.user?.username || '').toLowerCase().includes(orderSearch.toLowerCase()) ||
+                                        o.status.toLowerCase().includes(orderSearch.toLowerCase())
+                                    ).map(o => (
+                                       <tr key={o._id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                           <td className="py-4 px-6 text-sm text-slate-500 dark:text-slate-400">{new Date(o.createdAt).toLocaleDateString()}</td>
+                                           <td className="py-4 px-6 font-mono text-xs text-slate-400">{o._id.substring(0, 8)}...</td>
+                                           <td className="py-4 px-6 font-bold text-slate-800 dark:text-slate-100">{o.user?.username || 'Redacted User'}</td>
+                                           <td className="py-4 px-6 text-slate-600 dark:text-slate-300 font-bold">{formatPrice(o.totalAmount || 0)}</td>
+                                           <td className="py-4 px-6">
+                                              {o.status === 'success' ? (
+                                                  <div className="max-w-[150px] truncate font-mono text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 px-2 py-1 rounded border border-emerald-100 dark:border-emerald-800">
+                                                      {o.deliveredKey || 'View Dashboard'}
+                                                  </div>
+                                              ) : (
+                                                  <div className="max-w-[150px] truncate font-mono text-xs bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-2 py-1 rounded border border-slate-200 dark:border-slate-700">
+                                                      Pending / Abandoned
+                                                  </div>
+                                              )}
+                                           </td>
+                                           <td className="py-4 px-6 text-right">
+                                               <button onClick={() => handleDeleteOrder(o._id)} className="text-slate-400 hover:text-red-500 transition-colors p-2">
+                                                   <Trash2 size={16}/>
+                                               </button>
+                                           </td>
+                                       </tr>
+                                   ))}
+                               </tbody>
+                           </table>
+                           {orders.length === 0 && <p className="text-center text-slate-400 py-6">Ledger is clean.</p>}
+                       </div>
+                   </div>
+               </div>
+          )}
+
+          {/* CATALOG HUB */}
+          {activeTab === 'catalog' && (
+               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8">
+                   <div>
+                      <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Product Catalog Planner</h1>
+                      <p className="text-slate-500 dark:text-slate-400 mt-1">Publish new digital assets to the live store immediately.</p>
+                   </div>
+
+                   <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-4xl">
+                       <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-900 dark:text-white"><Plus size={20} className="text-primary"/> Create Asset Form</h3>
+                       <form onSubmit={handleAddProduct} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           
+                           <div className="md:col-span-2">
+                               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Title</label>
+                               <input type="text" placeholder="Ex: Advanced Police System V2" value={title} onChange={(e)=>setTitle(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
+                           </div>
+
+                           <div>
+                               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Category</label>
+                               <select value={category} onChange={(e)=>setCategory(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white">
+                                  <option value="General">General</option>
+                                  <option value="Scripts">FiveM Scripts</option>
+                                  <option value="Vehicles">Vehicles</option>
+                                  <option value="Maps">Maps & MLOs</option>
+                                  <option value="Software">Other Software</option>
+                               </select>
+                           </div>
+
+                           <div>
+                               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Sale Price (USD) ✨</label>
+                               <input type="number" step="0.01" placeholder="49.99" value={price} onChange={(e)=>setPrice(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
+                           </div>
+
+                           <div>
+                               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">
+                                 Original Price (Before Discount) 
+                                 <span className="text-slate-400 normal-case font-normal ml-1">— Optional</span>
+                               </label>
+                               <input type="number" step="0.01" placeholder="69.99 (leave empty if no discount)" value={originalPrice} onChange={(e)=>setOriginalPrice(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
+                               {originalPrice && price && parseFloat(originalPrice) > parseFloat(price) && (
+                                 <div className="mt-2 flex items-center gap-2">
+                                   <span className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 text-xs font-black px-3 py-1 rounded-full">
+                                     -{Math.round((1 - parseFloat(price) / parseFloat(originalPrice)) * 100)}% OFF
+                                   </span>
+                                   <span className="text-xs text-slate-400">Preview: <s className="text-slate-400">${parseFloat(originalPrice).toFixed(2)}</s> → <strong className="text-emerald-600 dark:text-emerald-400">${parseFloat(price).toFixed(2)}</strong></span>
+                                 </div>
+                               )}
+                           </div>
+
+                           <div>
+                               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">
+                                 Sale Expiry Date (Countdown) ⏱️
+                                 <span className="text-slate-400 normal-case font-normal ml-1">— Optional</span>
+                               </label>
+                               <input type="datetime-local" value={saleEndDate} onChange={(e)=>setSaleEndDate(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
+                               <p className="text-[10px] text-slate-400 mt-1">Leave empty if this is a permanent discount.</p>
+                           </div>
+
+                           <div className="md:col-span-2">
+                               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Upload Thumbnail Image</label>
+                               <input type="file" accept="image/*" onChange={(e)=>setImageFile(e.target.files[0])} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
+                               <p className="text-xs text-slate-400 mt-2">Or provide an external URL below if you don't want to upload:</p>
+                               <input type="url" placeholder="https://imgur.com/... (Optional Fallback)" value={imageUrl} onChange={(e)=>setImageUrl(e.target.value)} className="w-full mt-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white" />
+                           </div>
+
+                           <div className="md:col-span-2">
+                               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Description</label>
+                               <textarea placeholder="Write compelling features..." rows="4" value={description} onChange={(e)=>setDescription(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white resize-none"></textarea>
+                           </div>
+
+                           <div className="md:col-span-2 pt-4">
+                               <button type="submit" disabled={submitting} className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-4 rounded-xl disabled:opacity-50 transition-colors shadow-md">
+                                   {submitting ? "Pushing to Cloud..." : "Publish to Storefront"}
+                               </button>
+                           </div>
+                       </form>
+                   </div>
+
+                   <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-4xl mt-4">
+                      <div className="flex justify-between items-center mb-6">
+                          <h3 className="text-xl font-bold flex items-center gap-2 text-slate-900 dark:text-white"><FolderOpen size={20} className="text-primary"/> Live Products Management</h3>
+                          <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl px-4 py-2 flex items-center w-64">
+                              <Search size={16} className="text-slate-400 mr-2"/>
+                              <input 
+                                  type="text" 
+                                  placeholder="Filter products..." 
+                                  value={productSearch}
+                                  onChange={(e)=>setProductSearch(e.target.value)}
+                                  className="bg-transparent border-none outline-none text-xs w-full text-slate-900 dark:text-white"
+                              />
+                          </div>
+                      </div>
+                      <div className="overflow-x-auto w-full">
+                           <table className="w-full text-left whitespace-nowrap">
+                               <thead>
+                                   <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs uppercase bg-white dark:bg-slate-900">
+                                       <th className="py-2 px-4 font-bold">Image</th>
+                                       <th className="py-2 px-4 font-bold">Product</th>
+                                       <th className="py-2 px-4 font-bold">Price</th>
+                                       <th className="py-2 px-4 font-bold text-right">Actions</th>
+                                   </tr>
+                               </thead>
+                               <tbody>
+                                   {products.filter(p => 
+                                       p.title.toLowerCase().includes(productSearch.toLowerCase()) ||
+                                       p.category.toLowerCase().includes(productSearch.toLowerCase())
+                                   ).map(p => (
+                                       <tr key={p._id} className="border-b border-slate-100 dark:border-slate-800 items-center">
+                                           <td className="py-2 px-4"><img src={p.imageUrl} alt="" className="w-10 h-10 object-cover rounded-md" /></td>
+                                           <td className="py-2 px-4 font-bold text-slate-800 dark:text-slate-100 text-sm overflow-hidden truncate max-w-[200px]">{p.title}</td>
+                                           <td className="py-2 px-4 text-emerald-600 dark:text-emerald-400 font-bold">{formatPrice(p.price)}</td>
+                                           <td className="py-2 px-4 text-right">
+                                               <button onClick={() => openEditModal(p)} className="text-blue-500 hover:text-blue-700 p-2"><Edit size={16}/></button>
+                                               
+                                               <button onClick={async () => {
+                                                   if(!confirm(`Delete ${p.title} entirely?`)) return;
+                                                   try {
+                                                       await axios.delete(`${API_BASE_URL}/api/products/${p._id}`);
+                                                       alert("Product Deleted!"); fetchData();
+                                                   } catch(e) { alert("Failed to delete."); }
+                                               }} className="text-red-400 hover:text-red-600 p-2"><Trash2 size={16}/></button>
+                                           </td>
+                                       </tr>
+                                   ))}
+                               </tbody>
+                           </table>
+                      </div>
+                   </div>
+               </div>
+          )}
+
+          {/* DIGITAL VAULT (KEYS RESTOCK) */}
+          {activeTab === 'vault' && (
+               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8">
+                   <div>
+                      <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                          <Database className="text-indigo-600"/> Digital Vault Logistics
+                      </h1>
+                      <p className="text-slate-500 dark:text-slate-400 mt-2">Restock license keys and digital assets assigned to products.</p>
+                   </div>
+
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-indigo-100 dark:border-indigo-900 shadow-md relative overflow-hidden">
+                           <div className="absolute top-0 left-0 w-full h-1 bg-indigo-500"></div>
+                           <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">Inject Batch Licenses</h3>
+                           <div className="flex gap-2 mb-6 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+                              <button onClick={()=>setKeyType('text')} className={`flex-1 py-2 rounded-lg font-black text-xs transition-all ${keyType==='text'?'bg-white dark:bg-slate-700 shadow-sm text-primary':'text-slate-500 dark:text-slate-400'}`}>TEXT KEYS</button>
+                              <button onClick={()=>setKeyType('image')} className={`flex-1 py-2 rounded-lg font-black text-xs transition-all ${keyType==='image'?'bg-white dark:bg-slate-700 shadow-sm text-primary':'text-slate-500 dark:text-slate-400'}`}>IMAGE/QR KEYS</button>
+                           </div>
+                           <form onSubmit={handleAddKeys} className="flex flex-col gap-5">
+                               <div>
+                                   <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Select Target Product Engine</label>
+                                   <select value={selectedProductId} onChange={(e)=>setSelectedProductId(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-indigo-500 text-slate-900 dark:text-white">
+                                       <option value="" disabled>Select...</option>
+                                       {products.map(p => <option key={p._id} value={p._id}>{p.title} (In Stock: {p.keys.length})</option>)}
+                                   </select>
+                               </div>
+                               <div>
+                                   <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">
+                                      {keyType === 'text' ? 'Data Payload (Comma Separated)' : 'Image URLs (Comma Separated URLs)'}
+                                   </label>
+                                   <textarea 
+                                      placeholder={keyType === 'text' ? "LICENSE-123, LICENSE-456" : "https://img.com/qr1.png, https://img.com/qr2.png"} 
+                                      rows="6" 
+                                      value={newKeys} 
+                                      onChange={(e)=>setNewKeys(e.target.value)} 
+                                      required 
+                                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-4 px-4 outline-none focus:border-indigo-500 text-emerald-400 font-mono text-sm resize-none"
+                                   ></textarea>
+                                   <p className="text-xs text-slate-400 mt-2">
+                                      {keyType === 'text' ? 'Standard license strings.' : 'Provide direct image links for QR codes / eSIM profiles.'}
+                                   </p>
+                               </div>
+                               <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 text-white font-black py-4 rounded-xl transition-all">
+                                   Deposit {keyType.toUpperCase()} Data
+                               </button>
+                           </form>
+                       </div>
+
+                       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+                           <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                               <h3 className="text-lg font-bold text-slate-900 dark:text-white">Current Stock Levels</h3>
+                           </div>
+                           <div className="p-2 overflow-y-auto max-h-[400px]">
+                               {products.map(p => (
+                                   <div key={p._id} className="flex justify-between items-center p-4 border-b border-slate-50 dark:border-slate-800 last:border-0 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg">
+                                       <div>
+                                           <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">{p.title}</p>
+                                           <p className="text-xs text-slate-400">{p.category}</p>
+                                       </div>
+                                       <div className="flex items-center gap-3">
+                                           <div className={`px-3 py-1 rounded-md text-xs font-black ${p.keys.length > 5 ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400' : p.keys.length > 0 ? 'bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400' : 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'}`}>
+                                               {p.keys.length} QTY
+                                           </div>
+                                           <button onClick={() => {
+                                               setEditingProductKeys(p);
+                                               setEditKeysText(p.keys ? p.keys.map(k=>k.value).join('\n') : "");
+                                           }} className="px-3 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold rounded-md transition-colors border border-transparent hover:border-indigo-100 dark:hover:border-indigo-800">
+                                               Manage
+                                           </button>
+                                       </div>
+                                   </div>
+                               ))}
+                           </div>
+                       </div>
+                   </div>
+               </div>
+          )}
+          
+          {/* PROMO ENGINE */}
+          {activeTab === 'promo' && (
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col gap-8">
+                  <div>
+                     <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                         <Tag className="text-pink-600"/> Promo Code Engine
+                     </h1>
+                     <p className="text-slate-500 dark:text-slate-400 mt-2">Generate discount campaigns to drive sales and traffic.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-pink-100 dark:border-pink-900 shadow-md">
+                          <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">Issue New Code</h3>
+                          <form onSubmit={handleCreatePromo} className="flex flex-col gap-5">
+                              <div>
+                                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Promo Code</label>
+                                  <input type="text" placeholder="SUMMER50" value={promoCode} onChange={(e)=>setPromoCode(e.target.value.toUpperCase())} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-pink-500 font-mono font-bold text-slate-900 dark:text-white" />
+                              </div>
+                              <div>
+                                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Discount Percentage (%)</label>
+                                  <input type="number" placeholder="20" min="1" max="100" value={promoDiscount} onChange={(e)=>setPromoDiscount(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-pink-500 text-slate-900 dark:text-white font-bold" />
+                              </div>
+                              <div>
+                                  <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Usage Limit (0 for Unlimited)</label>
+                                  <input type="number" placeholder="10" min="0" value={promoUses} onChange={(e)=>setPromoUses(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-pink-500 text-slate-900 dark:text-white" />
+                              </div>
+                              <button type="submit" className="bg-pink-600 hover:bg-pink-700 shadow-lg text-white font-black py-4 rounded-xl transition-all">
+                                  Generate Global Code
+                              </button>
+                          </form>
+                      </div>
+
+                      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                          <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+                              <h3 className="text-lg font-bold text-slate-900 dark:text-white">Active Campaigns</h3>
+                          </div>
+                          <div className="p-2 overflow-y-auto max-h-[400px]">
+                              {coupons.map(c => (
+                                  <div key={c._id} className="flex justify-between items-center p-4 border-b border-slate-50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg group">
+                                      <div>
+                                          <p className="font-bold text-pink-600 dark:text-pink-400 font-mono tracking-wider">{c.code}</p>
+                                          <p className="text-xs text-slate-400 font-bold">-{c.discountPercent}% OFF</p>
+                                      </div>
+                                      <div className="flex items-center gap-4">
+                                          <p className="text-xs text-slate-500">{c.maxUses === 0 ? 'Unlimited' : `${c.currentUses}/${c.maxUses} Used`}</p>
+                                          <button onClick={() => handleDeletePromo(c._id)} className="text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
+                                      </div>
+                                  </div>
+                              ))}
+                              {coupons.length === 0 && <p className="text-center text-slate-400 py-6">No active coupons.</p>}
+                          </div>
                       </div>
                   </div>
               </div>
           )}
-         
-         {/* SYSTEM SETTINGS */}
-         {activeTab === 'settings' && (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  <div className="flex justify-between items-center mb-8">
-                       <div>
-                          <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">System Settings</h1>
-                          <p className="text-slate-500 dark:text-slate-400">Global configuration and platform aesthetics.</p>
+
+          {/* SUPPORT DESK */}
+          {activeTab === 'support' && (
+               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                   <div className="flex justify-between items-center mb-8">
+                        <div>
+                           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Support Desk</h1>
+                           <p className="text-slate-500 dark:text-slate-400">Manage user inquiries and technical assistance requests.</p>
+                        </div>
+                   </div>
+
+                   <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+                       <div className="overflow-x-auto w-full">
+                           <table className="w-full text-left whitespace-nowrap">
+                               <thead>
+                                   <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-xs uppercase bg-slate-50 dark:bg-slate-800/50">
+                                       <th className="py-4 px-6 font-bold">User</th>
+                                       <th className="py-4 px-6 font-bold">Inquiry</th>
+                                       <th className="py-4 px-6 font-bold">Status</th>
+                                       <th className="py-4 px-6 font-bold text-right">Actions</th>
+                                   </tr>
+                               </thead>
+                               <tbody>
+                                   {tickets.map(t => (
+                                       <tr key={t._id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                           <td className="py-4 px-6">
+                                               <p className="font-bold text-slate-800 dark:text-slate-100">{t.userName}</p>
+                                               <p className="text-xs text-slate-500 dark:text-slate-400">{t.userEmail}</p>
+                                           </td>
+                                           <td className="py-4 px-6 max-w-[300px] truncate scrollbar-hide">
+                                               <p className="font-bold text-slate-800 dark:text-slate-100 text-sm">{t.subject}</p>
+                                               <p className="text-xs text-slate-500 dark:text-slate-400">{t.message}</p>
+                                           </td>
+                                           <td className="py-4 px-6">
+                                               <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${t.status === 'open' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                                   {t.status}
+                                               </span>
+                                           </td>
+                                           <td className="py-4 px-6 text-right space-x-2">
+                                               <button onClick={() => handleReplyTicket(t._id)} className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-100 transition-colors"><Reply size={16}/></button>
+                                               <button onClick={() => handleCloseTicket(t._id)} className="p-2 bg-slate-50 dark:bg-slate-800 text-slate-400 rounded-lg hover:bg-red-50 hover:text-red-500 transition-colors"><XCircle size={16}/></button>
+                                           </td>
+                                       </tr>
+                                   ))}
+                               </tbody>
+                           </table>
                        </div>
+                   </div>
+               </div>
+           )}
+          
+          {/* SYSTEM SETTINGS */}
+          {activeTab === 'settings' && (
+               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                   <div className="flex justify-between items-center mb-8">
+                        <div>
+                           <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">System Settings</h1>
+                           <p className="text-slate-500 dark:text-slate-400">Global configuration and platform aesthetics.</p>
+                        </div>
+                   </div>
+
+                   <div className="mt-8 bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-xl">
+                       <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">Upload Store Logo</h3>
+                       <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">Replaces the logo in the Navbar and Footer. Best dimensions: 150x50px.</p>
+                      <form onSubmit={async (e)=>{
+                          e.preventDefault();
+                          const file = e.target.logo.files[0];
+                          if(!file) return alert("Select an image!");
+                          const formData = new FormData(); formData.append('logo', file);
+                          try {
+                              await axios.post(`${API_BASE_URL}/api/settings/logo`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
+                              alert("Logo updated! Refresh the storefront to see changes.");
+                          } catch(err) { alert(err.response?.data?.error || err.message || "Failed to upload."); }
+                      }}>
+                          <input type="file" name="logo" accept="image/png, image/jpeg, image/svg+xml" required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-slate-400 mb-4 text-slate-900" />
+                          <button type="submit" className="bg-slate-900 hover:bg-black text-white font-bold px-6 py-3 rounded-xl transition-colors">Apply Global Logo</button>
+                      </form>
                   </div>
+              </div>
+          )}
 
-                  <div className="mt-8 bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-xl">
-                      <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">Upload Store Logo</h3>
-                      <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">Replaces the logo in the Navbar and Footer. Best dimensions: 150x50px.</p>
-                     <form onSubmit={async (e)=>{
-                         e.preventDefault();
-                         const file = e.target.logo.files[0];
-                         if(!file) return alert("Select an image!");
-                         const formData = new FormData(); formData.append('logo', file);
-                         try {
-                             await axios.post(`${API_BASE_URL}/api/settings/logo`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
-                             alert("Logo updated! Refresh the storefront to see changes.");
-                         } catch(err) { alert(err.response?.data?.error || err.message || "Failed to upload."); }
-                     }}>
-                         <input type="file" name="logo" accept="image/png, image/jpeg, image/svg+xml" required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-slate-400 mb-4 text-slate-900" />
-                         <button type="submit" className="bg-slate-900 hover:bg-black text-white font-bold px-6 py-3 rounded-xl transition-colors">Apply Global Logo</button>
-                     </form>
-                 </div>
-             </div>
-         )}
+          {/* PRODUCT EDIT MODAL */}
+          {editingProduct && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in">
+                  <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden slide-in-from-bottom-8">
+                      <div className="flex justify-between items-center p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                          <div>
+                              <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Modify Inventory Asset</h3>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">{editingProduct.title}</p>
+                          </div>
+                          <button onClick={()=>setEditingProduct(null)} className="p-3 bg-white dark:bg-slate-800 text-slate-400 hover:text-red-500 rounded-2xl shadow-sm transition-all border border-slate-100 dark:border-slate-700"><XCircle size={24}/></button>
+                      </div>
+                      <form onSubmit={handleUpdateProduct} className="flex-grow p-8 overflow-y-auto space-y-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div>
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Asset Label</label>
+                                  <input type="text" value={editTitle} onChange={(e)=>setEditTitle(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900 dark:text-white" />
+                              </div>
+                              <div>
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Collection/Category</label>
+                                  <select value={editCategory} onChange={(e)=>setEditCategory(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900 dark:text-white">
+                                      <option value="General">General</option>
+                                      <option value="Software">Software</option>
+                                      <option value="Game Keys">Game Keys</option>
+                                      <option value="Subscriptions">Subscriptions</option>
+                                      <option value="eSIM">eSIM / QR Assets</option>
+                                  </select>
+                              </div>
+                          </div>
 
-         {/* MESSAGING MODAL */}
-         {messagingUser && (
-             <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in">
-                 <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-lg shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden slide-in-from-bottom-8">
-                     <div className="p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div>
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-emerald-600">Current Selling Price</label>
+                                  <input type="number" value={editPrice} onChange={(e)=>setEditPrice(e.target.value)} required className="w-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-2xl py-3 px-4 outline-none focus:border-emerald-500 font-black text-emerald-700 dark:text-emerald-400" />
+                              </div>
+                              <div>
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Original Price (For Discount Display)</label>
+                                  <input type="number" value={editOriginalPrice} onChange={(e)=>setEditOriginalPrice(e.target.value)} placeholder="e.g. 100" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-400" />
+                              </div>
+                          </div>
+
+                          <div>
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Technical specifications / Description</label>
+                              <textarea value={editDescription} onChange={(e)=>setEditDescription(e.target.value)} rows="4" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 px-4 outline-none focus:border-primary text-slate-700 dark:text-slate-300 text-sm font-medium resize-none"></textarea>
+                          </div>
+
+                          <div>
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Visual Asset URL</label>
+                              <input type="text" value={editImageUrl} onChange={(e)=>setEditImageUrl(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-mono text-xs text-slate-500" />
+                          </div>
+                          
+                          <div>
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block text-red-500">Sale Expiration (Optional)</label>
+                              <input type="datetime-local" value={editSaleEndDate} onChange={(e)=>setEditSaleEndDate(e.target.value)} className="w-full bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-2xl py-3 px-4 outline-none focus:border-red-500 font-bold text-red-600 dark:text-red-400" />
+                          </div>
+                      </form>
+                      <div className="p-8 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-4 bg-slate-50/50 dark:bg-slate-800/50">
+                          <button onClick={()=>setEditingProduct(null)} className="px-8 py-4 font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-600 transition-all">Discard Changes</button>
+                          <button onClick={handleUpdateProduct} disabled={submitting} className="px-10 py-4 font-black text-white bg-primary hover:bg-blue-700 shadow-xl shadow-primary/20 rounded-2xl transition-all disabled:opacity-50">
+                              {submitting ? "Applying Changes..." : "Commit Update"}
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          )}
+          
+          {editingProductKeys && (
+             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in">
+                 <div className="bg-white dark:bg-slate-900 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden slide-in-from-bottom-4">
+                     <div className="flex justify-between items-center p-6 border-b border-slate-100 dark:border-slate-800">
                          <div>
-                             <h3 className="text-xl font-black text-slate-900 dark:text-white">Direct Notification</h3>
-                             <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-1">Recieving: {messagingUser.username}</p>
+                             <h3 className="text-xl font-black text-slate-900 dark:text-white">Manage Keys: {editingProductKeys.title}</h3>
+                             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Edit, remove, or organize existing licenses below (One per line).</p>
                          </div>
-                         <button onClick={() => setMessagingUser(null)} className="p-2 text-slate-400 hover:text-red-500 transition-colors"><XCircle size={24}/></button>
+                         <button onClick={()=>setEditingProductKeys(null)} className="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors"><XCircle size={24}/></button>
                      </div>
-                     <form onSubmit={handleSendMessage} className="p-8 space-y-6">
-                         <div>
-                             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block">Subject</label>
-                             <input 
-                               type="text" 
-                               value={messageSubject} 
-                               onChange={(e)=>setMessageSubject(e.target.value)} 
-                               placeholder="Updates about your order..." 
-                               required 
-                               className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900 dark:text-white" 
-                             />
-                         </div>
-                         <div>
-                             <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block">Message Content (HTML Supported)</label>
-                             <textarea 
-                               value={messageBody} 
-                               onChange={(e)=>setMessageBody(e.target.value)} 
-                               required 
-                               rows="5"
-                               className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 px-4 outline-none focus:border-primary text-slate-700 dark:text-slate-300 text-sm font-medium resize-none shadow-inner"
-                               placeholder="Write your message here..."
-                             ></textarea>
-                         </div>
-                         <button type="submit" disabled={submitting} className="w-full bg-slate-900 dark:bg-slate-100 hover:bg-black dark:hover:bg-white text-white dark:text-slate-900 font-black py-4 rounded-2xl shadow-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
-                            {submitting ? "Transmitting..." : <><Mail size={18}/> Send Vault Notification</>}
-                         </button>
-                     </form>
+                     <div className="flex-grow p-6 overflow-y-auto bg-slate-50 dark:bg-slate-950">
+                         <textarea 
+                             value={editKeysText} 
+                             onChange={(e)=>setEditKeysText(e.target.value)}
+                             spellCheck="false"
+                             className="w-full h-[400px] bg-slate-900 border border-slate-800 rounded-xl py-4 px-4 outline-none focus:border-indigo-500 text-emerald-400 font-mono text-sm resize-none whitespace-pre"
+                             placeholder="Enter keys here, one per line..."
+                         ></textarea>
+                     </div>
+                     <div className="p-6 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3 bg-white dark:bg-slate-900">
+                         <button onClick={()=>setEditingProductKeys(null)} className="px-6 py-3 font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors">Cancel</button>
+                         <button onClick={handleOverwriteKeys} className="px-6 py-3 font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-md rounded-xl transition-all">Save Changes</button>
+                     </div>
                  </div>
              </div>
-         )}
+          )}
+
+          {/* MESSAGING MODAL */}
+          {messagingUser && (
+              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in">
+                  <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] w-full max-w-lg shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden slide-in-from-bottom-8">
+                      <div className="p-8 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex justify-between items-center">
+                          <div>
+                              <h3 className="text-xl font-black text-slate-900 dark:text-white">Direct Notification</h3>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest mt-1">Recieving: {messagingUser.username}</p>
+                          </div>
+                          <button onClick={() => setMessagingUser(null)} className="p-2 text-slate-400 hover:text-red-500 transition-colors"><XCircle size={24}/></button>
+                      </div>
+                      <form onSubmit={handleSendMessage} className="p-8 space-y-6">
+                          <div>
+                              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block">Subject</label>
+                              <input 
+                                type="text" 
+                                value={messageSubject} 
+                                onChange={(e)=>setMessageSubject(e.target.value)} 
+                                placeholder="Updates about your order..." 
+                                required 
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900 dark:text-white" 
+                              />
+                          </div>
+                          <div>
+                              <label className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 block">Message Content (HTML Supported)</label>
+                              <textarea 
+                                value={messageBody} 
+                                onChange={(e)=>setMessageBody(e.target.value)} 
+                                required 
+                                rows="5"
+                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 px-4 outline-none focus:border-primary text-slate-700 dark:text-slate-300 text-sm font-medium resize-none shadow-inner"
+                                placeholder="Write your message here..."
+                              ></textarea>
+                          </div>
+                          <button type="submit" disabled={submitting} className="w-full bg-slate-900 dark:bg-slate-100 hover:bg-black dark:hover:bg-white text-white dark:text-slate-900 font-black py-4 rounded-2xl shadow-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2">
+                             {submitting ? "Transmitting..." : <><Mail size={18}/> Send Vault Notification</>}
+                          </button>
+                      </form>
+                  </div>
+              </div>
+          )}
       </main>
     </div>
   );
