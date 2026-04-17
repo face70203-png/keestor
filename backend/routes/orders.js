@@ -369,6 +369,37 @@ router.get('/stats', adminAuth, async (req, res) => {
   }
 });
 
+// Public Tracking Route: Get Order by ID (Full or Short UID)
+router.get('/:id', async (req, res) => {
+  try {
+    let trackingId = req.params.id.trim();
+    if (trackingId.startsWith('#')) trackingId = trackingId.slice(1);
+    
+    let order = null;
+    
+    // If it's a full 24-char ObjectId
+    if (trackingId.length === 24) {
+       order = await Order.findById(trackingId);
+    } else {
+       // It's a short ID (e.g. 12 chars). Query by stringifying the ObjectId.
+       order = await Order.findOne({
+           $expr: {
+               $regexMatch: {
+                   input: { $toUpper: { $toString: "$_id" } },
+                   regex: `${trackingId.toUpperCase()}$`
+               }
+           }
+       });
+    }
+
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    
+    res.json(order);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Admin Route: Get ALL Orders globally
 router.get('/all', adminAuth, async (req, res) => {
   try {
