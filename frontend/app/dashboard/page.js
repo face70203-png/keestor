@@ -180,7 +180,7 @@ function DashboardContent() {
                         item.keys.filter(k => k.value).map((keyObj, kIdx) => (
                             <div key={kIdx} className="flex flex-col gap-4">
                                 
-                                {keyObj.keyType === 'image' ? (
+                                {(keyObj.keyType === 'image' || (keyObj.value && keyObj.value.includes('cloudinary.com'))) ? (
                                     <div className="bg-white dark:bg-slate-900 p-6 rounded-[1.5rem] border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center gap-4 relative overflow-hidden">
                                         <div className="absolute top-0 right-0 p-3 opacity-[0.03] text-primary">
                                             <KeyRound size={80} />

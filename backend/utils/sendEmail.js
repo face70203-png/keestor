@@ -132,12 +132,20 @@ const sendEmail = async (options) => {
     const fromAddress = `${process.env.FROM_NAME || 'KeeStore Vault'} <${process.env.FROM_EMAIL || smtpUser || 'no-reply@keestore.com'}>`;
 
     // Determine plugins/attachments
-    let attachments = [];
+    let resendAttachments = [];
+    let smtpAttachments = [];
     if (options.order) {
         try {
             const pdfBase64 = await generateInvoicePDF(options.order);
-            attachments.push({
-                filename: `KeeStore_Invoice_${options.order._id.toString().slice(-12).toUpperCase()}.pdf`,
+            const fileName = `KeeStore_Invoice_${options.order._id.toString().slice(-12).toUpperCase()}.pdf`;
+            
+            resendAttachments.push({
+                filename: fileName,
+                content: pdfBase64
+            });
+            
+            smtpAttachments.push({
+                filename: fileName,
                 content: pdfBase64,
                 encoding: 'base64'
             });
@@ -156,7 +164,7 @@ const sendEmail = async (options) => {
                 subject: options.subject,
                 html: finalMessage
             };
-            if (attachments.length > 0) payload.attachments = attachments;
+            if (resendAttachments.length > 0) payload.attachments = resendAttachments;
 
             const response = await axios.post('https://api.resend.com/emails', payload, {
                 headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
@@ -189,7 +197,7 @@ const sendEmail = async (options) => {
             subject: options.subject,
             html: finalMessage,
         };
-        if (attachments.length > 0) mailOptions.attachments = attachments;
+        if (smtpAttachments.length > 0) mailOptions.attachments = smtpAttachments;
 
         const info = await transporter.sendMail(mailOptions);
 
