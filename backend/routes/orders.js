@@ -163,6 +163,7 @@ router.post('/pay-wallet', auth, async (req, res) => {
        deliveredKey: deliveredKeysArr.map(k => k.value).join(', '),
        product: orderItemsFinal[0].productId 
     });
+    order.markModified('items');
     await order.save();
 
     // 📧 SEND SUCCESS EMAIL
@@ -241,6 +242,7 @@ const fulfillOrder = async (orderId, sessionId) => {
            }
        }
 
+       order.markModified('items');
        await order.save();
 
        // 📧 Send Professional Success Email

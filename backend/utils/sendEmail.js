@@ -38,8 +38,8 @@ const generateInvoiceHTML = (order) => {
                         <!-- Header -->
                         <tr>
                             <td style="background-color: #0f172a; padding: 40px; text-align: center;">
-                                <div style="display: inline-block; padding: 12px; background: rgba(255,255,255,0.1); border-radius: 16px; margin-bottom: 20px;">
-                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                                <div style="display: inline-block; padding: 12px; background: rgba(37,38,66,0.5); border-radius: 16px; margin-bottom: 20px;">
+                                    <span style="font-size: 32px;">📦</span>
                                 </div>
                                 <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 900; letter-spacing: -0.02em;">Order Confirmed</h1>
                                 <p style="margin: 8px 0 0; color: #94a3b8; font-size: 14px; font-weight: 500;">Your digital assets have been delivered.</p>
@@ -71,7 +71,7 @@ const generateInvoiceHTML = (order) => {
                                     <table width="100%" border="0" cellspacing="0" cellpadding="0">
                                         <tr>
                                             <td style="font-size: 14px; font-weight: 600; color: #64748b;">Grand Total</td>
-                                            <td style="text-align: right; font-size: 20px; font-weight: 900; color: #0f172a;">$${order.totalAmount.toFixed(2)}</td>
+                                            <td style="text-align: right; font-size: 20px; font-weight: 900; color: #0f172a;">$${Number(order.totalAmount || 0).toFixed(2)}</td>
                                         </tr>
                                         ${order.cardLast4 ? `
                                         <tr>
@@ -97,7 +97,7 @@ const generateInvoiceHTML = (order) => {
                                     </div>
                                     
                                     <div style="margin-top: 32px; text-align: center;">
-                                        <a href="https://keestore.com/dashboard" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 16px 32px; border-radius: 14px; text-decoration: none; font-weight: 800; font-size: 14px; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);">Access Secure Dashboard</a>
+                                        <a href="${process.env.FRONTEND_URL || 'https://keestore.app'}/dashboard" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 16px 32px; border-radius: 14px; text-decoration: none; font-weight: 800; font-size: 14px; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);">Access Secure Dashboard</a>
                                     </div>
                                 </div>
                             </td>

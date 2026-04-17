@@ -2,7 +2,7 @@
 import { useState, useRef } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { KeyRound, ArrowLeft } from "lucide-react";
+import { KeyRound, ArrowLeft, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "../context/ToastContext";
 import ReCAPTCHA from "react-google-recaptcha";

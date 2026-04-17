@@ -201,14 +201,22 @@ function DashboardContent() {
                                              </div>
                                              <button 
                                                 className="text-[10px] text-primary font-black uppercase bg-primary/5 px-3 py-1.5 rounded-lg hover:bg-primary/10 transition" 
-                                                onClick={() => {navigator.clipboard.writeText(keyObj.value); addToast("Securely copied to clipboard!", "success");}}
+                                                 onClick={() => {
+                                                    const val = keyObj?.value || '';
+                                                    if (val) {
+                                                        navigator.clipboard.writeText(val); 
+                                                        addToast("Securely copied to clipboard!", "success");
+                                                    } else {
+                                                        addToast("License key is still processing...", "error");
+                                                    }
+                                                 }}
                                              >
                                                 {t.assets.copy}
                                              </button>
                                         </div>
                                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 select-all transition-all group-hover/key:border-primary/30">
                                             <p className="text-theme font-mono text-sm tracking-[0.1em] font-black break-all text-center leading-relaxed">
-                                                {keyObj.value}
+                                                {keyObj.value || 'DECRYPTING...'}
                                             </p>
                                         </div>
                                     </div>
@@ -357,6 +365,10 @@ function DashboardContent() {
                                     }} className="text-sm font-bold text-slate-500 hover:text-primary transition-colors bg-slate-100 hover:bg-slate-200 px-4 py-2 rounded-lg">
                                        {t.support.reply}
                                     </button>
+                                    <Link href="/dashboard?tab=settings" onClick={() => setIsProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 hover:bg-slate-50 transition-all font-bold group">
+                                        <Settings size={18} className="text-slate-400 group-hover:text-primary transition-colors" />
+                                        <span>{t.profile.settings}</span>
+                                    </Link>
                                 </div>
                              )}
                          </div>

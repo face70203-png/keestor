@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Key, LayoutDashboard, LogIn, LogOut, ShieldCheck, ShoppingCart, Globe, Sun, Moon, Search, X, Menu } from "lucide-react";
+import { Key, LayoutDashboard, LogIn, LogOut, ShieldCheck, ShoppingCart, Globe, Sun, Moon, Search, X, Menu, ArrowUpRight, Settings, KeyRound, ArrowLeft } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useLanguage } from "../context/LanguageContext";
@@ -294,7 +294,7 @@ export default function Navbar() {
                     <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
                   </Link>
                   
-                  <Link href="/dashboard/settings" onClick={() => setIsProfileDropdownOpen(false)} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 group transition-all">
+                  <Link href="/dashboard?tab=settings" onClick={() => setIsProfileDropdownOpen(false)} className="flex items-center gap-3 p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 group transition-all">
                     <Settings size={18} className="text-slate-400 group-hover:text-primary transition-colors" />
                     <span className="text-sm font-bold text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white">{lang === 'ar' ? 'الإعدادات' : 'Security Settings'}</span>
                   </Link>
