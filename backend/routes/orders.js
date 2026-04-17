@@ -400,35 +400,70 @@ router.delete('/wipe/all', adminAuth, async (req, res) => {
   }
 });
 
-// Public Tracking Route: Get Order by ID (Full or Short UID)
+// Track single order details via API (Public) - Must be after specific routes
 router.get('/:id', async (req, res) => {
   try {
-    let trackingId = req.params.id.trim();
-    if (trackingId.startsWith('#')) trackingId = trackingId.slice(1);
+    let order;
     
-    let order = null;
-    
-    // If it's a full 24-char ObjectId
-    if (trackingId.length === 24) {
-       order = await Order.findById(trackingId);
+    // Support tracking by full MongoDB ObjectId or short 12-char UID
+    if (req.params.id.length === 24) {
+        order = await Order.findById(req.params.id).populate('product', 'title imageUrl description');
     } else {
-       // It's a short ID (e.g. 12 chars). Query by stringifying the ObjectId.
-       order = await Order.findOne({
-           $expr: {
-               $regexMatch: {
-                   input: { $toUpper: { $toString: "$_id" } },
-                   regex: `${trackingId.toUpperCase()}$`
-               }
-           }
-       });
+        // Fallback or short ID logic
+        const shortId = req.params.id.replace('#', '').toLowerCase();
+        const allOrders = await Order.find().populate('product', 'title imageUrl description');
+        order = allOrders.find(o => o._id.toString().slice(-12).toLowerCase() === shortId);
+    }
+    
+    if (!order) {
+       return res.status(404).json({ error: 'Tracking ID not found in the global registry.' });
     }
 
-    if (!order) return res.status(404).json({ error: 'Order not found' });
+    // Mask sensitive ledger data for unauthenticated public requests
+    const safeOrder = {
+       _id: order._id,
+       date: order.createdAt,
+       status: order.status,
+       totalAmount: order.totalAmount,
+       items: order.items.map(i => ({
+           title: i.title,
+           quantity: i.quantity,
+           imageUrl: i.imageUrl
+       }))
+    };
     
-    res.json(order);
+    res.json(safeOrder);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+});
+
+// @route   GET /api/orders/:id/invoice
+// @desc    Download PDF invoice for an order instantly
+// @access  Public (Obfuscated ID)
+router.get('/:id/invoice', async (req, res) => {
+    try {
+        let order;
+        if (req.params.id.length === 24) {
+            order = await Order.findById(req.params.id).populate('product', 'title imageUrl description');
+        } else {
+            const shortId = req.params.id.replace('#', '').toLowerCase();
+            const allOrders = await Order.find().populate('product');
+            order = allOrders.find(o => o._id.toString().slice(-12).toLowerCase() === shortId);
+        }
+
+        if (!order) return res.status(404).send('Invoice Not Found');
+
+        const generateInvoicePDF = require('../utils/generateInvoicePDF');
+        const base64Pdf = await generateInvoicePDF(order);
+        const pdfBuffer = Buffer.from(base64Pdf, 'base64');
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `inline; filename="KeeStore_Invoice_${order._id.toString().slice(-12).toUpperCase()}.pdf"`);
+        res.send(pdfBuffer);
+    } catch (error) {
+        res.status(500).send('Error generating invoice: ' + error.message);
+    }
 });
 
 module.exports = router;

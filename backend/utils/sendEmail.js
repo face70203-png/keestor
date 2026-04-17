@@ -99,9 +99,10 @@ const generateInvoiceHTML = (order) => {
                                     <div style="font-size: 14px; color: #475569; line-height: 1.7; font-weight: 500;">
                                         ${activationSteps}
                                     </div>
-                                    
                                     <div style="margin-top: 32px; text-align: center;">
-                                        <a href="${process.env.FRONTEND_URL || 'https://keestore.app'}/dashboard" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 16px 32px; border-radius: 14px; text-decoration: none; font-weight: 800; font-size: 14px; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3);">Access Secure Dashboard</a>
+                                        <a href="${process.env.FRONTEND_URL || 'https://keestore.app'}/dashboard" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 16px 32px; border-radius: 14px; text-decoration: none; font-weight: 800; font-size: 14px; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); margin-bottom: 12px;">Access Secure Dashboard</a>
+                                        <br/>
+                                        <a href="${process.env.API_URL || 'http://localhost:5000'}/api/orders/${order._id}/invoice" style="display: inline-block; background-color: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 13px; transition: all 0.2s;">📄 Download Official PDF Invoice</a>
                                     </div>
                                 </div>
                             </td>
@@ -132,30 +133,6 @@ const sendEmail = async (options) => {
     const smtpPass = (process.env.SMTP_PASS || "").replace(/\s+/g, '');
     const fromAddress = `${process.env.FROM_NAME || 'KeeStore Vault'} <${process.env.FROM_EMAIL || smtpUser || 'no-reply@keestore.com'}>`;
 
-    // Determine plugins/attachments
-    let resendAttachments = [];
-    let smtpAttachments = [];
-    if (options.order) {
-        try {
-            const pdfBase64 = await generateInvoicePDF(options.order);
-            const fileName = `KeeStore_Invoice_${options.order._id.toString().slice(-12).toUpperCase()}.pdf`;
-            
-            resendAttachments.push({
-                filename: fileName,
-                content: pdfBase64,
-                content_type: 'application/pdf'
-            });
-            
-            smtpAttachments.push({
-                filename: fileName,
-                content: pdfBase64,
-                encoding: 'base64'
-            });
-        } catch (err) {
-            console.error("[VAULT-MAIL] PDF Generation failed:", err.message);
-        }
-    }
-
     // --- STRATEGY 1: RESEND API (Zero Latency) ---
     if (resendKey) {
         console.log(`[VAULT-MAIL] Initializing Resend Pipeline...`);
@@ -166,7 +143,6 @@ const sendEmail = async (options) => {
                 subject: options.subject,
                 html: finalMessage
             };
-            if (resendAttachments.length > 0) payload.attachments = resendAttachments;
 
             const response = await axios.post('https://api.resend.com/emails', payload, {
                 headers: { 'Authorization': `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
@@ -184,7 +160,7 @@ const sendEmail = async (options) => {
                     recipient: options.email,
                     provider: 'Resend',
                     orderId: options.order ? options.order._id : null,
-                    attachmentCount: resendAttachments.length
+                    attachmentCount: 0
                 }
             }).catch(e => console.error("Log Error:", e.message));
 
@@ -236,7 +212,6 @@ const sendEmail = async (options) => {
             subject: options.subject,
             html: finalMessage,
         };
-        if (smtpAttachments.length > 0) mailOptions.attachments = smtpAttachments;
 
         const info = await transporter.sendMail(mailOptions);
 
