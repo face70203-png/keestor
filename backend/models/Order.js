@@ -20,7 +20,16 @@ const orderSchema = new mongoose.Schema({
   stripeSessionId: { type: String },
   cardLast4: { type: String }, // 💳 Added for professional invoicing
   cardBrand: { type: String }, // 💳 Added for professional invoicing
+  securityPin: { type: String }, // 🔒 4-digit PIN for tracking securely
   product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' } // Keep for backward compatibility
 }, { timestamps: true });
+
+// Auto-generate 4-digit tracking PIN
+orderSchema.pre('save', function(next) {
+  if (!this.securityPin) {
+      this.securityPin = Math.floor(1000 + Math.random() * 9000).toString();
+  }
+  next();
+});
 
 module.exports = mongoose.model('Order', orderSchema);

@@ -420,6 +420,8 @@ router.get('/:id', async (req, res) => {
     }
 
     // Mask sensitive ledger data for unauthenticated public requests
+    const isPinValid = req.query.pin && order.securityPin && req.query.pin === order.securityPin;
+
     const safeOrder = {
        _id: order._id,
        date: order.createdAt,
@@ -432,6 +434,14 @@ router.get('/:id', async (req, res) => {
        }))
     };
     
+    // Only reveal digital asset keys if PIN matches
+    if (isPinValid) {
+        safeOrder.deliveredKey = order.deliveredKey;
+        safeOrder.isAuthorized = true;
+    } else {
+        safeOrder.isAuthorized = false;
+    }
+    
     res.json(safeOrder);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -440,7 +450,7 @@ router.get('/:id', async (req, res) => {
 
 // @route   GET /api/orders/:id/invoice
 // @desc    Download PDF invoice for an order instantly
-// @access  Public (Obfuscated ID)
+// @access  Public (Obfuscated ID + PIN Protected)
 router.get('/:id/invoice', async (req, res) => {
     try {
         let order;
@@ -453,6 +463,11 @@ router.get('/:id/invoice', async (req, res) => {
         }
 
         if (!order) return res.status(404).send('Invoice Not Found');
+
+        // Security check
+        if (!req.query.pin || req.query.pin !== order.securityPin) {
+            return res.status(403).send('Unauthorized. Valid tracking PIN is required to download this official document.');
+        }
 
         const generateInvoicePDF = require('../utils/generateInvoicePDF');
         const base64Pdf = await generateInvoicePDF(order);

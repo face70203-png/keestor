@@ -114,6 +114,12 @@ function SuccessContent() {
                             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1.5">Invoice UID</p>
                             <p className="font-mono text-xl font-bold text-slate-900 dark:text-indigo-400">#{order._id.toString().slice(-12).toUpperCase()}</p>
                         </div>
+                        <div className="md:text-center">
+                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1.5 text-orange-500">Tracking PIN (Save This)</p>
+                            <p className="font-mono text-2xl font-black text-rose-500 dark:text-rose-400 tracking-widest bg-rose-50 dark:bg-rose-900/20 px-4 py-1.5 rounded-lg border border-rose-100 dark:border-rose-900/50 inline-block">
+                                {order.securityPin || '----'}
+                            </p>
+                        </div>
                         <div className="md:text-right">
                             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1.5">Delivery Status</p>
                             <div className="inline-flex items-center gap-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-3 py-1 rounded-lg text-xs font-black uppercase tracking-wider">
