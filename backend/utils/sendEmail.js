@@ -102,7 +102,7 @@ const generateInvoiceHTML = (order) => {
                                     <div style="margin-top: 32px; text-align: center;">
                                         <a href="${process.env.FRONTEND_URL || 'https://keestore.app'}/dashboard" style="display: inline-block; background-color: #2563eb; color: #ffffff; padding: 16px 32px; border-radius: 14px; text-decoration: none; font-weight: 800; font-size: 14px; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3); margin-bottom: 12px;">Access Secure Dashboard</a>
                                         <br/>
-                                        <a href="${process.env.API_URL || 'http://localhost:5000'}/api/orders/${order._id}/invoice" style="display: inline-block; background-color: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 13px; transition: all 0.2s;">📄 Download Official PDF Invoice</a>
+                                        <a href="${process.env.FRONTEND_URL || 'https://keestore.app'}/tracking?id=${order._id.toString().slice(-12).toUpperCase()}" style="display: inline-block; background-color: #f8fafc; color: #475569; border: 1px solid #e2e8f0; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 13px; transition: all 0.2s;">📄 Download Official PDF Invoice</a>
                                     </div>
                                 </div>
                             </td>

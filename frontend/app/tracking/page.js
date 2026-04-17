@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Search, Package, CheckCircle, Truck, Clock, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useEffect } from 'react';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -16,16 +17,13 @@ export default function TrackingPage() {
   const { lang } = useLanguage();
   const { formatPrice } = useCurrency();
 
-  const handleTrack = async (e) => {
-    e.preventDefault();
-    if (!orderId.trim()) return;
-
+  const fetchOrder = async (idToFetch) => {
+    if (!idToFetch) return;
     setLoading(true);
     setError("");
     setOrderData(null);
-
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/orders/${orderId.trim()}`);
+      const res = await axios.get(`${API_BASE_URL}/api/orders/${idToFetch}`);
       setOrderData(res.data);
     } catch (err) {
       setError(lang === 'ar' ? "رقم الطلب غير صحيح أو غير موجود." : "Invalid Order ID or order not found.");
@@ -33,6 +31,20 @@ export default function TrackingPage() {
       setLoading(false);
     }
   };
+
+  const handleTrack = async (e) => {
+    e.preventDefault();
+    fetchOrder(orderId.trim());
+  };
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const idFromUrl = urlParams.get('id');
+    if (idFromUrl) {
+      setOrderId(idFromUrl);
+      fetchOrder(idFromUrl.trim());
+    }
+  }, []);
 
   return (
     <div className="max-w-3xl mx-auto py-12 px-4">
@@ -107,9 +119,14 @@ export default function TrackingPage() {
                          {orderData.status}
                        </span>
                     </div>
-                    <div className="text-right">
-                       <span className="text-[10px] font-black text-slate-400 uppercase block leading-none mb-1">Total Payed</span>
-                       <span className="text-lg font-black text-slate-900 dark:text-white">{formatPrice(orderData.totalAmount)}</span>
+                    <div className="text-right flex items-center gap-4">
+                       <div>
+                           <span className="text-[10px] font-black text-slate-400 uppercase block leading-none mb-1">Total Payed</span>
+                           <span className="text-lg font-black text-slate-900 dark:text-white">{formatPrice(orderData.totalAmount)}</span>
+                       </div>
+                       <button onClick={() => window.open(`${API_BASE_URL}/api/orders/${orderData._id}/invoice`, '_blank')} className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-4 py-2 rounded-xl text-xs font-black transition-colors">
+                           📄 PDF Invoice
+                       </button>
                     </div>
                  </div>
 
