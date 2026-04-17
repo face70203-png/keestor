@@ -129,7 +129,8 @@ router.post('/', adminAuth, upload.single('image'), async (req, res) => { // Upl
       price: isNaN(priceNum) ? 0 : priceNum,
       category: req.body.category || 'General',
       imageUrl: finalizedImageUrl,
-      saleEndDate: req.body.saleEndDate || null
+      saleEndDate: req.body.saleEndDate || null,
+      activationSteps: req.body.activationSteps || ''
     });
     
     await product.save();
@@ -143,24 +144,49 @@ router.post('/', adminAuth, upload.single('image'), async (req, res) => { // Upl
 });
 
 // Add keys to a product (Admin only)
-router.post('/:id/keys', adminAuth, async (req, res) => {
+router.post('/:id/keys', adminAuth, upload.array('images', 50), async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ error: 'Product not found' });
     
-     // keys expected to be an array of { value, keyType } or strings
-     if (Array.isArray(req.body.keys)) {
-        const processedKeys = req.body.keys.map(k => {
-            if (typeof k === 'string') return { value: k, keyType: 'text' };
-            return k; // Assume already { value, keyType }
-        });
+    let processedKeys = [];
+
+    // Process text keys if provided
+    if (req.body.keys) {
+         let textKeysData = req.body.keys;
+         try {
+             if (typeof textKeysData === 'string') textKeysData = JSON.parse(textKeysData);
+         } catch(e) {}
+         if (Array.isArray(textKeysData)) {
+              processedKeys = textKeysData.map(k => {
+                  if (typeof k === 'string') return { value: k, keyType: 'text' };
+                  return k;
+              });
+         }
+    }
+
+    // Process uploaded images
+    if (req.files && req.files.length > 0) {
+         const uploadPromises = req.files.map(file => uploadToCloudinary(file.path));
+         const uploadedUrls = await Promise.all(uploadPromises);
+         
+         // Cleanup local files
+         req.files.forEach(file => {
+             try { fs.unlinkSync(file.path); } catch(e){}
+         });
+
+         const imageKeys = uploadedUrls.map(url => ({ value: url, keyType: 'image' }));
+         processedKeys = [...processedKeys, ...imageKeys];
+    }
+
+    if (processedKeys.length > 0) {
         product.keys = [...product.keys, ...processedKeys];
         await product.save();
         clearPCache();
-        res.json(product);
-     } else {
-        res.status(400).json({ error: 'Keys must be an array' });
-     }
+        return res.json(product);
+    } else {
+        return res.status(400).json({ error: 'No keys or images provided' });
+    }
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

@@ -61,7 +61,7 @@ router.post('/create-checkout-session', auth, async (req, res) => {
       payment_method_types: ['card'],
       line_items,
       mode: 'payment',
-      success_url: `${frontendUrl}/dashboard?session_id={CHECKOUT_SESSION_ID}&order_id=${order._id}`,
+      success_url: `${frontendUrl}/success?session_id={CHECKOUT_SESSION_ID}&order_id=${order._id}`,
       cancel_url: `${frontendUrl}/cart?canceled=true`,
       metadata: { orderId: order._id.toString() },
     });

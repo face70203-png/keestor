@@ -2,7 +2,7 @@
 import { useEffect, useState, Suspense } from "react";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
-import { KeyRound, Package, Wallet, CheckCircle, Clock, Settings, Ticket, Link as LinkIcon, Send } from "lucide-react";
+import { KeyRound, Package, Wallet, CheckCircle, Clock, Settings, Ticket, Link as LinkIcon, Send, BookOpen } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
@@ -256,6 +256,18 @@ function DashboardContent() {
                         </div>
                     )}
                   </div>
+
+                  {/* Activation Protocol */}
+                  {item.activationSteps && (
+                      <div className="mx-5 mb-5 mt-2 bg-indigo-50/50 dark:bg-indigo-900/10 p-5 rounded-[1.5rem] border border-indigo-100 dark:border-indigo-900/30">
+                          <p className="text-[10px] font-black uppercase text-indigo-500 tracking-widest mb-3 flex items-center gap-1.5">
+                              <BookOpen size={14} /> Activation Protocol
+                          </p>
+                          <p className="text-xs font-bold text-slate-700 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                              {item.activationSteps}
+                          </p>
+                      </div>
+                  )}
 
                   {/* Vault Footer */}
                   <div className="p-4 flex justify-between items-center text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em]">

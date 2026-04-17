@@ -85,7 +85,7 @@ function CheckoutContent() {
           if (res.data.success) {
               if (searchParams.get("cart")) clearCart();
               addToast("Payment successful using KeeWallet! Any referral discounts were applied automatically.", "success");
-              router.push("/dashboard");
+              router.push(`/success?order_id=${res.data.order._id}`);
           }
       } catch(err) {
           const errorMsg = err.response?.data?.error || err.message;

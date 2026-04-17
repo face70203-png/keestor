@@ -58,6 +58,14 @@ export default function AdminDashboard() {
   const [editingProductKeys, setEditingProductKeys] = useState(null);
   const [editKeysText, setEditKeysText] = useState("");
   
+  const defaultActivationSteps = `1. Authenticate your account on the target platform.
+2. Navigate to the 'Redemptions' or 'Licenses' tab.
+3. Paste the cryptographic License Key exactly as shown above.
+4. If this is a visual asset (QR/eSIM), scan it using your device camera.
+5. Once applied, restart your application to finalize synchronization.`;
+  
+  const [activationSteps, setActivationSteps] = useState(defaultActivationSteps);
+  
   // Advanced Product Editing
   const [editingProduct, setEditingProduct] = useState(null);
   const [editTitle, setEditTitle] = useState("");
@@ -67,6 +75,7 @@ export default function AdminDashboard() {
   const [editCategory, setEditCategory] = useState("General");
   const [editImageUrl, setEditImageUrl] = useState("");
   const [editSaleEndDate, setEditSaleEndDate] = useState("");
+  const [editActivationSteps, setEditActivationSteps] = useState("");
 
   const [promoCode, setPromoCode] = useState("");
   const [promoDiscount, setPromoDiscount] = useState("");
@@ -132,6 +141,9 @@ export default function AdminDashboard() {
           if (saleEndDate) {
             formData.append('saleEndDate', saleEndDate);
           }
+          if (activationSteps) {
+            formData.append('activationSteps', activationSteps);
+          }
           if (imageFile) formData.append('image', imageFile);
           else if (imageUrl) formData.append('imageUrl', imageUrl);
 
@@ -139,7 +151,7 @@ export default function AdminDashboard() {
              headers: { 'Content-Type': 'multipart/form-data' }
           });
           alert("Product added successfully!");
-          setTitle(""); setPrice(""); setDescription(""); setImageUrl(""); setImageFile(null); setCategory("General");
+          setTitle(""); setPrice(""); setDescription(""); setImageUrl(""); setImageFile(null); setCategory("General"); setActivationSteps(defaultActivationSteps);
           fetchData();
       } catch(err) { alert("Failed: " + err.message); } finally { setSubmitting(false); }
   };
@@ -149,19 +161,35 @@ export default function AdminDashboard() {
   const handleAddKeys = async (e) => {
       e.preventDefault();
       if (user?.email === 'demo@keestore.app') return alert("You are in Demo Mode. Modifications are disabled.");
-      if(!selectedProductId || !newKeys) return alert("Select product and enter keys");
+      if(!selectedProductId) return alert("Select product");
       try {
-          const keysArray = newKeys.split(',').map(k => ({
-              value: k.trim(),
-              keyType: keyType
-          })).filter(k => k.value);
+          const formData = new FormData();
+          
+          if (keyType === 'text') {
+              if(!newKeys) return alert("Enter keys");
+              const keysArray = newKeys.split(',').map(k => ({
+                  value: k.trim(),
+                  keyType: 'text'
+              })).filter(k => k.value);
+              formData.append('keys', JSON.stringify(keysArray));
+          } else {
+              const fileInput = document.getElementById('qrFiles');
+              if(!fileInput || !fileInput.files.length) return alert("Select images to upload");
+              for(let i=0; i < fileInput.files.length; i++) {
+                 formData.append('images', fileInput.files[i]);
+              }
+          }
 
-          await axios.post(`${API_BASE_URL}/api/products/${selectedProductId}/keys`, {
-              keys: keysArray
+          setSubmitting(true);
+          await axios.post(`${API_BASE_URL}/api/products/${selectedProductId}/keys`, formData, {
+              headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${localStorage.getItem('token')}` }
           });
-          alert(`Added ${keysArray.length} ${keyType} keys successfully!`);
-          setNewKeys(""); fetchData();
-      } catch(err) { alert("Failed to add keys"); }
+          
+          alert(`Added keys successfully!`);
+          setNewKeys("");
+          if(document.getElementById('qrFiles')) document.getElementById('qrFiles').value = '';
+          fetchData();
+      } catch(err) { alert(err.response?.data?.error || "Failed to add keys"); } finally { setSubmitting(false); }
   };
 
   const handleUpdateProduct = async (e) => {
@@ -176,7 +204,8 @@ export default function AdminDashboard() {
               description: editDescription,
               category: editCategory,
               imageUrl: editImageUrl,
-              saleEndDate: editSaleEndDate
+              saleEndDate: editSaleEndDate,
+              activationSteps: editActivationSteps
           });
           alert("Inventory Record Updated Successfully!");
           setEditingProduct(null);
@@ -193,6 +222,7 @@ export default function AdminDashboard() {
       setEditCategory(p.category || "General");
       setEditImageUrl(p.imageUrl || "");
       setEditSaleEndDate(p.saleEndDate ? new Date(p.saleEndDate).toISOString().slice(0, 16) : "");
+      setEditActivationSteps(p.activationSteps || "");
   };
 
   const handleOverwriteKeys = async () => {
@@ -748,6 +778,11 @@ export default function AdminDashboard() {
                                <textarea placeholder="Write compelling features..." rows="4" value={description} onChange={(e)=>setDescription(e.target.value)} required className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white resize-none"></textarea>
                            </div>
 
+                           <div className="md:col-span-2">
+                               <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">Activation Protocol (Steps) 📖</label>
+                               <textarea placeholder="Example: 1. Go to keymaster.fivem.net 2. Enter code..." rows="3" value={activationSteps} onChange={(e)=>setActivationSteps(e.target.value)} required className="w-full bg-blue-50/50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900 dark:text-white resize-none"></textarea>
+                           </div>
+
                            <div className="md:col-span-2 pt-4">
                                <button type="submit" disabled={submitting} className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-4 rounded-xl disabled:opacity-50 transition-colors shadow-md">
                                    {submitting ? "Pushing to Cloud..." : "Publish to Storefront"}
@@ -837,22 +872,42 @@ export default function AdminDashboard() {
                                </div>
                                <div>
                                    <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase mb-1 block">
-                                      {keyType === 'text' ? 'Data Payload (Comma Separated)' : 'Image URLs (Comma Separated URLs)'}
+                                      {keyType === 'text' ? 'Data Payload (Comma Separated)' : 'Upload QR Codes / eSIM Images'}
                                    </label>
-                                   <textarea 
-                                      placeholder={keyType === 'text' ? "LICENSE-123, LICENSE-456" : "https://img.com/qr1.png, https://img.com/qr2.png"} 
-                                      rows="6" 
-                                      value={newKeys} 
-                                      onChange={(e)=>setNewKeys(e.target.value)} 
-                                      required 
-                                      className="w-full bg-slate-900 border border-slate-800 rounded-xl py-4 px-4 outline-none focus:border-indigo-500 text-emerald-400 font-mono text-sm resize-none"
-                                   ></textarea>
+                                   {keyType === 'text' ? (
+                                       <textarea 
+                                          placeholder="LICENSE-123, LICENSE-456" 
+                                          rows="6" 
+                                          value={newKeys} 
+                                          onChange={(e)=>setNewKeys(e.target.value)} 
+                                          required={keyType === 'text'}
+                                          className="w-full bg-slate-900 border border-slate-800 rounded-xl py-4 px-4 outline-none focus:border-indigo-500 text-emerald-400 font-mono text-sm resize-none"
+                                       ></textarea>
+                                   ) : (
+                                       <div className="w-full h-[152px] bg-slate-900/50 border-2 border-dashed border-slate-700/50 hover:border-indigo-500/50 rounded-xl flex items-center justify-center transition-all group relative">
+                                           <input 
+                                              type="file" 
+                                              id="qrFiles" 
+                                              multiple 
+                                              accept="image/*" 
+                                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                                              required={keyType === 'image'}
+                                           />
+                                           <div className="text-center group-hover:scale-105 transition-transform">
+                                               <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-2 text-indigo-400">
+                                                   <span className="text-2xl">+</span>
+                                               </div>
+                                               <p className="text-sm font-bold text-slate-300">Click to upload multiple images</p>
+                                               <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-widest">Supports PNG, JPG, JPEG</p>
+                                           </div>
+                                       </div>
+                                   )}
                                    <p className="text-xs text-slate-400 mt-2">
-                                      {keyType === 'text' ? 'Standard license strings.' : 'Provide direct image links for QR codes / eSIM profiles.'}
+                                      {keyType === 'text' ? 'Standard license strings.' : 'Upload image files directly from your device. They will be securely hosted.'}
                                    </p>
                                </div>
-                               <button type="submit" className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 text-white font-black py-4 rounded-xl transition-all">
-                                   Deposit {keyType.toUpperCase()} Data
+                               <button type="submit" disabled={submitting} className="bg-indigo-600 hover:bg-indigo-700 shadow-lg shadow-indigo-500/30 text-white font-black py-4 rounded-xl transition-all disabled:opacity-50">
+                                   {submitting ? "Uploading & Encrypting..." : `Deposit ${keyType.toUpperCase()} Data`}
                                </button>
                            </form>
                        </div>
@@ -1071,6 +1126,11 @@ export default function AdminDashboard() {
                           <div>
                               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Visual Asset URL</label>
                               <input type="text" value={editImageUrl} onChange={(e)=>setEditImageUrl(e.target.value)} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-mono text-xs text-slate-500" />
+                          </div>
+                          
+                          <div>
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Activation Protocol (Steps) 📖</label>
+                              <textarea value={editActivationSteps} onChange={(e)=>setEditActivationSteps(e.target.value)} rows="3" className="w-full bg-blue-50/50 dark:bg-slate-800 border border-blue-200 dark:border-slate-700 rounded-2xl py-4 px-4 outline-none focus:border-primary text-slate-900 dark:text-white text-sm resize-none"></textarea>
                           </div>
                           
                           <div>
