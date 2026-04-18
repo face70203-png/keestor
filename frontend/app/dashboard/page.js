@@ -10,7 +10,7 @@ import { useCurrency } from "../context/CurrencyContext";
 import { useToast } from "../context/ToastContext";
 import { translations } from "../../translations";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://keestor.onrender.com";
 
 function DashboardContent() {
   const [orders, setOrders] = useState([]);

@@ -7,7 +7,7 @@ import axios from 'axios';
 
 const WishlistContext = createContext();
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://keestor.onrender.com";
 
 export function WishlistProvider({ children }) {
   const [wishlist, setWishlist] = useState([]);

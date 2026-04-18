@@ -5,9 +5,10 @@ import axios from 'axios';
 import { Search, Package, CheckCircle, Truck, Clock, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useCurrency } from '../context/CurrencyContext';
+import { useToast } from '../context/ToastContext';
 import { useEffect } from 'react';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://keestor.onrender.com";
 
 export default function TrackingPage() {
   const [orderId, setOrderId] = useState("");
@@ -17,6 +18,20 @@ export default function TrackingPage() {
   const [error, setError] = useState("");
   const { lang } = useLanguage();
   const { formatPrice } = useCurrency();
+  const { addToast } = useToast();
+
+  const handleForgotPin = async () => {
+      if (!orderId) {
+          setError(lang === 'ar' ? "يرجى كتابة رقم الطلب أولاً." : "Please enter your Order ID first.");
+          return;
+      }
+      try {
+          const res = await axios.post(`${API_BASE_URL}/api/orders/forgot-pin`, { orderId: orderId.trim() });
+          addToast(res.data.message || (lang === 'ar' ? "تم الإرسال" : "PIN sent to your email"), "success");
+      } catch (err) {
+          addToast(lang === 'ar' ? "فشل الإرسال" : "Failed to process request", "error");
+      }
+  };
 
   const fetchOrder = async (idToFetch, pinToFetch = "") => {
     if (!idToFetch) return;
@@ -79,6 +94,13 @@ export default function TrackingPage() {
             className="w-full bg-slate-50 dark:bg-slate-800/50 rounded-[1.25rem] py-4 px-6 outline-none focus:ring-2 focus:ring-primary/20 text-slate-900 dark:text-white font-mono text-sm text-center"
             maxLength={4}
           />
+          <button 
+             type="button" 
+             onClick={handleForgotPin}
+             className="absolute -bottom-6 right-2 text-[10px] font-bold text-slate-400 hover:text-primary transition-colors"
+          >
+             {lang === 'ar' ? 'نسيت الـ PIN؟' : 'Forgot PIN?'}
+          </button>
         </div>
         <button 
           type="submit" 

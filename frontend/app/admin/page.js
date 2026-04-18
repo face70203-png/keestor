@@ -19,7 +19,7 @@ const AdminCharts = dynamic(() => import('../components/AdminCharts'), {
   loading: () => <div className="h-[400px] w-full bg-slate-100 animate-pulse rounded-[2rem] flex items-center justify-center font-bold text-slate-400">Initializing Core Analytics...</div>
 });
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://keestor.onrender.com";
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
@@ -95,7 +95,7 @@ export default function AdminDashboard() {
     setLoadingStats(true);
     try {
        const [prodRes, ordRes, usersRes, tRes, cRes, statsRes, diagRes] = await Promise.all([
-          axios.get(`${API_BASE_URL}/api/products`),
+          axios.get(`${API_BASE_URL}/api/products/admin`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
           axios.get(`${API_BASE_URL}/api/orders/all`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
           axios.get(`${API_BASE_URL}/api/users`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),
           axios.get(`${API_BASE_URL}/api/tickets/all`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }),

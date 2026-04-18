@@ -71,7 +71,7 @@ const clearPCache = () => {
     lastCacheUpdate = 0;
 };
 
-// Get all products
+// Get all products (Public - Masks Sensitive Keys)
 router.get('/', async (req, res) => {
   try {
     const now = Date.now();
@@ -79,7 +79,8 @@ router.get('/', async (req, res) => {
         return res.json(cachedProducts);
     }
 
-    const products = await Product.find().sort({ createdAt: -1 });
+    // SECURITY PATCH: Exclude 'keys' array from public requests to prevent key scraping
+    const products = await Product.find().select('-keys -__v').sort({ createdAt: -1 });
     cachedProducts = products;
     lastCacheUpdate = now;
     res.json(products);
@@ -105,6 +106,17 @@ router.get('/search', async (req, res) => {
 });
 
 // Admin ONLY routes
+
+// Get all products including keys (Admin Only)
+router.get('/admin', adminAuth, async (req, res) => {
+  try {
+      const products = await Product.find().sort({ createdAt: -1 });
+      res.json(products);
+  } catch (err) {
+      res.status(500).json({ error: err.message });
+  }
+});
+
 // Add a target product
 router.post('/', adminAuth, upload.single('image'), async (req, res) => { // Upload single image field
   try {

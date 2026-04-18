@@ -1,12 +1,14 @@
 "use client";
+import { useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, ShieldCheck, Zap, Download } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap, Download, X, Smartphone, ShieldAlert } from 'lucide-react';
 import ProductGrid from './components/ProductGrid';
 import { useLanguage } from './context/LanguageContext';
 import { translations } from '../translations';
 
 export default function Home() {
-  const { lang } = useLanguage();
+  const { lang, dir } = useLanguage();
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
   const t = translations[lang].home;
 
   const features = {
@@ -40,13 +42,22 @@ export default function Home() {
              {t.heroSubtitle}
            </p>
            
-           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 flex-wrap">
                <Link href="/products" className="w-full sm:w-auto bg-primary hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-bold transition-all shadow-lg hover:shadow-primary/30 flex items-center justify-center gap-2 text-lg">
                    {t.ctaStore} <ArrowRight size={20} className={lang === 'ar' ? 'rotate-180' : ''}/>
                </Link>
                <Link href="/about" className="w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white border border-white/10 px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center text-lg">
                    {lang === 'ar' ? 'عرض المميزات' : 'View Features'}
                </Link>
+               <button 
+                  onClick={() => setShowDownloadModal(true)}
+                  className="w-full sm:w-auto bg-[#3DDC84]/10 hover:bg-[#3DDC84]/20 text-[#3DDC84] border border-[#3DDC84]/30 px-8 py-4 rounded-xl font-bold transition-all flex items-center justify-center gap-3 text-lg backdrop-blur-md"
+               >
+                   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M17.523 15.3414C17.1528 15.3414 16.8525 15.0411 16.8525 14.6709C16.8525 14.3006 17.1528 14.0003 17.523 14.0003C17.8932 14.0003 18.1936 14.3006 18.1936 14.6709C18.1936 15.0411 17.8932 15.3414 17.523 15.3414ZM6.4716 15.3414C6.10134 15.3414 5.80105 15.0411 5.80105 14.6709C5.80105 14.3006 6.10134 14.0003 6.4716 14.0003C6.84186 14.0003 7.14214 14.3006 7.14214 14.6709C7.14214 15.0411 6.84186 15.3414 6.4716 15.3414ZM17.7551 10.6033L19.5398 7.51868C19.6469 7.33321 19.5833 7.0954 19.3978 6.98826C19.2124 6.88111 18.9746 6.94463 18.8674 7.13011L17.0674 10.2458C15.5414 9.5518 13.8291 9.15509 12 9.15509C10.1709 9.15509 8.45862 9.5518 6.93256 10.2458L5.13256 7.13011C5.02542 6.94463 4.78762 6.88111 4.60214 6.98826C4.41666 7.0954 4.35314 7.33321 4.46028 7.51868L6.24495 10.6033C2.71616 12.5445 0.320499 16.2084 0 20.4852H24C23.6795 16.2084 21.2838 12.5445 17.7551 10.6033Z"/>
+                   </svg>
+                   {lang === 'ar' ? 'تطبيق الأندرويد' : 'Android App'}
+               </button>
            </div>
         </div>
       </section>
@@ -73,6 +84,59 @@ export default function Home() {
          </div>
          <ProductGrid />
       </section>
+
+      {/* App Download Security Modal */}
+      {showDownloadModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" dir={dir}>
+          <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-xl animate-in fade-in duration-300" onClick={() => setShowDownloadModal(false)}></div>
+          
+          <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-10 duration-500">
+             
+             {/* Header */}
+             <div className="p-8 pb-4 flex justify-between items-start">
+                 <div className="w-16 h-16 bg-[#3DDC84]/10 rounded-2xl flex items-center justify-center text-[#3DDC84]">
+                    <Smartphone size={32} />
+                 </div>
+                 <button onClick={() => setShowDownloadModal(false)} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors text-slate-400">
+                    <X size={20} />
+                 </button>
+             </div>
+
+             {/* Content */}
+             <div className="px-8 pb-8">
+                <div className="flex items-center gap-2 mb-2 text-emerald-500 font-bold text-sm tracking-wide uppercase">
+                    <ShieldCheck size={16} /> Verified & Secured
+                </div>
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4 leading-tight">
+                  {t.downloadTitle}
+                </h2>
+                <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 p-4 rounded-2xl flex gap-3 mb-6">
+                   <ShieldAlert className="text-amber-500 shrink-0" size={20} />
+                   <p className="text-slate-600 dark:text-slate-300 text-sm font-medium leading-relaxed">
+                     {t.downloadDesc}
+                   </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                   <a 
+                     href="/KeeStore.apk" 
+                     download 
+                     onClick={() => setShowDownloadModal(false)}
+                     className="flex-grow bg-[#3DDC84] hover:bg-[#34c776] text-slate-900 font-black py-4 rounded-2xl shadow-xl shadow-[#3DDC84]/20 flex items-center justify-center gap-2 transition-all active:scale-95"
+                   >
+                      <Download size={20} /> {t.downloadBtn}
+                   </a>
+                   <button 
+                     onClick={() => setShowDownloadModal(false)}
+                     className="px-8 py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+                   >
+                     {t.downloadCancel}
+                   </button>
+                </div>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@ import axios from "axios";
 // 🌐 Global Axios Config for Cookies
 axios.defaults.withCredentials = true;
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://keestor.onrender.com";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {

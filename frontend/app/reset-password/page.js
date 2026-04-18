@@ -2,11 +2,11 @@
 import { useState, Suspense } from "react";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
-import { KeyRound, ArrowRight } from "lucide-react";
+import { KeyRound, ArrowRight, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useToast } from "../context/ToastContext";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://keestor.onrender.com";
 
 function ResetContent() {
     const searchParams = useSearchParams();
@@ -16,6 +16,8 @@ function ResetContent() {
 
     const [password, setPassword] = useState("");
     const [confirm, setConfirm] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirm, setShowConfirm] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
@@ -54,27 +56,45 @@ function ResetContent() {
             <p className="text-slate-500 mb-8">Secure your vault with a strong new password.</p>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                <div>
+                <div className="relative">
                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">New Password</label>
-                    <input 
-                      type="password" 
-                      value={password} 
-                      onChange={(e) => setPassword(e.target.value)} 
-                      required 
-                      placeholder="••••••••" 
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" 
-                    />
+                    <div className="relative">
+                        <input 
+                          type={showPassword ? "text" : "password"} 
+                          value={password} 
+                          onChange={(e) => setPassword(e.target.value)} 
+                          required 
+                          placeholder="••••••••" 
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-4 pr-12 outline-none focus:border-primary text-slate-900" 
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                    </div>
                 </div>
-                <div>
+                <div className="relative">
                     <label className="text-xs font-bold text-slate-500 uppercase mb-1 block">Confirm Password</label>
-                    <input 
-                      type="password" 
-                      value={confirm} 
-                      onChange={(e) => setConfirm(e.target.value)} 
-                      required 
-                      placeholder="••••••••" 
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-primary text-slate-900" 
-                    />
+                    <div className="relative">
+                        <input 
+                          type={showConfirm ? "text" : "password"} 
+                          value={confirm} 
+                          onChange={(e) => setConfirm(e.target.value)} 
+                          required 
+                          placeholder="••••••••" 
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 pl-4 pr-12 outline-none focus:border-primary text-slate-900" 
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setShowConfirm(!showConfirm)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        >
+                          {showConfirm ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                    </div>
                 </div>
                 <button type="submit" disabled={loading} className="w-full bg-primary hover:bg-blue-700 shadow-lg text-white font-black py-4 rounded-xl transition-all disabled:opacity-50 mt-2 flex justify-center items-center gap-2">
                    {loading ? "Rehashing..." : "Finalize Reset"} <ArrowRight size={18}/>

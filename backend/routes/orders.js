@@ -430,13 +430,15 @@ router.get('/:id', async (req, res) => {
        items: order.items.map(i => ({
            title: i.title,
            quantity: i.quantity,
-           imageUrl: i.imageUrl
+           imageUrl: i.imageUrl,
+           // SECURITY FIX: Only expose the digital keys if PIN validation succeeded
+           ...(isPinValid && { keys: i.keys, activationSteps: i.activationSteps })
        }))
     };
     
     // Only reveal digital asset keys if PIN matches
     if (isPinValid) {
-        safeOrder.deliveredKey = order.deliveredKey;
+        safeOrder.deliveredKey = order.deliveredKey; // Legacy support
         safeOrder.isAuthorized = true;
     } else {
         safeOrder.isAuthorized = false;
@@ -445,6 +447,57 @@ router.get('/:id', async (req, res) => {
     res.json(safeOrder);
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+// @route   POST /api/orders/forgot-pin
+// @desc    Dispatch the security PIN to the email associated with the specified order
+// @access  Public (Rate Limited implicitly by express-rate-limit)
+router.post('/forgot-pin', async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    if (!orderId) return res.status(400).json({ error: 'Order ID is required' });
+
+    let order;
+    if (orderId.length === 24) {
+        order = await Order.findById(orderId).populate('user', 'email username');
+    } else {
+        const shortId = orderId.replace('#', '').toLowerCase();
+        const allOrders = await Order.find().populate('user', 'email username');
+        order = allOrders.find(o => o._id.toString().slice(-12).toLowerCase() === shortId);
+    }
+
+    if (!order || !order.user || !order.user.email) {
+       // Return a generic positive message to prevent order enumeration / email leakage
+       return res.json({ message: 'If this order exists, the PIN has been dispatched.' });
+    }
+
+    const { sendEmail } = require('../utils/sendEmail');
+    await sendEmail({
+      email: order.user.email,
+      subject: `KeeStore Security PIN Recovery - ${order._id.toString().slice(-12).toUpperCase()}`,
+      message: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+            <div style="background-color: #0f172a; padding: 20px; text-align: center;">
+                <h1 style="color: white; margin: 0; font-size: 24px;">KeeStore</h1>
+            </div>
+            <div style="padding: 30px; background-color: #fafafa;">
+                <p>Hello <strong>${order.user.username}</strong>,</p>
+                <p>You requested to recover the tracking PIN for Order <strong>#${order._id.toString().slice(-12).toUpperCase()}</strong>.</p>
+                <div style="background: white; border: 1px solid #e2e8f0; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 0; font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: 2px;">Your Security PIN</p>
+                    <h2 style="margin: 10px 0 0 0; font-size: 32px; color: #10b981; letter-spacing: 4px;">${order.securityPin}</h2>
+                </div>
+            </div>
+        </div>
+      `
+    });
+
+    res.json({ message: 'If this order exists, the PIN has been dispatched.' });
+  } catch (error) {
+    console.error("Forgot PIN Error:", error);
+    // Generic error to prevent data leakage
+    res.status(500).json({ error: 'Failed to process request.' });
   }
 });
 

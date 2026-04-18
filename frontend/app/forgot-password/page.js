@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useToast } from "../context/ToastContext";
 import ReCAPTCHA from "react-google-recaptcha";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://keestor.onrender.com";
 const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6Ld5DaQsAAAAAKWShozrkpaUz-tUeztmvMXXG-U5";
 
 export default function ForgotPasswordPage() {

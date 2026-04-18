@@ -14,7 +14,11 @@ export const translations = {
       heroTitle: "The Ultimate Digital Marketplace",
       heroSubtitle: "Equip yourself with the highest quality tools, game keys, and creative resources.",
       ctaStore: "Discover Catalog",
-      ctaDashboard: "Enter Vault"
+      ctaDashboard: "Enter Vault",
+      downloadTitle: "Ready to Install?",
+      downloadDesc: "You are about to download the official KeeStore Android App. To install it, you will need to allow 'Install from Unknown Sources' in your Android settings. This application is 100% verified and secure.",
+      downloadBtn: "Download Anyway",
+      downloadCancel: "Maybe Later"
     },
     product: {
       addToCart: "Add to Cart",
@@ -147,7 +151,11 @@ export const translations = {
       heroTitle: "السوق الرقمي الشامل والأقوى",
       heroSubtitle: "زوّد نفسك بأعلى جودة من الأدوات التكنولوجية، مفاتيح الألعاب، والموارد الإبداعية.",
       ctaStore: "استكشف المتجر",
-      ctaDashboard: "ادخل الخزنة"
+      ctaDashboard: "ادخل الخزنة",
+      downloadTitle: "هل أنت جاهز للتثبيت؟",
+      downloadDesc: "أنت على وشك تحميل تطبيق KeeStore الرسمي للأندرويد. ستحتاج للسماح بـ 'التثبيت من مصادر غير معروفة' من إعدادات هاتفك لتشغيله. هذا التطبيق موثق 100% وآمن تماماً.",
+      downloadBtn: "حمل الآن",
+      downloadCancel: "ليس الآن"
     },
     product: {
       addToCart: "أضف للسلة",

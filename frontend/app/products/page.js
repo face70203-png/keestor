@@ -12,7 +12,7 @@ import Link from "next/link";
 
 import { useCurrency } from "../context/CurrencyContext";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://keestor.onrender.com";
 
 export default function ProductsPage() {
   const [products, setProducts] = useState([]);
