@@ -146,3 +146,10 @@ body {
 .primary-glow {
   box-shadow: 0 0 20px var(--primary-glow);
 }
+
+/* 📱 Mobile Navigation Spacing */
+@media (max-width: 1024px) {
+  body {
+    padding-bottom: 110px !important;
+  }
+}

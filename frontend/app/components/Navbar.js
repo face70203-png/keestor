@@ -20,6 +20,7 @@ export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const { currentCurrencyInfo, formatPrice, allRates, currency, changeCurrency } = useCurrency();
   const t = translations[lang].nav;
+  const dir = lang === 'ar' ? 'rtl' : 'ltr';
   
   // 🔍 Search State
   const [searchQuery, setSearchQuery] = useState("");
@@ -91,8 +92,7 @@ export default function Navbar() {
               </div>
           </div>
         </Link>
-               {/* 📱 Mobile Menu Trigger */}
-        <button onClick={() => setIsMenuOpen(true)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+        <button onClick={() => setIsMenuOpen(true)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors ml-auto">
             <Menu size={24} />
         </button>
 
