@@ -56,8 +56,11 @@ function ProductGridContent() {
     return () => clearInterval(timer);
   }, [products]);
 
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     setLoading(true);
+    setError(null);
     // Determine the URL based on search query
     let url = `${API_BASE_URL}/api/products`;
     if (searchQuery) {
@@ -74,7 +77,8 @@ function ProductGridContent() {
         setLoading(false);
       })
       .catch(err => {
-        console.error(err);
+        console.error("API Error Details:", err.message, err.response?.data);
+        setError(`Connection failed: ${err.message}. Ensure your backend is online and CORS is allowed.`);
         setLoading(false);
       });
   }, [searchQuery, categoryFilter]);
@@ -99,6 +103,13 @@ function ProductGridContent() {
           </div>
         </div>
       ))}
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-10 text-center bg-red-50 dark:bg-red-950/20 rounded-3xl border border-red-200 dark:border-red-900/30">
+        <p className="text-red-500 font-bold mb-2">⚠️ {error}</p>
+        <button onClick={() => window.location.reload()} className="text-xs font-black bg-red-500 text-white px-4 py-2 rounded-xl">RETRY CONNECTION</button>
     </div>
   );
 
