@@ -26,11 +26,19 @@ export default function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!captchaToken) return setError("Please verify the CAPTCHA.");
+    
+    // 📱 Mobile Bypass Detection
+    let finalToken = captchaToken;
+    const isMobile = typeof window !== 'undefined' && (window.Capacitor || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    if (isMobile && !finalToken) {
+        finalToken = "CAPACITOR_MOBILE_APP_BYPASS";
+    }
+
+    if (!finalToken) return setError("Please verify the CAPTCHA.");
     
     setLoading(true); setError("");
     try {
-      const res = await axios.post(`${API_BASE_URL}/api/auth/login`, { email, password, captchaToken });
+      const res = await axios.post(`${API_BASE_URL}/api/auth/login`, { email, password, captchaToken: finalToken });
       
       if (res.data.requiresEmailVerification) {
           setUserId(res.data.userId);
@@ -116,14 +124,17 @@ export default function Login() {
                 <Link href="/forgot-password" className="text-xs font-bold text-primary hover:text-blue-700 transition">Forgot Password?</Link>
             </div>
 
-            <div className="flex justify-center my-4 scale-95 origin-center">
-                <ReCAPTCHA 
-                  ref={recaptchaRef}
-                  sitekey={RECAPTCHA_SITE_KEY} 
-                  onChange={(token) => setCaptchaToken(token)}
-                  theme="light"
-                />
-            </div>
+            {/* 🤖 Hide ReCAPTCHA on Mobile to solve "Localhost" Error */}
+            {typeof window !== 'undefined' && !(window.Capacitor || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
+              <div className="flex justify-center my-4 scale-95 origin-center">
+                  <ReCAPTCHA 
+                    ref={recaptchaRef}
+                    sitekey={RECAPTCHA_SITE_KEY} 
+                    onChange={(token) => setCaptchaToken(token)}
+                    theme="light"
+                  />
+              </div>
+            )}
 
             <button 
               type="submit" 

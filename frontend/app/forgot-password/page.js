@@ -18,11 +18,14 @@ export default function ForgotPasswordPage() {
     const { addToast } = useToast();
     const recaptchaRef = useRef(null);
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        console.log("Starting submission for password recovery...");
-        
-        if (!captchaToken) {
+        // 📱 Mobile Bypass Detection
+        let finalToken = captchaToken;
+        const isMobile = typeof window !== 'undefined' && (window.Capacitor || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        if (isMobile && !finalToken) {
+            finalToken = "CAPACITOR_MOBILE_APP_BYPASS";
+        }
+
+        if (!finalToken) {
             console.log("Error: CAPTCHA not verified.");
             return addToast("Please verify the CAPTCHA.", "error");
         }
@@ -30,7 +33,7 @@ export default function ForgotPasswordPage() {
         setStatus("loading");
         try {
             console.log("Sending request to backend...");
-            await axios.post(`${API_BASE_URL}/api/auth/forgot-password`, { email, captchaToken });
+            await axios.post(`${API_BASE_URL}/api/auth/forgot-password`, { email, captchaToken: finalToken });
             console.log("Request successful.");
             setStatus("success");
             addToast("Recovery email dispatched!", "success");
@@ -80,13 +83,16 @@ export default function ForgotPasswordPage() {
                             />
                         </div>
 
-                        <div className="flex justify-center my-2">
-                             <ReCAPTCHA
-                                 ref={recaptchaRef}
-                                 sitekey={RECAPTCHA_SITE_KEY}
-                                 onChange={(token) => setCaptchaToken(token)}
-                             />
-                        </div>
+                        {/* 🤖 Hide ReCAPTCHA on Mobile */}
+                        {typeof window !== 'undefined' && !(window.Capacitor || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
+                          <div className="flex justify-center my-2">
+                               <ReCAPTCHA
+                                   ref={recaptchaRef}
+                                   sitekey={RECAPTCHA_SITE_KEY}
+                                   onChange={(token) => setCaptchaToken(token)}
+                               />
+                          </div>
+                        )}
 
                         <button type="submit" disabled={status==='loading'} className="w-full bg-slate-900 hover:bg-black shadow-lg text-white font-black py-4 rounded-xl transition-all disabled:opacity-50 mt-2">
                            {status === 'loading' ? (
