@@ -1,9 +1,9 @@
 "use client";
-import { useState, Suspense, useRef } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import axios from "axios";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { User, Lock, Mail, Users, Eye, EyeOff } from "lucide-react";
+import { User, Lock, Mail, Users, Eye, EyeOff, Zap } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import ReCAPTCHA from "react-google-recaptcha";
 
