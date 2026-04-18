@@ -472,7 +472,7 @@ router.post('/forgot-pin', async (req, res) => {
        return res.json({ message: 'If this order exists, the PIN has been dispatched.' });
     }
 
-    const { sendEmail } = require('../utils/sendEmail');
+    const sendEmail = require('../utils/sendEmail');
     await sendEmail({
       email: order.user.email,
       subject: `KeeStore Security PIN Recovery - ${order._id.toString().slice(-12).toUpperCase()}`,

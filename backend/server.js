@@ -25,28 +25,33 @@ const path = require('path');
 // 🏁 Pre-Flight / CORS Headers (VERY TOP)
 app.use((req, res, next) => {
     const origin = req.headers.origin;
-    const frontendUrl = process.env.FRONTEND_URL;
     
     // Auto-detection and Environment Variable support
     const allowedOrigins = [
         'http://localhost:3000',
         'https://keestore.vercel.app',
         'http://localhost', // Android Capacitor
-        'capacitor://localhost' // iOS Capacitor
+        'capacitor://localhost', // iOS Capacitor
+        'https://localhost' // Some Capacitor builds
     ];
     
-    if (frontendUrl) allowedOrigins.push(frontendUrl);
+    if (process.env.FRONTEND_URL) allowedOrigins.push(process.env.FRONTEND_URL);
     
-    // Allow if origin is in list, OR if it's a mobile app (no origin or localhost)
-    if (!origin || allowedOrigins.includes(origin) || (origin && (origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')))) {
-        res.header('Access-Control-Allow-Origin', origin || '*');
-    } else {
-        console.log(`[CORS] Request from unknown origin: ${origin || 'No Origin Header'}. Allowed: ${allowedOrigins.join(', ')}`);
+    // 🛡️ CRITICAL CORS LOGIC FOR MOBILE:
+    // When using Credentials (cookies), the origin MUSt be mirrored exactly. 
+    // It cannot be "*".
+    if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com'))) {
+        res.header('Access-Control-Allow-Origin', origin);
+    } else if (!origin) {
+        // For mobile apps that don't send an origin, we pick a default or use "*" if no credentials.
+        // But since we use credentials, we'll try to guess or allow based on other headers, 
+        // or just mirror a default allowed one for the handshake.
+        res.header('Access-Control-Allow-Origin', allowedOrigins[2]); // Default to http://localhost
     }
     
     res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.header('Access-Control-Allow-Credentials', 'true'); // Required for Cookies
+    res.header('Access-Control-Allow-Credentials', 'true'); 
     
     if (req.method === 'OPTIONS') {
         return res.sendStatus(200);
