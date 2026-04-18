@@ -30,16 +30,16 @@ app.use((req, res, next) => {
     // Auto-detection and Environment Variable support
     const allowedOrigins = [
         'http://localhost:3000',
-        'https://keestore.vercel.app'
+        'https://keestore.vercel.app',
+        'http://localhost', // Android Capacitor
+        'capacitor://localhost' // iOS Capacitor
     ];
     
     if (frontendUrl) allowedOrigins.push(frontendUrl);
     
-    // Dynamic matching for Vercel preview domains if needed
-    if (origin && allowedOrigins.includes(origin)) {
-        res.header('Access-Control-Allow-Origin', origin);
-    } else if (origin && (origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com'))) {
-        res.header('Access-Control-Allow-Origin', origin);
+    // Allow if origin is in list, OR if it's a mobile app (no origin or localhost)
+    if (!origin || allowedOrigins.includes(origin) || (origin && (origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')))) {
+        res.header('Access-Control-Allow-Origin', origin || '*');
     } else {
         console.log(`[CORS] Request from unknown origin: ${origin || 'No Origin Header'}. Allowed: ${allowedOrigins.join(', ')}`);
     }

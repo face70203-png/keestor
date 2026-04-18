@@ -64,6 +64,11 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Ensure buttons always have correct text color if using theme backgrounds */
+.bg-primary { background-color: var(--primary); color: white !important; }
+.btn-theme { background-color: var(--bg-card); color: var(--text); border: 1px solid var(--border); }
+.btn-subtle { background-color: var(--bg-subtle); color: var(--text); }
+
 /* ============================================================
    PREMIUM GLASSMORPHISM
    ============================================================ */

@@ -247,18 +247,28 @@ export default function Navbar() {
             </button>
 
             {/* 🛒 Cart */}
-            <Link href="/cart" className="relative flex items-center justify-center p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-slate-700 dark:text-slate-300">
-              <ShoppingCart size={22} />
+        </div>
+        
+        {/* 📱 Mobile Top Quick Actions */}
+        <div className="flex lg:hidden items-center gap-2">
+            <button
+                onClick={toggleTheme}
+                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-yellow-400"
+            >
+                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
+            <Link href="/cart" className="relative p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+              <ShoppingCart size={18} />
               {cartItemsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-white text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold">
+                  <span className="absolute -top-1 -right-1 bg-primary text-white text-[8px] w-4 h-4 flex items-center justify-center rounded-full font-black">
                   {cartItemsCount}
                   </span>
               )}
             </Link>
         </div>
-        
+
         {!loading && user ? (
-          <div className="flex items-center gap-3 relative" ref={profileRef}>
+          <div className="hidden lg:flex items-center gap-3 relative" ref={profileRef}>
             {/* 👤 Profile Trigger */}
             <button 
               onClick={() => setIsProfileDropdownOpen(!isProfileDropdownOpen)}
@@ -317,7 +327,7 @@ export default function Navbar() {
             )}
           </div>
         ) : !loading ? (
-          <div className="flex items-center gap-4 shrink-0">
+          <div className="hidden lg:flex items-center gap-4 shrink-0">
             <Link href="/login" className="text-slate-600 dark:text-slate-300 hover:text-primary font-bold flex items-center gap-2 transition-colors">
               <LogIn size={18} /> {t.login}
             </Link>
@@ -328,6 +338,42 @@ export default function Navbar() {
         ) : null}
       </div>
     </nav>
+
+    {/* 📱 Premium Mobile Bottom Navigation */}
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[60] px-4 pb-6 pt-2">
+       <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-slate-200/50 dark:border-white/5 rounded-3xl shadow-2xl flex items-center justify-around py-3">
+          <Link href="/" className="flex flex-col items-center gap-1 group">
+             <Key size={20} className="text-slate-400 group-focus:text-primary group-active:text-primary transition-colors" />
+             <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Home</span>
+          </Link>
+          <button onClick={() => setIsSearchOverlayOpen(true)} className="flex flex-col items-center gap-1 group">
+             <Search size={20} className="text-slate-400 group-focus:text-primary transition-colors" />
+             <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Search</span>
+          </button>
+          <Link href="/cart" className="flex flex-col items-center gap-1 group relative">
+             <ShoppingCart size={20} className="text-slate-400 group-focus:text-primary transition-colors" />
+             <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Cart</span>
+             {cartItemsCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary text-white text-[8px] w-4 h-4 flex items-center justify-center rounded-full font-bold">
+                {cartItemsCount}
+                </span>
+             )}
+          </Link>
+          {user ? (
+            <button onClick={() => setIsProfileDropdownOpen(true)} className="flex flex-col items-center gap-1 group">
+                <div className="w-6 h-6 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden border border-slate-300 dark:border-slate-700">
+                   {user.profilePicture ? <img src={user.profilePicture} className="w-full h-full object-cover" /> : <div className="text-[10px] flex items-center justify-center h-full text-slate-500">{user.username?.charAt(0)}</div>}
+                </div>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Profile</span>
+            </button>
+          ) : (
+            <Link href="/login" className="flex flex-col items-center gap-1 group">
+                <LogIn size={20} className="text-slate-400 group-focus:text-primary transition-colors" />
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Join</span>
+            </Link>
+          )}
+       </div>
+    </div>
 
     {/* 🔍 Fullscreen Search Overlay (Mobile/Tablet) */}
     {isSearchOverlayOpen && (
