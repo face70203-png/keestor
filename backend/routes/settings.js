@@ -23,6 +23,13 @@ const upload = multer({ storage });
 // @desc    Get global platform settings
 router.get('/', async (req, res) => {
     try {
+        let count = await Setting.countDocuments();
+        if (count > 1) {
+            // Self-healing: Remove duplicates and keep only the latest
+            const latest = await Setting.findOne().sort({ updatedAt: -1 });
+            await Setting.deleteMany({ _id: { $ne: latest._id } });
+        }
+
         let settings = await Setting.findOne();
         if (!settings) {
             settings = await Setting.create({});

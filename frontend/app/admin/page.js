@@ -149,6 +149,22 @@ export default function AdminDashboard() {
     } catch (err) { console.error("Settings Fetch Error:", err); }
   };
 
+  const handleToggleMaintenance = async () => {
+    const newState = !sysSettings.maintenanceMode;
+    setSavingSettings(true);
+    try {
+        await axios.put(`${API_BASE_URL}/api/settings`, { ...sysSettings, maintenanceMode: newState }, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        setSysSettings(prev => ({ ...prev, maintenanceMode: newState }));
+        await refreshSettings();
+        // Log is handled by backend
+    } catch (err) {
+        alert("Failed to toggle maintenance mode.");
+        console.error(err);
+    } finally { setSavingSettings(false); }
+  };
+
   const handleUpdateSettings = async (e) => {
     e.preventDefault();
     setSavingSettings(true);
@@ -1269,9 +1285,11 @@ export default function AdminDashboard() {
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Maintenance Mode</label>
                                     <button 
                                       type="button"
-                                      onClick={() => setSysSettings({...sysSettings, maintenanceMode: !sysSettings.maintenanceMode})}
-                                      className={`w-full py-3 rounded-2xl font-black text-xs uppercase tracking-tighter transition-all ${sysSettings.maintenanceMode ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}
+                                      onClick={handleToggleMaintenance}
+                                      disabled={savingSettings}
+                                      className={`w-full py-3 rounded-2xl font-black text-xs uppercase tracking-tighter transition-all flex items-center justify-center gap-2 ${sysSettings.maintenanceMode ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}
                                     >
+                                        {savingSettings ? <RefreshCw size={14} className="animate-spin" /> : null}
                                         {sysSettings.maintenanceMode ? "🚨 ACTIVE: PUBLIC ACCESS DISABLED" : "🟢 ONLINE: SITE IS LIVE"}
                                     </button>
                                 </div>
