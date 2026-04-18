@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const { auth, adminAuth } = require('../middleware/auth');
+const SystemLog = require('../models/SystemLog');
+const Order = require('../models/Order');
 
 // Get current user profile
 router.get('/me', auth, async (req, res) => {
@@ -53,6 +55,15 @@ router.put('/:id/wallet', adminAuth, async (req, res) => {
     targetUser.walletBalance = Number(balance) || 0;
     await targetUser.save();
     
+    // 📝 Audit Log
+    await SystemLog.create({
+        type: 'WALLET_UPDATE',
+        level: 'info',
+        module: 'Admin',
+        message: `Wallet balance for ${targetUser.username} updated to $${targetUser.walletBalance} by admin`,
+        metadata: { userId: targetUser._id }
+    }).catch(e => console.error("Log Error:", e.message));
+
     res.json({ message: 'Balance updated', user: targetUser });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -94,6 +105,15 @@ router.put('/:id/block', adminAuth, async (req, res) => {
         const targetUser = await User.findByIdAndUpdate(req.params.id, { isBlocked: true }, { new: true });
         if (!targetUser) return res.status(404).json({ error: 'User not found' });
 
+        // 📝 Audit Log
+        await SystemLog.create({
+            type: 'USER_BLOCK',
+            level: 'warn',
+            module: 'Admin',
+            message: `User account blocked: ${targetUser.username}`,
+            metadata: { userId: targetUser._id }
+        }).catch(e => console.error("Log Error:", e.message));
+
         res.json({ message: 'User blocked successfully', user: targetUser });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -129,6 +149,35 @@ router.post('/:id/message', adminAuth, async (req, res) => {
         });
 
         res.json({ message: 'Email sent successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// @route   GET /api/users/admin/audit-logs
+// @desc    Get global system audit logs
+router.get('/admin/audit-logs', adminAuth, async (req, res) => {
+    try {
+        const logs = await SystemLog.find()
+            .populate('metadata.userId', 'username email')
+            .populate('metadata.orderId', '_id totalAmount')
+            .sort({ createdAt: -1 })
+            .limit(200);
+        res.json(logs);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// @route   GET /api/users/:id/history
+// @desc    Get detailed history for a specific user (Logs + Orders)
+router.get('/:id/history', adminAuth, async (req, res) => {
+    try {
+        const [logs, orders] = await Promise.all([
+            SystemLog.find({ 'metadata.userId': req.params.id }).sort({ createdAt: -1 }),
+            Order.find({ user: req.params.id }).sort({ createdAt: -1 })
+        ]);
+        res.json({ logs, orders });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

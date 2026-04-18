@@ -5,6 +5,7 @@ const stripe = Stripe(process.env.STRIPE_SECRET_KEY);
 const { auth, adminAuth } = require('../middleware/auth');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
+const SystemLog = require('../models/SystemLog');
 
 // Create checkout session (Cart support for Stripe)
 router.post('/create-checkout-session', auth, async (req, res) => {
@@ -246,6 +247,18 @@ const fulfillOrder = async (orderId, sessionId) => {
 
        order.markModified('items');
        await order.save();
+
+       // 📝 Audit Log
+       await SystemLog.create({
+           type: 'ORDER_SUCCESS',
+           level: 'info',
+           module: 'Fulfillment',
+           message: `Order #${order._id.toString().slice(-6)} fulfilled for $${order.totalAmount}`,
+           metadata: { 
+               orderId: order._id, 
+               userId: order.user 
+           }
+       }).catch(e => console.error("Log Error:", e.message));
 
        // 📧 Send Professional Success Email
        const User = require('../models/User');

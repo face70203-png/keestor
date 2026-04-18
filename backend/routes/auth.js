@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
 const { auth } = require('../middleware/auth');
 const axios = require('axios');
+const SystemLog = require('../models/SystemLog');
 
 // 🍪 Cookie Helper for Cross-Domain (Vercel + Render) support
 const setTokenCookie = (res, token) => {
@@ -75,6 +76,9 @@ router.post('/register', async (req, res) => {
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ error: 'Email already registered' });
 
+    const existingUsername = await User.findOne({ username: { $regex: new RegExp(`^${username}$`, 'i') } });
+    if (existingUsername) return res.status(400).json({ error: 'هذا الاسم مستخدم بالفعل، اختر اسماً آخر' });
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -103,6 +107,15 @@ router.post('/register', async (req, res) => {
     });
     
     await user.save();
+
+    // 📝 Audit Log
+    await SystemLog.create({
+        type: 'USER_REGISTER',
+        level: 'info',
+        module: 'Auth',
+        message: `New user account created: ${username}`,
+        metadata: { userId: user._id }
+    }).catch(e => console.error("Log Error:", e.message));
 
     // Send Verification Email
     sendEmail({
@@ -278,6 +291,16 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign({ _id: user._id, role: user.role, username: user.username, email: user.email }, process.env.JWT_SECRET, { expiresIn: '30d' });
     setTokenCookie(res, token);
+
+    // 📝 Audit Log
+    await SystemLog.create({
+        type: 'USER_LOGIN',
+        level: 'info',
+        module: 'Auth',
+        message: `User logged in: ${user.username}`,
+        metadata: { userId: user._id }
+    }).catch(e => console.error("Log Error:", e.message));
+
     res.json({ token, role: user.role, username: user.username, email: user.email });
   } catch (error) {
     res.status(500).json({ error: error.message });

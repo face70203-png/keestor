@@ -4,7 +4,7 @@ const systemLogSchema = new mongoose.Schema({
   type: { 
     type: String, 
     required: true,
-    enum: ['EMAIL_SUCCESS', 'EMAIL_FAILURE', 'SYSTEM_ERROR', 'PAYMENT_ALERT'] 
+    enum: ['EMAIL_SUCCESS', 'EMAIL_FAILURE', 'SYSTEM_ERROR', 'PAYMENT_ALERT', 'USER_LOGIN', 'USER_REGISTER', 'ORDER_SUCCESS', 'WALLET_UPDATE', 'USER_BLOCK'] 
   },
   level: { 
     type: String, 
