@@ -8,6 +8,7 @@ const sendEmail = require('../utils/sendEmail');
 const { auth } = require('../middleware/auth');
 const axios = require('axios');
 const SystemLog = require('../models/SystemLog');
+const logSecurityEvent = require('../utils/logger');
 
 // 🍪 Cookie Helper for Cross-Domain (Vercel + Render) support
 const setTokenCookie = (res, token) => {
@@ -108,14 +109,15 @@ router.post('/register', async (req, res) => {
     
     await user.save();
 
-    // 📝 Audit Log
-    await SystemLog.create({
-        type: 'USER_REGISTER',
-        level: 'info',
-        module: 'Auth',
-        message: `New user account created: ${username}`,
-        metadata: { userId: user._id }
-    }).catch(e => console.error("Log Error:", e.message));
+    // 📝 Security Audit Log
+    await logSecurityEvent({
+        userId: user._id,
+        action: 'USER_REGISTER',
+        details: { username, email },
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        severity: 'info'
+    });
 
     // Send Verification Email
     sendEmail({
@@ -222,12 +224,18 @@ router.post('/login', async (req, res) => {
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-        user.loginAttempts += 1;
-        if (user.loginAttempts >= 5) {
-            user.lockUntil = Date.now() + 15 * 60 * 1000; // 15 mins lockout
-            user.loginAttempts = 0; // Reset counter for next cycle
-        }
         await user.save();
+        
+        // 🛡️ Log Failed Attempt
+        await logSecurityEvent({
+            userId: user._id,
+            action: 'LOGIN_FAILURE',
+            details: { email, reason: 'Invalid Password' },
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+            severity: 'medium'
+        });
+
         return res.status(400).json({ error: 'Invalid email or password' });
     }
 
@@ -292,14 +300,15 @@ router.post('/login', async (req, res) => {
     const token = jwt.sign({ _id: user._id, role: user.role, username: user.username, email: user.email }, process.env.JWT_SECRET, { expiresIn: '30d' });
     setTokenCookie(res, token);
 
-    // 📝 Audit Log
-    await SystemLog.create({
-        type: 'USER_LOGIN',
-        level: 'info',
-        module: 'Auth',
-        message: `User logged in: ${user.username}`,
-        metadata: { userId: user._id }
-    }).catch(e => console.error("Log Error:", e.message));
+    // 📝 Security Audit Log
+    await logSecurityEvent({
+        userId: user._id,
+        action: 'USER_LOGIN',
+        details: { email: user.email },
+        ip: req.ip,
+        userAgent: req.get('User-Agent'),
+        severity: 'info'
+    });
 
     res.json({ token, role: user.role, username: user.username, email: user.email });
   } catch (error) {

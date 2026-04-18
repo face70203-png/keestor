@@ -11,7 +11,18 @@ export default function MaintenanceGuard({ children }) {
     // Allow admins to bypass maintenance mode
     const isAdmin = user?.role === 'admin';
 
-    if (!loading && settings?.maintenanceMode && !isAdmin) {
+    if (loading) {
+        return (
+            <div className="fixed inset-0 z-[9999] bg-slate-950 flex items-center justify-center p-6">
+                <div className="flex flex-col items-center gap-6">
+                    <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em] animate-pulse">Initializing Protocol</div>
+                </div>
+            </div>
+        );
+    }
+
+    if (settings?.maintenanceMode && !isAdmin) {
         return (
             <div className="fixed inset-0 z-[9999] bg-slate-950 flex items-center justify-center p-6 overflow-hidden">
                 {/* 🎨 Abstract Background Elements */}

@@ -18,6 +18,9 @@ const diagnosticRoutes = require('./routes/diagnostics');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const cookieParser = require('cookie-parser');
+const helmet = require('helmet');
+const hpp = require('hpp');
+const xss = require('xss-clean');
 
 const app = express();
 const path = require('path');
@@ -25,40 +28,31 @@ const path = require('path');
 // 🏁 Pre-Flight / CORS Headers (VERY TOP)
 app.use((req, res, next) => {
     const origin = req.headers.origin;
-    
-    // Auto-detection and Environment Variable support
     const allowedOrigins = [
         'http://localhost:3000',
-        'https://keestore.vercel.app',
-        'http://localhost', // Android Capacitor
-        'capacitor://localhost', // iOS Capacitor
-        'https://localhost' // Some Capacitor builds
+        'https://keestore.vercel.app'
     ];
-    
     if (process.env.FRONTEND_URL) allowedOrigins.push(process.env.FRONTEND_URL);
     
-    // 🛡️ CRITICAL CORS LOGIC FOR MOBILE:
-    // When using Credentials (cookies), the origin MUSt be mirrored exactly. 
-    // It cannot be "*".
-    if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com'))) {
+    if (origin && (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app'))) {
         res.header('Access-Control-Allow-Origin', origin);
-    } else if (!origin) {
-        // For mobile apps that don't send an origin, we pick a default or use "*" if no credentials.
-        // But since we use credentials, we'll try to guess or allow based on other headers, 
-        // or just mirror a default allowed one for the handshake.
-        res.header('Access-Control-Allow-Origin', allowedOrigins[2]); // Default to http://localhost
     }
-    
     res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     res.header('Access-Control-Allow-Credentials', 'true'); 
     
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
+    if (req.method === 'OPTIONS') return res.sendStatus(200);
     next();
 });
 
+// 🛡️ Advanced Security Stack
+app.use(helmet({
+    contentSecurityPolicy: false, // Set to false if using external CDNs for scripts/images
+    crossOriginEmbedderPolicy: false
+}));
+app.use(mongoSanitize()); // Prevent NoSQL Injection
+app.use(xss()); // Prevent Basic XSS
+app.use(hpp()); // Prevent HTTP Parameter Pollution
 app.use(cookieParser()); // Enable Cookie Parsing
 
 // 🛡️ Security Middlewares

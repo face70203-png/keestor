@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { auth, adminAuth } = require('../middleware/auth');
 const Setting = require('../models/Setting');
+const logSecurityEvent = require('../utils/logger');
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
@@ -42,6 +43,17 @@ router.put('/', adminAuth, async (req, res) => {
         } else {
             settings = await Setting.findOneAndUpdate({}, req.body, { new: true });
         }
+
+        // 🛡️ Security Audit Log
+        await logSecurityEvent({
+            userId: req.user._id,
+            action: 'SETTINGS_UPDATE',
+            details: req.body,
+            ip: req.ip,
+            userAgent: req.get('User-Agent'),
+            severity: 'high'
+        });
+
         res.json(settings);
     } catch (err) {
         res.status(500).json({ error: err.message });
