@@ -101,7 +101,7 @@ function DashboardContent() {
 
   if (loading || !profile) return <div className="text-center mt-20 font-bold text-slate-500">Authenticating Vault...</div>;
 
-  const refLink = `${typeof window !== "undefined" ? window.location.origin : ""}/register?ref=${profile.referralCode}`;
+  const refLink = `${typeof window !== "undefined" ? window.location.origin : ""}/invite?code=${profile.referralCode}`;
 
   return (
     <div className="py-10 max-w-6xl mx-auto">
