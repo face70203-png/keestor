@@ -169,6 +169,21 @@ router.post('/pay-wallet', auth, async (req, res) => {
     order.markModified('items');
     await order.save();
 
+    // 📝 Audit Log
+    try {
+        const SystemLog = require('../models/SystemLog');
+        await SystemLog.create({
+            type: 'ORDER_SUCCESS',
+            level: 'info',
+            module: 'WalletPayment',
+            message: `Order #${order._id.toString().slice(-6)} paid via Wallet ($${order.totalAmount})`,
+            metadata: { 
+                orderId: order._id, 
+                userId: req.user._id 
+            }
+        });
+    } catch (logErr) { console.error("Wallet Audit Log Error:", logErr.message); }
+
     // 📧 SEND SUCCESS EMAIL
     try {
         const sendEmail = require('../utils/sendEmail');
@@ -248,17 +263,17 @@ const fulfillOrder = async (orderId, sessionId) => {
        order.markModified('items');
        await order.save();
 
-       // 📝 Audit Log
-       await SystemLog.create({
-           type: 'ORDER_SUCCESS',
-           level: 'info',
-           module: 'Fulfillment',
-           message: `Order #${order._id.toString().slice(-6)} fulfilled for $${order.totalAmount}`,
-           metadata: { 
-               orderId: order._id, 
-               userId: order.user 
-           }
-       }).catch(e => console.error("Log Error:", e.message));
+        // 📝 Audit Log
+        await SystemLog.create({
+            type: 'ORDER_SUCCESS',
+            level: 'info',
+            module: 'Fulfillment',
+            message: `Order #${order._id.toString().slice(-6)} fulfilled for $${order.totalAmount}`,
+            metadata: { 
+                orderId: order._id, 
+                userId: order.user 
+            }
+        }).catch(e => console.error("Log Error:", e.message));
 
        // 📧 Send Professional Success Email
        const User = require('../models/User');

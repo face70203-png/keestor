@@ -173,10 +173,23 @@ router.get('/admin/audit-logs', adminAuth, async (req, res) => {
 // @desc    Get detailed history for a specific user (Logs + Orders)
 router.get('/:id/history', adminAuth, async (req, res) => {
     try {
+        const mongoose = require('mongoose');
+        const userId = req.params.id;
+        
+        // Find the user to get their email as fallback for logs
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
         const [logs, orders] = await Promise.all([
-            SystemLog.find({ 'metadata.userId': req.params.id }).sort({ createdAt: -1 }),
-            Order.find({ user: req.params.id }).sort({ createdAt: -1 })
+            SystemLog.find({ 
+                $or: [
+                    { 'metadata.userId': new mongoose.Types.ObjectId(userId) },
+                    { 'metadata.recipient': user.email }
+                ]
+            }).sort({ createdAt: -1 }),
+            Order.find({ user: new mongoose.Types.ObjectId(userId) }).sort({ createdAt: -1 })
         ]);
+        
         res.json({ logs, orders });
     } catch (error) {
         res.status(500).json({ error: error.message });
