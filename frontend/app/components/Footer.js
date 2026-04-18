@@ -43,7 +43,7 @@ export default function Footer() {
       
       <div className="border-t border-white/5 pt-8 text-center text-gray-500 text-sm flex flex-col md:flex-row justify-between items-center gap-4">
         <p>&copy; {new Date().getFullYear()} {settings?.platformName || "KeeStore"}. All Rights Reserved.</p>
-        <p className="font-bold text-gray-400">Powered by <span className="text-primary italic">Secure Engine v2.0</span></p>
+        <p className="font-bold text-gray-400">Developed by <span className="text-primary italic">Yassin Khaled</span></p>
         <p>100% Secure Checkout powered by Stripe</p>
       </div>
     </footer>
