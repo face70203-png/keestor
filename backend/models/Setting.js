@@ -7,6 +7,8 @@ const settingSchema = new mongoose.Schema({
     supportPhone: { type: String, default: '' },
     currencySymbol: { type: String, default: '$' },
     maintenanceMode: { type: Boolean, default: false },
+    referralSystemEnabled: { type: Boolean, default: true },
+    referralDiscountPercent: { type: Number, default: 5 },
     primaryColor: { type: String, default: '#3b82f6' }, // Default blue
     footerText: { type: String, default: 'The most secure, lightning-fast platform for premium digital keys and software assets.' },
     announcement: { type: String, default: '' }

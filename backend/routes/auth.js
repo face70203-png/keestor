@@ -64,6 +64,17 @@ const verifyRecaptcha = async (token) => {
     }
 };
 
+// [GET] Public Inviter Info for Landing Page
+router.get('/referral-info/:code', async (req, res) => {
+    try {
+        const user = await User.findOne({ referralCode: req.params.code }).select('username');
+        if (!user) return res.status(404).json({ error: 'Referral code not found' });
+        res.json({ username: user.username });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error during referral lookup' });
+    }
+});
+
 // Register
 router.post('/register', async (req, res) => {
   try {

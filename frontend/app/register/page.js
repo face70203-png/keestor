@@ -22,6 +22,16 @@ function RegisterContent() {
   const { login } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [inviterName, setInviterName] = useState("");
+
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) {
+      axios.get(`${API_BASE_URL}/api/auth/referral-info/${ref}`)
+        .then(res => setInviterName(res.data.username))
+        .catch(() => {});
+    }
+  }, [searchParams]);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -65,6 +75,17 @@ function RegisterContent() {
             </div>
             <h1 className="text-3xl font-black mb-2 text-center text-slate-900 tracking-tight">Create Account</h1>
             <p className="text-slate-500 mb-8 text-center">Join thousands of others today.</p>
+
+            {inviterName && (
+              <div className="bg-primary/5 border border-primary/20 p-4 rounded-2xl mb-6 flex items-center justify-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary">
+                  <Zap size={14} fill="currentColor" />
+                </div>
+                <p className="text-xs font-black text-slate-800 uppercase tracking-tight">
+                  You were invited by <span className="text-primary">{inviterName}</span>
+                </p>
+              </div>
+            )}
 
             {error && <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 text-sm border border-red-100 font-medium text-center">{error}</div>}
 

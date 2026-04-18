@@ -8,7 +8,8 @@ import {
   Settings, KeyRound, ArrowUpRight, Search,
   Users, Trash2, Edit, Ticket, Tag, Reply, XCircle,
   Download, LogOut, ShieldCheck, Mail, UserX,
-  ShieldX, Ban, Lock, AlertTriangle, Check, Info, RefreshCw
+  ShieldX, Ban, Lock, AlertTriangle, Check, Info, RefreshCw,
+  Link as LinkIcon, Percent
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -1306,9 +1307,44 @@ export default function AdminDashboard() {
                                 </div>
                             </div>
 
-                            <button onClick={handleUpdateSettings} disabled={savingSettings} className="mt-8 w-full bg-primary hover:brightness-110 text-white font-black py-4 rounded-2xl shadow-xl transition-all disabled:opacity-50">
-                                {savingSettings ? "Applying Engine Changes..." : "Save Global Configurations"}
-                            </button>
+                        <div className="mt-12 bg-slate-50 dark:bg-slate-900/50 p-8 rounded-[2.5rem] border border-slate-200 dark:border-slate-800">
+                             <h3 className="text-xl font-black mb-6 flex items-center gap-3 text-slate-900 dark:text-white">
+                                 <Users className="text-primary" size={24}/> Viral Growth & Referrals
+                             </h3>
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                 <div className="space-y-2">
+                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Referral Ecosystem</label>
+                                     <button 
+                                       type="button"
+                                       onClick={() => setSysSettings({...sysSettings, referralSystemEnabled: !sysSettings.referralSystemEnabled})}
+                                       className={`w-full py-4 rounded-2xl font-black text-xs uppercase tracking-tight transition-all flex items-center justify-center gap-3 ${sysSettings.referralSystemEnabled ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}
+                                     >
+                                         <LinkIcon size={16} />
+                                         {sysSettings.referralSystemEnabled ? "ACTIVE: Referral Network Online" : "DISABLED: Referral Network Offline"}
+                                     </button>
+                                 </div>
+                                 <div className="space-y-2">
+                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Invite Discount Reward (%)</label>
+                                     <div className="relative">
+                                         <Percent className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                                         <input 
+                                             type="number" 
+                                             value={sysSettings.referralDiscountPercent} 
+                                             onChange={(e)=>setSysSettings({...sysSettings, referralDiscountPercent: Number(e.target.value)})} 
+                                             className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3.5 pl-12 pr-4 outline-none focus:border-primary font-black text-slate-900 dark:text-white" 
+                                             placeholder="5"
+                                         />
+                                     </div>
+                                 </div>
+                             </div>
+                             <p className="mt-4 text-[10px] text-slate-500 font-bold uppercase tracking-tight">
+                                 * Referred users will receive this discount percentage on their first purchase automatically.
+                             </p>
+                        </div>
+
+                        <button onClick={handleUpdateSettings} disabled={savingSettings} className="mt-8 w-full bg-primary hover:brightness-110 text-white font-black py-4 rounded-2xl shadow-xl transition-all disabled:opacity-50">
+                            {savingSettings ? "Applying Engine Changes..." : "Save Global Configurations"}
+                        </button>
                         </div>
 
                         <div className="mt-8 bg-slate-50 dark:bg-slate-950/50 border border-dashed border-slate-200 dark:border-slate-800 p-8 rounded-3xl">

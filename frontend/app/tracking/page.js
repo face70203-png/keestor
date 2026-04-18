@@ -125,22 +125,35 @@ export default function TrackingPage() {
       {orderData && (
         <div className="animate-in fade-in slide-in-from-bottom-6 duration-500">
            {/* Progress Tracker */}
-           <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-800 mb-8">
-              <div className="flex justify-between items-center mb-10 relative">
-                 <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-200 dark:bg-slate-700 -translate-y-1/2 z-0">
-                    <div className={`h-full bg-emerald-500 transition-all duration-1000 ${orderData.status === 'success' ? 'w-full' : 'w-1/2'}`}></div>
+           {/* 🚀 Highly Professional Visual Timeline */}
+           <div className="bg-slate-50 dark:bg-slate-800/50 p-10 rounded-[3rem] border border-slate-100 dark:border-slate-800 mb-10 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-8 opacity-5">
+                  <Package size={120} />
+              </div>
+              
+              <div className="flex justify-between items-center mb-12 relative px-4">
+                 {/* Progress Line */}
+                 <div className="absolute top-6 left-8 right-8 h-[3px] bg-slate-200 dark:bg-slate-700 z-0">
+                    <div 
+                        className="h-full bg-primary shadow-[0_0_15px_rgba(59,130,246,0.5)] transition-all duration-1000 ease-out" 
+                        style={{ width: orderData.status === 'success' ? '100%' : '50%' }}
+                    ></div>
                  </div>
                  
                  {[
-                   { icon: Clock, label: lang === 'ar' ? 'تم الاستلام' : 'Placed', active: true },
-                   { icon: Truck, label: lang === 'ar' ? 'جاري المعالجة' : 'Processing', active: true },
-                   { icon: CheckCircle, label: lang === 'ar' ? 'تم التسليم' : 'Delivered', active: orderData.status === 'success' }
+                   { icon: Clock, label: lang === 'ar' ? 'تم استلام الطلب' : 'Request Received', sub: 'Order Logged', active: true },
+                   { icon: Truck, label: lang === 'ar' ? 'تأكيد الدفع' : 'Payment Verified', sub: 'Gateway Sync', active: true },
+                   { icon: Zap, label: lang === 'ar' ? 'استخراج الأصول' : 'Extracting Keys', sub: 'Node Sync', active: orderData.status === 'success' },
+                   { icon: CheckCircle, label: lang === 'ar' ? 'جاهز للاستلام' : 'Delivery Ready', sub: 'Instant Access', active: orderData.status === 'success' }
                  ].map((step, i) => (
-                   <div key={i} className="flex flex-col items-center gap-3 relative z-10 w-1/3">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-colors duration-500 ${step.active ? 'bg-emerald-500 text-white' : 'bg-white dark:bg-slate-900 text-slate-300 border border-slate-200 dark:border-slate-700'}`}>
-                         <step.icon size={20} />
+                   <div key={i} className="flex flex-col items-center gap-4 relative z-10">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-2xl transition-all duration-700 ${step.active ? 'bg-primary text-white scale-110 shadow-primary/30 rotate-3' : 'bg-white dark:bg-slate-950 text-slate-300 border border-slate-100 dark:border-slate-800'}`}>
+                         <step.icon size={24} />
                       </div>
-                      <span className={`text-[10px] font-black uppercase tracking-widest ${step.active ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>{step.label}</span>
+                      <div className="text-center">
+                          <span className={`text-[10px] font-black uppercase tracking-tighter block leading-none mb-1 ${step.active ? 'text-primary' : 'text-slate-400'}`}>{step.label}</span>
+                          <span className="text-[8px] font-bold text-slate-400 uppercase opacity-50">{step.sub}</span>
+                      </div>
                    </div>
                  ))}
               </div>

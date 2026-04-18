@@ -19,6 +19,9 @@ export default function ProductsPage() {
   const [loadingId, setLoadingId] = useState(null);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [maxPrice, setMaxPrice] = useState(1000);
+  const [onlyInStock, setOnlyInStock] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const router = useRouter();
   const { addToCart } = useCart();
   const { addToast } = useToast();
@@ -46,7 +49,9 @@ export default function ProductsPage() {
   const filteredProducts = products.filter(p => {
       const matchSearch = p.title.toLowerCase().includes(search.toLowerCase());
       const matchCategory = selectedCategory === "All" ? true : p.category === selectedCategory;
-      return matchSearch && matchCategory;
+      const matchPrice = p.price <= maxPrice;
+      const matchStock = onlyInStock ? p.keys?.length > 0 : true;
+      return matchSearch && matchCategory && matchPrice && matchStock;
   });
 
   return (
@@ -68,17 +73,61 @@ export default function ProductsPage() {
          </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-10">
-         {categories.map(cat => (
+      <div className="flex flex-col gap-6 mb-10">
+          <div className="flex flex-wrap items-center gap-3">
+             {categories.map(cat => (
+                 <button 
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-tight transition-all shadow-sm border
+                        ${selectedCategory === cat ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-105' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                 >
+                     {t.categories[cat] || cat}
+                 </button>
+             ))}
              <button 
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-5 py-2 check rounded-full font-bold transition-colors shadow-sm
-                    ${selectedCategory === cat ? 'bg-primary text-white border-primary' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50 border'}`}
+                onClick={() => setShowFilters(!showFilters)}
+                className={`ml-auto px-6 py-2.5 rounded-2xl font-black text-xs uppercase tracking-tight flex items-center gap-2 transition-all border
+                    ${showFilters ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-900 border-slate-200 hover:border-primary'}`}
              >
-                 {t.categories[cat] || cat}
+                <LayoutGrid size={16} /> {lang === 'ar' ? 'خيارات التصفية' : 'Advanced Filters'}
              </button>
-         ))}
+          </div>
+
+          {showFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 p-8 rounded-[2rem] border border-slate-200 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                          <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{lang === 'ar' ? 'السعر الأقصى' : 'Max Price'}</label>
+                          <span className="text-sm font-black text-primary">{formatPrice(maxPrice)}</span>
+                      </div>
+                      <input 
+                        type="range" 
+                        min="0" 
+                        max="2000" 
+                        step="10"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(Number(e.target.value))}
+                        className="w-full accent-primary h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                      />
+                  </div>
+                  <div className="flex items-center gap-4">
+                      <button 
+                        onClick={() => setOnlyInStock(!onlyInStock)}
+                        className={`flex-grow py-4 rounded-2xl font-black text-xs uppercase tracking-tight transition-all border flex items-center justify-center gap-3
+                            ${onlyInStock ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-white text-slate-400 border-slate-200'}`}
+                      >
+                          <ShoppingCart size={16} /> {lang === 'ar' ? 'المتوفر فقط' : 'In Stock Only'}
+                      </button>
+                      <button 
+                        onClick={() => {setMaxPrice(2000); setOnlyInStock(false); setSelectedCategory('All'); setSearch("");}}
+                        className="px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-tight text-slate-400 bg-white border border-slate-200 hover:text-red-500 hover:border-red-200 transition-all"
+                      >
+                          {lang === 'ar' ? 'رسترت' : 'Reset'}
+                      </button>
+                  </div>
+              </div>
+          )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">

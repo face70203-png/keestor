@@ -13,6 +13,7 @@ import { useLanguage } from "../../context/LanguageContext";
 import { translations } from "../../../translations";
 import { useAuth } from "../../context/AuthContext";
 import { useCurrency } from "../../context/CurrencyContext";
+import Breadcrumbs from "../../components/Breadcrumbs";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://keestor.onrender.com";
 
@@ -129,9 +130,13 @@ export default function ProductDetailClient({ id }) {
 
   return (
     <div className="py-10 max-w-6xl mx-auto px-4" dir={dir}>
-      <Link href="/products" className="text-theme-muted hover:text-theme font-bold flex items-center gap-2 mb-8 transition-colors w-fit">
-         <ArrowLeft size={20} className={lang === 'ar' ? 'rotate-180' : ''} /> {lang === 'ar' ? 'العودة للمتجر' : 'Back to Catalog'}
-      </Link>
+      <Breadcrumbs 
+        items={[
+          { label: lang === 'ar' ? 'المتجر' : 'Catalog', href: '/products' },
+          { label: product.category || (lang === 'ar' ? 'عام' : 'General'), href: `/products?category=${product.category}` },
+          { label: product.title }
+        ]} 
+      />
       
       <div className="bg-card rounded-[2.5rem] border border-theme shadow-2xl overflow-hidden flex flex-col md:flex-row">
          

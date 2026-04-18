@@ -35,8 +35,9 @@ export default function Footer() {
             <ul className="flex flex-col gap-4 text-gray-400">
                 <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
                 <li><a href={`mailto:${settings?.supportEmail || "support@keestore.app"}`} className="hover:text-primary transition-colors">{settings?.supportEmail || "support@keestore.app"}</a></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">FAQ</Link></li>
-                <li><Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+                <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
+                <li><Link href="/refund" className="hover:text-primary transition-colors">Refund Policy</Link></li>
             </ul>
         </div>
       </div>
