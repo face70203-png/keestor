@@ -25,7 +25,7 @@ export default function ProductsPage() {
   const router = useRouter();
   const { addToCart } = useCart();
   const { addToast } = useToast();
-  const { lang } = useLanguage();
+  const { lang, dir } = useLanguage();
   const t = translations[lang].product;
   const { user } = useAuth();
   const { formatPrice } = useCurrency();
@@ -55,7 +55,7 @@ export default function ProductsPage() {
   });
 
   return (
-    <div className="py-10">
+    <div className="py-10" dir={dir}>
       <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
          <div>
             <h1 className="text-4xl font-bold flex items-center gap-3 text-slate-900"><LayoutGrid className="text-primary"/> {t.allAssetsTitle}</h1>
@@ -68,7 +68,7 @@ export default function ProductsPage() {
               placeholder={t.searchPlaceholder} 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-primary text-slate-900 shadow-sm"
+              className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl py-3 pl-12 pr-4 outline-none focus:border-primary text-slate-900 dark:text-white shadow-sm"
             />
          </div>
       </div>
@@ -80,7 +80,7 @@ export default function ProductsPage() {
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
                     className={`px-5 py-2.5 rounded-2xl font-black text-xs uppercase tracking-tight transition-all shadow-sm border
-                        ${selectedCategory === cat ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-105' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                        ${selectedCategory === cat ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20 scale-105' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 hover:bg-slate-50'}`}
                  >
                      {t.categories[cat] || cat}
                  </button>
@@ -88,17 +88,17 @@ export default function ProductsPage() {
              <button 
                 onClick={() => setShowFilters(!showFilters)}
                 className={`ml-auto px-6 py-2.5 rounded-2xl font-black text-xs uppercase tracking-tight flex items-center gap-2 transition-all border
-                    ${showFilters ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-900 border-slate-200 hover:border-primary'}`}
+                    ${showFilters ? 'bg-slate-900 text-white border-slate-900 shadow-xl' : 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-slate-200 dark:border-slate-800 hover:border-primary'}`}
              >
-                <LayoutGrid size={16} /> {lang === 'ar' ? 'خيارات التصفية' : 'Advanced Filters'}
+                <LayoutGrid size={16} /> {t.advancedFilters}
              </button>
           </div>
 
           {showFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 p-8 rounded-[2rem] border border-slate-200 animate-in fade-in slide-in-from-top-4 duration-300">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-slate-50 dark:bg-slate-800/50 p-8 rounded-[2rem] border border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-top-4 duration-300">
                   <div className="space-y-4">
                       <div className="flex justify-between items-center">
-                          <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{lang === 'ar' ? 'السعر الأقصى' : 'Max Price'}</label>
+                          <label className="text-xs font-black text-slate-400 uppercase tracking-widest">{t.maxPrice}</label>
                           <span className="text-sm font-black text-primary">{formatPrice(maxPrice)}</span>
                       </div>
                       <input 
@@ -108,22 +108,22 @@ export default function ProductsPage() {
                         step="10"
                         value={maxPrice}
                         onChange={(e) => setMaxPrice(Number(e.target.value))}
-                        className="w-full accent-primary h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
+                        className="w-full accent-primary h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
                       />
                   </div>
                   <div className="flex items-center gap-4">
                       <button 
                         onClick={() => setOnlyInStock(!onlyInStock)}
                         className={`flex-grow py-4 rounded-2xl font-black text-xs uppercase tracking-tight transition-all border flex items-center justify-center gap-3
-                            ${onlyInStock ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-white text-slate-400 border-slate-200'}`}
+                            ${onlyInStock ? 'bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20' : 'bg-white dark:bg-slate-900 text-slate-400 dark:text-slate-500 border-slate-200 dark:border-slate-800'}`}
                       >
-                          <ShoppingCart size={16} /> {lang === 'ar' ? 'المتوفر فقط' : 'In Stock Only'}
+                          <ShoppingCart size={16} /> {t.inStockOnly}
                       </button>
                       <button 
                         onClick={() => {setMaxPrice(2000); setOnlyInStock(false); setSelectedCategory('All'); setSearch("");}}
-                        className="px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-tight text-slate-400 bg-white border border-slate-200 hover:text-red-500 hover:border-red-200 transition-all"
+                        className="px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-tight text-slate-400 dark:text-slate-500 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:text-red-500 hover:border-red-200 transition-all"
                       >
-                          {lang === 'ar' ? 'رسترت' : 'Reset'}
+                          {t.reset}
                       </button>
                   </div>
               </div>
@@ -139,7 +139,7 @@ export default function ProductsPage() {
             : 0;
 
           return (
-            <div key={product._id} className={`bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm transition-all flex flex-col group ${isSoldOut ? 'opacity-75 grayscale-[0.3]' : 'hover:shadow-xl'}`}>
+            <div key={product._id} className={`bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm transition-all flex flex-col group ${isSoldOut ? 'opacity-75 grayscale-[0.3]' : 'hover:shadow-xl'}`}>
               <Link href={`/products/${product._id}`} className={`h-48 overflow-hidden relative block ${isSoldOut ? 'pointer-events-none' : ''}`}>
                 <img 
                   src={product.imageUrl} 
@@ -165,7 +165,7 @@ export default function ProductsPage() {
                   </div>
                 )}
 
-                <div className="absolute top-4 right-4 z-20 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-slate-900 font-bold shadow-sm">
+                <div className="absolute top-4 right-4 z-20 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-3 py-1 rounded-full text-slate-900 dark:text-white font-bold shadow-sm">
                   {formatPrice(product.price)}
                 </div>
                 <div className="absolute top-4 left-4 z-20 bg-primary/90 backdrop-blur-md px-3 py-1 rounded-full text-white text-xs font-bold uppercase shadow-sm">
@@ -175,27 +175,27 @@ export default function ProductsPage() {
               
               <div className="p-6 flex flex-col flex-grow">
                 <Link href={`/products/${product._id}`}>
-                    <h3 className="text-xl font-bold mb-2 text-slate-900 line-clamp-1 hover:text-primary transition-colors">{product.title}</h3>
+                    <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-white line-clamp-1 hover:text-primary transition-colors">{product.title}</h3>
                 </Link>
                 <div className="flex items-center flex-wrap gap-2 mb-2">
                   <span className="text-xl font-black text-primary">{formatPrice(product.price)}</span>
                   {hasDiscount && (
                     <>
-                      <span className="text-xs text-slate-400 line-through decoration-red-500/50">{formatPrice(product.originalPrice)}</span>
-                      <span className="bg-emerald-100 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
+                      <span className="text-xs text-slate-400 dark:text-slate-500 line-through decoration-red-500/50">{formatPrice(product.originalPrice)}</span>
+                      <span className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-tighter">
                          Save {formatPrice(product.originalPrice - product.price)}
                       </span>
                     </>
                   )}
                 </div>
                 
-                <p className="text-slate-500 text-sm mb-6 flex-grow line-clamp-2">{product.description}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mb-6 flex-grow line-clamp-2">{product.description}</p>
                 
                 <div className="flex items-center gap-3">
                     <button 
                       disabled={isSoldOut}
                       onClick={() => { addToCart(product); addToast(`${product.title} added!`); }}
-                      className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-800 py-3 rounded-xl font-bold transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 py-3 rounded-xl font-bold transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                       title={t.addToCart}
                     >
                       <ShoppingCart size={18} />

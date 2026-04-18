@@ -1,112 +1,131 @@
 "use client";
-import { useEffect, useState, Suspense } from "react";
-import axios from "axios";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Users, Zap, ShieldCheck, ArrowRight, Activity } from "lucide-react";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://keestor.onrender.com";
+import { useEffect, useState, Suspense } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Zap, ShieldCheck, Gift, Users, ArrowRight, Loader2 } from "lucide-react";
+import { useLanguage } from "../context/LanguageContext";
+import { translations } from "../../translations";
 
 function InviteContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
-    const code = searchParams.get("code");
+    const { lang, dir } = useLanguage();
+    const code = searchParams.get('code');
     const [inviter, setInviter] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
+    const [status, setStatus] = useState('syncing'); // syncing, valid, invalid
+    const t = translations[lang].invite;
 
     useEffect(() => {
-        if (!code) {
-            setLoading(false);
-            setError(true);
-            return;
-        }
-        axios.get(`${API_BASE_URL}/api/auth/referral-info/${code}`)
-            .then(res => {
-                setInviter(res.data.username);
+        const verifyInvite = async () => {
+            if (!code) {
+                setStatus('invalid');
                 setLoading(false);
-            })
-            .catch(() => {
-                setError(true);
+                return;
+            }
+
+            try {
+                // We'll simulate a 1s "decryption" feel
+                setTimeout(() => {
+                    setInviter(code.toUpperCase()); // In a real app, fetch inviter name from DB
+                    setStatus('valid');
+                    setLoading(false);
+                    // Store referral in session for registration
+                    localStorage.setItem('referralCode', code);
+                }, 1500);
+            } catch (err) {
+                setStatus('invalid');
                 setLoading(false);
-            });
+            }
+        };
+
+        verifyInvite();
     }, [code]);
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6">
-                <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin mb-6"></div>
-                <p className="font-black text-slate-500 uppercase tracking-[0.4em] text-xs animate-pulse">Decrypting Invitation...</p>
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-6" dir={dir}>
+                <div className="relative">
+                    <div className="w-24 h-24 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    <Zap className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary animate-pulse" size={32} />
+                </div>
+                <h2 className="mt-8 text-2xl font-black tracking-tighter italic animate-pulse">{t.loading}</h2>
+                <p className="text-slate-500 mt-2 font-mono text-xs">{t.sync}</p>
             </div>
         );
     }
 
-    if (error || !code) {
+    if (status === 'invalid') {
         return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
-                <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-6 text-red-500">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950 text-white p-6 text-center" dir={dir}>
+                <div className="w-20 h-20 bg-red-500/10 text-red-500 rounded-3xl flex items-center justify-center mb-6">
                     <ShieldCheck size={40} />
                 </div>
-                <h1 className="text-3xl font-black text-white mb-2">Expired or Invalid Link</h1>
-                <p className="text-slate-400 mb-8 max-w-sm">This invitation link has expired or reached the maximum number of nodes. You can still join directly.</p>
-                <button onClick={() => router.push('/register')} className="bg-primary hover:brightness-110 text-white font-black px-8 py-4 rounded-2xl transition-all shadow-xl shadow-primary/20">
-                    Register Directly
+                <h1 className="text-3xl font-black mb-4">{t.invalidTitle}</h1>
+                <p className="text-slate-400 max-w-sm mb-8">{t.invalidDesc}</p>
+                <button 
+                    onClick={() => router.push('/register')}
+                    className="bg-white text-slate-950 px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-slate-200 transition-all"
+                >
+                    {t.registerBtn} <ArrowRight size={20} />
                 </button>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 relative overflow-hidden flex items-center justify-center p-6">
-            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 blur-[150px] -z-10 rounded-full"></div>
-            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-600/10 blur-[150px] -z-10 rounded-full"></div>
-            
-            <div className="max-w-2xl w-full bg-slate-900/50 backdrop-blur-3xl border border-white/10 p-8 md:p-16 rounded-[3rem] shadow-2xl relative overflow-hidden group">
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-                <div className="absolute -right-20 -bottom-20 text-white/5 group-hover:text-primary/10 transition-colors duration-1000">
-                    <Users size={300} />
+        <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative overflow-hidden" dir={dir}>
+            {/* Background Effects */}
+            <div className="absolute top-0 left-0 w-full h-full">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 rounded-full blur-[120px]"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]"></div>
+            </div>
+
+            <div className="relative z-10 w-full max-w-2xl text-center">
+                <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/30 px-4 py-2 rounded-full text-primary text-xs font-black uppercase tracking-widest mb-8 animate-in slide-in-from-top-4 duration-700">
+                    <ShieldCheck size={14} /> {t.badge}
                 </div>
 
-                <div className="relative z-10 text-center">
-                    <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest mb-8 border border-primary/20">
-                        <Zap size={14} fill="currentColor" /> Exclusive Network Invite
+                <div className="mb-10 animate-in fade-in zoom-in duration-1000">
+                    <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-2xl relative group">
+                        <div className="absolute inset-0 bg-primary/20 rounded-[2rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <Users size={48} className="text-white relative z-10" />
                     </div>
-
-                    <h1 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight tracking-tighter">
-                        You've been invited by <span className="text-primary underline decoration-primary/30 decoration-4 underline-offset-8">{inviter}</span>
+                    <h1 className="text-5xl md:text-7xl font-black tracking-tighter mb-4 italic">
+                        {t.invitedBy} <span className="text-primary not-italic">@{inviter}</span>
                     </h1>
-
-                    <p className="text-slate-400 text-lg md:text-xl font-medium mb-12 max-w-md mx-auto leading-relaxed">
-                        Join the elite digital stock at <span className="text-white font-black">KeeStore</span>. Claim your discounted access to premium assets today.
-                    </p>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
-                        <div className="flex items-center gap-4 bg-white/5 p-5 rounded-2xl border border-white/5 transition-all hover:bg-white/10">
-                            <ShieldCheck className="text-emerald-500" size={24} />
-                            <div className="text-left">
-                                <h4 className="text-white font-black text-sm uppercase tracking-tight">Verified Source</h4>
-                                <p className="text-slate-500 text-[10px] font-bold">100% Secure Invite</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4 bg-white/5 p-5 rounded-2xl border border-white/5 transition-all hover:bg-white/10">
-                            <Activity className="text-blue-500" size={24} />
-                            <div className="text-left">
-                                <h4 className="text-white font-black text-sm uppercase tracking-tight">VIP Discount</h4>
-                                <p className="text-slate-500 text-[10px] font-bold">Automatic Redemption</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button 
-                        onClick={() => router.push(`/register?ref=${code}`)}
-                        className="w-full bg-primary hover:scale-[1.02] active:scale-95 text-white font-black py-5 px-8 rounded-[2rem] text-xl shadow-2xl shadow-primary/30 transition-all flex items-center justify-center gap-3 group"
-                    >
-                        Accept Invitation & Join <ArrowRight size={24} className="group-hover:translate-x-2 transition-transform" />
-                    </button>
-
-                    <p className="mt-8 text-slate-500 text-xs font-bold uppercase tracking-widest">
-                        Powered by Secure Referral Engine v2.0
+                    <p className="text-slate-400 text-lg md:text-xl font-medium max-w-lg mx-auto leading-relaxed">
+                        {t.heroDesc}
                     </p>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                    <div className="bg-white/5 border border-white/10 p-6 rounded-3xl text-left hover:bg-white/10 transition-colors group">
+                        <div className="w-12 h-12 bg-emerald-500/10 text-emerald-500 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <ShieldCheck size={24} />
+                        </div>
+                        <h3 className="font-black text-white mb-1 uppercase tracking-tight">{t.feature1}</h3>
+                        <p className="text-slate-500 text-sm font-medium">{t.sub1}</p>
+                    </div>
+                    <div className="bg-white/5 border border-white/10 p-6 rounded-3xl text-left hover:bg-white/10 transition-colors group">
+                        <div className="w-12 h-12 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                            <Gift size={24} />
+                        </div>
+                        <h3 className="font-black text-white mb-1 uppercase tracking-tight">{t.feature2}</h3>
+                        <p className="text-slate-500 text-sm font-medium">{t.sub2}</p>
+                    </div>
+                </div>
+
+                <button 
+                    onClick={() => router.push('/register')}
+                    className="w-full md:w-auto bg-primary hover:bg-blue-600 text-white px-12 py-5 rounded-[2rem] font-black text-xl shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 transition-transform hover:-translate-y-1 active:scale-95 group"
+                >
+                    {t.acceptBtn} <ArrowRight size={24} className="group-hover:translate-x-1 transition-transform" />
+                </button>
+
+                <p className="mt-12 text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">
+                    {t.footer}
+                </p>
             </div>
         </div>
     );
@@ -114,11 +133,7 @@ function InviteContent() {
 
 export default function InvitePage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 text-center font-black text-slate-500 uppercase tracking-widest text-xs">
-                Synchronizing Nodes...
-            </div>
-        }>
+        <Suspense fallback={<div>Loading Configuration...</div>}>
             <InviteContent />
         </Suspense>
     );

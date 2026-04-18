@@ -165,12 +165,12 @@ export default function Navbar() {
 
       <div className="flex items-center gap-4">
         <div className="hidden xl:flex items-center gap-6">
-            <Link href="/about" className="text-slate-600 dark:text-slate-300 hover:text-primary font-bold transition-colors">{t.about}</Link>
+            <Link href="/about" className="text-slate-600 dark:text-slate-300 hover:text-primary font-bold transition-colors">{translations[lang].nav.about}</Link>
             <Link href="/tracking" className="text-slate-600 dark:text-slate-300 hover:text-primary font-bold transition-colors">
-               {lang === 'ar' ? 'تتبع الطلب' : 'Tracking'}
+               {translations[lang].nav.tracking}
             </Link>
             <Link href="/faq" className="text-slate-600 dark:text-slate-300 hover:text-primary font-bold transition-colors flex items-center gap-1">
-               {lang === 'ar' ? 'المساعدة' : 'Support'}
+               {translations[lang].nav.faq}
             </Link>
         </div>
         

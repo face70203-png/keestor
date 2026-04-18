@@ -1,14 +1,18 @@
 "use client";
 import Link from "next/link";
 import { Key } from "lucide-react";
-import { useSettings } from "../context/SettingsContext"; // [NEW]
+import { useSettings } from "../context/SettingsContext";
+import { useLanguage } from "../context/LanguageContext";
+import { translations } from "../../translations";
 
 export default function Footer() {
-  const { settings } = useSettings(); // [NEW]
+  const { settings } = useSettings();
+  const { lang, dir } = useLanguage();
+  const t = translations[lang].footer;
 
   return (
-    <footer className="border-t border-white/5 mt-20 pt-16 pb-8">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+    <footer className="border-t border-white/5 mt-20 pt-16 pb-8 px-6" dir={dir}>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16 max-w-7xl mx-auto">
         <div className="col-span-1 md:col-span-2">
             <Link href="/" className="flex items-center gap-2 mb-6 group">
                 <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center transform group-hover:-translate-y-1 transition-all">
@@ -22,30 +26,30 @@ export default function Footer() {
         </div>
         
         <div>
-            <h4 className="font-bold mb-6 text-white">Platform</h4>
+            <h4 className="font-bold mb-6 text-white uppercase tracking-widest text-xs opacity-50">{t.platform}</h4>
             <ul className="flex flex-col gap-4 text-gray-400">
-                <li><Link href="/" className="hover:text-primary transition-colors">Products</Link></li>
-                <li><Link href="/dashboard" className="hover:text-primary transition-colors">My Library</Link></li>
-                <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
+                <li><Link href="/" className="hover:text-primary transition-colors">{translations[lang].nav.products}</Link></li>
+                <li><Link href="/dashboard" className="hover:text-primary transition-colors">{translations[lang].nav.dashboard}</Link></li>
+                <li><Link href="/about" className="hover:text-primary transition-colors">{translations[lang].nav.about}</Link></li>
             </ul>
         </div>
 
         <div>
-            <h4 className="font-bold mb-6 text-white">Support</h4>
+            <h4 className="font-bold mb-6 text-white uppercase tracking-widest text-xs opacity-50">{t.support}</h4>
             <ul className="flex flex-col gap-4 text-gray-400">
-                <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
-                <li><a href={`mailto:${settings?.supportEmail || "support@keestore.app"}`} className="hover:text-primary transition-colors">{settings?.supportEmail || "support@keestore.app"}</a></li>
-                <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-                <li><Link href="/refund" className="hover:text-primary transition-colors">Refund Policy</Link></li>
+                <li><Link href="/faq" className="hover:text-primary transition-colors">{t.faq}</Link></li>
+                <li><Link href="/contact" className="hover:text-primary transition-colors">{translations[lang].nav.contact}</Link></li>
+                <li><Link href="/privacy" className="hover:text-primary transition-colors">{t.privacy}</Link></li>
+                <li><Link href="/terms" className="hover:text-primary transition-colors">{t.terms}</Link></li>
+                <li><Link href="/refund" className="hover:text-primary transition-colors">{t.refund}</Link></li>
             </ul>
         </div>
       </div>
       
-      <div className="border-t border-white/5 pt-8 text-center text-gray-500 text-sm flex flex-col md:flex-row justify-between items-center gap-4">
+      <div className="border-t border-white/5 pt-8 text-center text-gray-500 text-sm flex flex-col md:flex-row justify-between items-center gap-4 max-w-7xl mx-auto px-4">
         <p>&copy; {new Date().getFullYear()} {settings?.platformName || "KeeStore"}. All Rights Reserved.</p>
-        <p className="font-bold text-gray-400">Developed by <span className="text-primary italic">Yassin Khaled</span></p>
-        <p>100% Secure Checkout powered by Stripe</p>
+        <p className="font-bold text-gray-400">{t.developedBy} <span className="text-primary italic">Yassin Khaled</span></p>
+        <p>{t.secure}</p>
       </div>
     </footer>
   );

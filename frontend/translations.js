@@ -8,7 +8,9 @@ export const translations = {
       dashboard: "Dashboard",
       cart: "Cart",
       login: "Sign In",
-      register: "Get Started"
+      register: "Get Started",
+      tracking: "Tracking",
+      faq: "FAQ"
     },
     home: {
       heroTitle: "The Ultimate Digital Marketplace",
@@ -34,6 +36,10 @@ export const translations = {
       allAssetsTitle: "All Digital Assets",
       allAssetsSubtitle: "Browse our complete collection of premium digital items.",
       searchPlaceholder: "Search assets...",
+      advancedFilters: "Advanced Filters",
+      maxPrice: "Max Price",
+      inStockOnly: "In Stock Only",
+      reset: "Reset",
       categories: {
         Software: "Software",
         Maps: "Maps",
@@ -42,6 +48,57 @@ export const translations = {
         General: "General",
         All: "All"
       }
+    },
+    tracking: {
+      title: "Track Your Order",
+      subtitle: "Enter your Order ID to monitor status and receive keys.",
+      placeholder: "Order ID (e.g. 64f7b...)",
+      pinPlaceholder: "PIN (Optional)",
+      forgotPin: "Forgot PIN?",
+      btn: "Track Now",
+      status: "Status",
+      total: "Total Paid",
+      invoice: "PDF Invoice",
+      keysLabel: "Your Digital Assets (Reveal Only)",
+      securityTitle: "Security PIN Required",
+      securityDesc: "Please enter the 4-digit PIN provided on your order success screen to unlock your digital assets.",
+      processingMsg: "Order is still processing. Your key will appear here shortly.",
+      timeline: {
+        step1: "Request Received",
+        sub1: "Order Logged",
+        step2: "Payment Verified",
+        sub2: "Gateway Sync",
+        step3: "Extracting Keys",
+        sub3: "Node Sync",
+        step4: "Delivery Ready",
+        sub4: "Instant Access"
+      }
+    },
+    invite: {
+      loading: "Decrypting Invitation...",
+      sync: "Synchronizing Nodes...",
+      invalidTitle: "Expired or Invalid Link",
+      invalidDesc: "This invitation link has expired or reached the maximum number of nodes. You can still join directly.",
+      registerBtn: "Register Directly",
+      badge: "Exclusive Network Invite",
+      invitedBy: "You've been invited by",
+      heroDesc: "Join the elite digital stock at KeeStore. Claim your discounted access to premium assets today.",
+      feature1: "Verified Source",
+      sub1: "100% Secure Invite",
+      feature2: "VIP Discount",
+      sub2: "Automatic Redemption",
+      acceptBtn: "Accept Invitation & Join",
+      footer: "Powered by Secure Referral Engine v2.0"
+    },
+    footer: {
+      platform: "Platform",
+      support: "Support",
+      developedBy: "Developed by",
+      secure: "100% Secure Checkout powered by Stripe",
+      privacy: "Privacy Policy",
+      terms: "Terms of Service",
+      refund: "Refund Policy",
+      faq: "FAQ"
     },
     about: {
       title: "About KeeStore",
@@ -145,7 +202,9 @@ export const translations = {
       dashboard: "لوحة التحكم",
       cart: "السلة",
       login: "تسجيل الدخول",
-      register: "إنشاء حساب"
+      register: "إنشاء حساب",
+      tracking: "تتبع الطلب",
+      faq: "الأسئلة الشائعة"
     },
     home: {
       heroTitle: "السوق الرقمي الشامل والأقوى",
@@ -171,6 +230,10 @@ export const translations = {
       allAssetsTitle: "جميع الأصول الرقمية",
       allAssetsSubtitle: "تصفح مجموعتنا الكاملة من المنتجات الرقمية المميزة.",
       searchPlaceholder: "البحث عن المنتجات...",
+      advancedFilters: "خيارات التصفية",
+      maxPrice: "السعر الأقصى",
+      inStockOnly: "المتوفر فقط",
+      reset: "رسترت",
       categories: {
         Software: "برامج",
         Maps: "خرائط",
@@ -179,6 +242,57 @@ export const translations = {
         General: "عام",
         All: "الكل"
       }
+    },
+    tracking: {
+      title: "تتبع طلبك",
+      subtitle: "أدخل رقم الطلب الخاص بك لمتابعة الحالة واستلام الرموز.",
+      placeholder: "رقم الطلب (مثال: 64f7b...)",
+      pinPlaceholder: "الرمز السري (اختياري)",
+      forgotPin: "نسيت الـ PIN؟",
+      btn: "تتبع الآن",
+      status: "الحالة",
+      total: "المبلغ المدفوع",
+      invoice: "فاتورة PDF",
+      keysLabel: "أصولك الرقمية (عرض فقط)",
+      securityTitle: "مطلوب الرمز السري",
+      securityDesc: "يرجى إدخال رمز الـ PIN المكون من 4 أرقام الذي ظهر لك عند نجاح الطلب لفتح أصولك.",
+      processingMsg: "الطلب لا يزال قيد المعالجة، سيظهر الرمز هنا قريباً.",
+      timeline: {
+        step1: "تم استلام الطلب",
+        sub1: "تم تسجيل الطلب",
+        step2: "تأكيد الدفع",
+        sub2: "مزامنة الدفع",
+        step3: "استخراج الأصول",
+        sub3: "مزامنة النظام",
+        step4: "جاهز للاستلام",
+        sub4: "وصول فوري"
+      }
+    },
+    invite: {
+      loading: "جاري فك تشفير الدعوة...",
+      sync: "مزامنة العقد...",
+      invalidTitle: "رابط منتهي أو غير صالح",
+      invalidDesc: "انتهت صلاحية رابط الدعوة هذا أو وصل للحد الأقصى. لا يزال بإمكانك التسجيل مباشرة.",
+      registerBtn: "التسجيل مباشرة",
+      badge: "دعوة شبكة حصرية",
+      invitedBy: "لقد تمت دعوتك بواسطة",
+      heroDesc: "انضم إلى النخبة في KeeStore. احصل على خصم حصري على الأصول الرقمية المميزة اليوم.",
+      feature1: "مصدر موثوق",
+      sub1: "دعوة آمنة 100%",
+      feature2: "خصم VIP",
+      sub2: "تفعيل تلقائي",
+      acceptBtn: "قبول الدعوة والانضمام",
+      footer: "مدعوم بمحرك الإحالة الآمن v2.0"
+    },
+    footer: {
+      platform: "المنصة",
+      support: "الدعم الفني",
+      developedBy: "تطوير بواسطة",
+      secure: "إتمام دفع آمن 100% بواسطة Stripe",
+      privacy: "سياسة الخصوصية",
+      terms: "شروط الاستخدام",
+      refund: "سياسة الاسترجاع",
+      faq: "الأسئلة الشائعة"
     },
     about: {
       title: "حول KeeStore",
