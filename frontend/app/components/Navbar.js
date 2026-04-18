@@ -438,10 +438,12 @@ export default function Navbar() {
        </div>
     )}
 
-    {/* 📱 Mobile Drawer Overlay */}
+    {/* 📱 Premium Mobile Drawer Overlay */}
     {isMenuOpen && (
-       <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm lg:hidden animate-in fade-in duration-300">
-          <div className="absolute right-0 top-0 bottom-0 w-[80%] max-w-sm bg-white dark:bg-slate-900 shadow-2xl animate-in slide-in-from-right duration-300 p-6 flex flex-col">
+       <div className="fixed inset-0 z-[100] flex justify-end lg:hidden" dir={dir}>
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setIsMenuOpen(false)}></div>
+          
+          <div className="relative w-[85%] max-w-[340px] bg-white dark:bg-slate-950 shadow-2xl animate-in slide-in-from-right duration-500 p-6 flex flex-col border-l border-slate-200 dark:border-white/5">
              <div className="flex justify-between items-center mb-10">
                 <div className="font-black text-2xl tracking-tighter italic text-slate-900 dark:text-white">Kee<span className="text-primary font-black uppercase not-italic">Store</span></div>
                 <button onClick={() => setIsMenuOpen(false)} className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
@@ -461,46 +463,76 @@ export default function Navbar() {
                     />
                 </div>
 
-                 {user && (
-                    <div className="bg-subtle p-6 rounded-[2rem] border border-theme mb-8" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center gap-4 mb-4">
-                            <div className="w-14 h-14 rounded-full overflow-hidden bg-primary border-2 border-white dark:border-slate-800 shadow-xl">
+                  {user && (
+                    <div className="bg-slate-50 dark:bg-slate-900/50 p-6 rounded-[2.5rem] border border-slate-200 dark:border-white/5 mb-8" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center gap-4 mb-5">
+                            <div className="w-16 h-16 rounded-full overflow-hidden bg-primary border-4 border-white dark:border-slate-800 shadow-xl relative">
                                 {user.profilePicture ? (
                                     <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-white text-xl font-black">
+                                    <div className="w-full h-full flex items-center justify-center text-white text-2xl font-black">
                                         {user.username?.charAt(0).toUpperCase()}
                                     </div>
                                 )}
                             </div>
-                            <div>
-                                <h4 className="font-black text-theme truncate w-32">{user.username}</h4>
-                                <p className="text-xs font-bold text-primary uppercase tracking-widest">{user.role}</p>
+                            <div className="min-w-0">
+                                <h4 className="font-black text-slate-900 dark:text-white text-lg truncate leading-tight">{user.username}</h4>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                    <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                                    <p className="text-[10px] font-black text-primary uppercase tracking-widest">{user.role}</p>
+                                </div>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                             <Link href="/dashboard" className="bg-card p-3 rounded-2xl text-center text-xs font-black shadow-sm border border-theme">DASHBOARD</Link>
-                             <Link href="/dashboard/settings" className="bg-card p-3 rounded-2xl text-center text-xs font-black shadow-sm border border-theme">SETTINGS</Link>
+                        <div className="grid grid-cols-2 gap-3">
+                             <Link href="/dashboard" className="bg-white dark:bg-slate-800 p-3 rounded-2xl text-center text-[10px] font-black shadow-sm border border-slate-200 dark:border-white/5 text-slate-900 dark:text-white uppercase tracking-wider hover:bg-slate-100 transition-colors">Client Area</Link>
+                             <Link href="/dashboard?tab=settings" className="bg-white dark:bg-slate-800 p-3 rounded-2xl text-center text-[10px] font-black shadow-sm border border-slate-200 dark:border-white/5 text-slate-900 dark:text-white uppercase tracking-wider hover:bg-slate-100 transition-colors">Settings</Link>
                         </div>
                     </div>
                 )}
 
-                <Link href="/" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 font-bold transition-colors">
-                    <Key size={20} className="text-primary"/>
-                    <span>{lang === 'ar' ? 'الرئيسية' : 'Marketplace'}</span>
-                </Link>
-                <Link href="/about" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 font-bold transition-colors">
-                    <Globe size={20} className="text-emerald-500"/>
-                    <span>{t.about}</span>
-                </Link>
-                <Link href="/tracking" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 font-bold transition-colors">
-                    <Search size={20} className="text-blue-500"/>
-                    <span>{lang === 'ar' ? 'تتبع الطلب' : 'Global Tracking'}</span>
-                </Link>
-                <Link href="/faq" className="flex items-center gap-4 p-4 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800 font-bold transition-colors">
-                    <ShieldCheck size={20} className="text-purple-500"/>
-                    <span>{lang === 'ar' ? 'المساعدة' : 'Legal & Help'}</span>
-                </Link>
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-2">Navigation</h3>
+                
+                <div className="space-y-2">
+                    <Link href="/" className="flex items-center justify-between p-4 rounded-3xl hover:bg-slate-50 dark:hover:bg-slate-800 group transition-all">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                                <Key size={20}/>
+                            </div>
+                            <span className="font-bold text-slate-900 dark:text-slate-100">{lang === 'ar' ? 'المتجر الرئيسي' : 'Marketplace'}</span>
+                        </div>
+                        <ArrowUpRight size={14} className="text-slate-300 opacity-0 group-hover:opacity-100 transition-all" />
+                    </Link>
+
+                    <Link href="/about" className="flex items-center justify-between p-4 rounded-3xl hover:bg-slate-50 dark:hover:bg-slate-800 group transition-all">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
+                                <Globe size={20}/>
+                            </div>
+                            <span className="font-bold text-slate-900 dark:text-slate-100">{t.about}</span>
+                        </div>
+                        <ArrowUpRight size={14} className="text-slate-300 opacity-0 group-hover:opacity-100 transition-all" />
+                    </Link>
+
+                    <Link href="/tracking" className="flex items-center justify-between p-4 rounded-3xl hover:bg-slate-50 dark:hover:bg-slate-800 group transition-all">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
+                                <Search size={20}/>
+                            </div>
+                            <span className="font-bold text-slate-900 dark:text-slate-100">{lang === 'ar' ? 'تتبع الطلب' : 'Global Tracking'}</span>
+                        </div>
+                        <ArrowUpRight size={14} className="text-slate-300 opacity-0 group-hover:opacity-100 transition-all" />
+                    </Link>
+
+                    <Link href="/faq" className="flex items-center justify-between p-4 rounded-3xl hover:bg-slate-50 dark:hover:bg-slate-800 group transition-all">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-500 group-hover:scale-110 transition-transform">
+                                <ShieldCheck size={20}/>
+                            </div>
+                            <span className="font-bold text-slate-900 dark:text-slate-100">{lang === 'ar' ? 'الدعم الفني' : 'Legal & Help'}</span>
+                        </div>
+                        <ArrowUpRight size={14} className="text-slate-300 opacity-0 group-hover:opacity-100 transition-all" />
+                    </Link>
+                </div>
 
                 <div className="h-px bg-slate-100 dark:bg-slate-800 my-6" />
 
