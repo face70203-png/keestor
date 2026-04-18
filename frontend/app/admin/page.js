@@ -1,6 +1,7 @@
 "use client";
 import { useAuth } from "../context/AuthContext";
 import { useCurrency } from "../context/CurrencyContext";
+import { useSettings } from "../context/SettingsContext"; // [NEW]
 import { 
   Activity, Plus, Database, Package, 
   LayoutDashboard, ShoppingBag, FolderOpen, 
@@ -26,6 +27,7 @@ const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'
 export default function AdminDashboard() {
   const { user, loading, logout } = useAuth();
   const { formatPrice } = useCurrency();
+  const { refreshSettings } = useSettings(); // [NEW]
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   
@@ -154,9 +156,8 @@ export default function AdminDashboard() {
         await axios.put(`${API_BASE_URL}/api/settings`, sysSettings, {
             headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
         });
+        await refreshSettings(); // [NEW]
         alert("System configurations updated successfully!");
-        // Refresh global settings if provider exists
-        window.location.reload(); 
     } catch (err) {
         alert(err.response?.data?.error || "Update failed");
     } finally { setSavingSettings(false); }
@@ -1302,7 +1303,8 @@ export default function AdminDashboard() {
                                 const formData = new FormData(); formData.append('logo', file);
                                 try {
                                     await axios.post(`${API_BASE_URL}/api/settings/logo`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
-                                    alert("Logo updated! Refresh the storefront to see changes.");
+                                    await refreshSettings(); // [NEW]
+                                    alert("Logo updated! Changes reflected globally.");
                                     window.location.reload();
                                 } catch(err) { alert(err.response?.data?.error || err.message || "Failed to upload."); }
                             }}>

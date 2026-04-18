@@ -124,17 +124,15 @@ export default function Login() {
                 <Link href="/forgot-password" className="text-xs font-bold text-primary hover:text-blue-700 transition">Forgot Password?</Link>
             </div>
 
-            {/* 🤖 Hide ReCAPTCHA on Mobile to solve "Localhost" Error */}
-            {typeof window !== 'undefined' && !(window.Capacitor || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
-              <div className="flex justify-center my-4 scale-95 origin-center">
-                  <ReCAPTCHA 
-                    ref={recaptchaRef}
-                    sitekey={RECAPTCHA_SITE_KEY} 
-                    onChange={(token) => setCaptchaToken(token)}
-                    theme="light"
-                  />
-              </div>
-            )}
+            {/* 🤖 ReCAPTCHA Verification */}
+            <div className="flex justify-center my-4 scale-95 origin-center">
+                <ReCAPTCHA 
+                  ref={recaptchaRef}
+                  sitekey={RECAPTCHA_SITE_KEY} 
+                  onChange={(token) => setCaptchaToken(token)}
+                  theme="light"
+                />
+            </div>
 
             <button 
               type="submit" 

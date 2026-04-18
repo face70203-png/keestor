@@ -113,16 +113,15 @@ function RegisterContent() {
                 </button>
             </div>
 
-            {/* 🤖 Hide ReCAPTCHA on Mobile */}
-            {typeof window !== 'undefined' && !(window.Capacitor || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
-              <div className="flex justify-center my-2 scale-90 origin-center">
-                  <ReCAPTCHA 
-                    ref={recaptchaRef}
-                    sitekey={RECAPTCHA_SITE_KEY} 
-                    onChange={(token) => setCaptchaToken(token)}
-                  />
-              </div>
-            )}
+            {/* 🤖 ReCAPTCHA Verification */}
+            <div className="flex justify-center my-4 scale-95 origin-center">
+                <ReCAPTCHA 
+                  ref={recaptchaRef}
+                  sitekey={RECAPTCHA_SITE_KEY} 
+                  onChange={(token) => setCaptchaToken(token)}
+                  theme="light"
+                />
+            </div>
 
             <button 
               type="submit" 

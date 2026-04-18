@@ -12,7 +12,7 @@ export const SettingsProvider = ({ children }) => {
 
     const fetchSettings = useCallback(async () => {
         try {
-            const res = await axios.get(`${API_BASE_URL}/api/settings`);
+            const res = await axios.get(`${API_BASE_URL}/api/settings?t=${new Date().getTime()}`);
             setSettings(res.data);
             
             // 🎨 Dynamic Branding: Inject primary color into CSS variables
