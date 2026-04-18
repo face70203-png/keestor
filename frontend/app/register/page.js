@@ -23,6 +23,9 @@ function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const handleRegister = async (e) => {
+    e.preventDefault();
+
     // 📱 Mobile Bypass Detection
     let finalToken = captchaToken;
     const isMobile = typeof window !== 'undefined' && (window.Capacitor || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');

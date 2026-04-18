@@ -18,6 +18,10 @@ export default function ForgotPasswordPage() {
     const { addToast } = useToast();
     const recaptchaRef = useRef(null);
 
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        console.log("Starting submission for password recovery...");
+
         // 📱 Mobile Bypass Detection
         let finalToken = captchaToken;
         const isMobile = typeof window !== 'undefined' && (window.Capacitor || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
