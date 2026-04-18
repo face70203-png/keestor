@@ -1311,7 +1311,6 @@ export default function AdminDashboard() {
                             </form>
                         </div>
                   </div>
-              </div>
           )}
 
           {/* PRODUCT EDIT MODAL */}
