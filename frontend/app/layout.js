@@ -23,9 +23,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className="antialiased min-h-screen flex flex-col">
         <SettingsProvider>
-          <MaintenanceGuard>
-            <ThemeProvider>
-              <AuthProvider>
+          <AuthProvider>
+            <MaintenanceGuard>
+              <ThemeProvider>
                 <LanguageProvider>
                   <CurrencyProvider>
                     <ToastProvider>
@@ -42,9 +42,9 @@ export default function RootLayout({ children }) {
                     </ToastProvider>
                   </CurrencyProvider>
                 </LanguageProvider>
-              </AuthProvider>
-            </ThemeProvider>
-          </MaintenanceGuard>
+              </ThemeProvider>
+            </MaintenanceGuard>
+          </AuthProvider>
         </SettingsProvider>
       </body>
     </html>
