@@ -7,6 +7,7 @@ import { useCart } from "../context/CartContext";
 import { useLanguage } from "../context/LanguageContext";
 import { useTheme } from "../context/ThemeContext";
 import { useCurrency } from "../context/CurrencyContext";
+import { useSettings } from "../context/SettingsContext"; // [NEW]
 import { translations } from "../../translations";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
@@ -19,6 +20,7 @@ export default function Navbar() {
   const { lang, toggleLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const { currentCurrencyInfo, formatPrice, allRates, currency, changeCurrency } = useCurrency();
+  const { settings } = useSettings(); // [NEW]
   const t = translations[lang].nav;
   const dir = lang === 'ar' ? 'rtl' : 'ltr';
   
@@ -83,14 +85,17 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 glass border-b border-gray-200 py-3 px-4 md:px-12 flex items-center justify-between">
       <div className="flex items-center gap-8 flex-grow">
         <Link href="/" className="flex items-center gap-3 group shrink-0">
-          <div className="relative h-10 w-auto flex items-center min-w-[32px]">
-              <img src="/logo.png" alt="Store Logo" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} className="h-full w-auto object-contain z-10 drop-shadow-sm max-w-[120px] md:max-w-[150px]" />
-              <div className="hidden items-center gap-2 z-0">
-                 <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white shadow-lg transform group-hover:rotate-12 transition-all">
-                    <Key size={16} className="rotate-45" />
-                 </div>
-              </div>
-          </div>
+           <div className="relative h-10 w-auto flex items-center min-w-[32px]">
+               <img src="/logo.png" alt="Store Logo" onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }} className="h-full w-auto object-contain z-10 drop-shadow-sm max-w-[120px] md:max-w-[150px]" />
+               <div className="hidden items-center gap-2 z-0">
+                  <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white shadow-lg transform group-hover:rotate-12 transition-all">
+                     <Key size={16} className="rotate-45" />
+                  </div>
+                  <span className="font-black text-xl tracking-tighter text-slate-900 dark:text-white uppercase italic">
+                    {settings?.platformName || "KeeStore"}
+                  </span>
+               </div>
+           </div>
         </Link>
         <button onClick={() => setIsMenuOpen(true)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition-colors ml-auto">
             <Menu size={24} />
@@ -445,7 +450,9 @@ export default function Navbar() {
           
           <div className="relative w-[85%] max-w-[340px] bg-white dark:bg-slate-950 shadow-2xl animate-in slide-in-from-right duration-500 p-6 flex flex-col border-l border-slate-200 dark:border-white/5">
              <div className="flex justify-between items-center mb-10">
-                <div className="font-black text-2xl tracking-tighter italic text-slate-900 dark:text-white">Kee<span className="text-primary font-black uppercase not-italic">Store</span></div>
+                <div className="font-black text-2xl tracking-tighter italic text-slate-900 dark:text-white">
+                   {settings?.platformName?.slice(0, 3) || "Kee"}<span className="text-primary font-black uppercase not-italic">{settings?.platformName?.slice(3) || "Store"}</span>
+                </div>
                 <button onClick={() => setIsMenuOpen(false)} className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                     <X size={24} />
                 </button>

@@ -1,8 +1,11 @@
 "use client";
 import Link from "next/link";
 import { Key } from "lucide-react";
+import { useSettings } from "../context/SettingsContext"; // [NEW]
 
 export default function Footer() {
+  const { settings } = useSettings(); // [NEW]
+
   return (
     <footer className="border-t border-white/5 mt-20 pt-16 pb-8">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
@@ -11,10 +14,10 @@ export default function Footer() {
                 <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center transform group-hover:-translate-y-1 transition-all">
                     <Key className="text-white rotate-45" size={20} />
                 </div>
-                <span className="text-2xl font-black tracking-tighter text-white">KeeStore</span>
+                <span className="text-2xl font-black tracking-tighter text-white">{settings?.platformName || "KeeStore"}</span>
             </Link>
             <p className="text-gray-400 max-w-sm">
-                The most secure, lightning-fast platform designed to deliver premium digital keys and software assets directly to you 24/7.
+                {settings?.footerText || "The most secure, lightning-fast platform designed to deliver premium digital keys and software assets directly to you 24/7."}
             </p>
         </div>
         
@@ -31,7 +34,7 @@ export default function Footer() {
             <h4 className="font-bold mb-6 text-white">Support</h4>
             <ul className="flex flex-col gap-4 text-gray-400">
                 <li><Link href="/contact" className="hover:text-primary transition-colors">Contact Us</Link></li>
-                <li><a href="mailto:yassinkhaled193@gmail.com" className="hover:text-primary transition-colors">yassinkhaled193@gmail.com</a></li>
+                <li><a href={`mailto:${settings?.supportEmail || "support@keestore.app"}`} className="hover:text-primary transition-colors">{settings?.supportEmail || "support@keestore.app"}</a></li>
                 <li><Link href="#" className="hover:text-primary transition-colors">FAQ</Link></li>
                 <li><Link href="#" className="hover:text-primary transition-colors">Terms of Service</Link></li>
             </ul>
@@ -39,8 +42,8 @@ export default function Footer() {
       </div>
       
       <div className="border-t border-white/5 pt-8 text-center text-gray-500 text-sm flex flex-col md:flex-row justify-between items-center gap-4">
-        <p>&copy; {new Date().getFullYear()} KeeStore. All Rights Reserved.</p>
-        <p className="font-bold text-gray-400">Developed by <span className="text-primary italic">Yassin Khaled</span></p>
+        <p>&copy; {new Date().getFullYear()} {settings?.platformName || "KeeStore"}. All Rights Reserved.</p>
+        <p className="font-bold text-gray-400">Powered by <span className="text-primary italic">Secure Engine v2.0</span></p>
         <p>100% Secure Checkout powered by Stripe</p>
       </div>
     </footer>

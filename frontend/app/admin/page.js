@@ -97,6 +97,20 @@ export default function AdminDashboard() {
   const [orderSearch, setOrderSearch] = useState("");
   const [productSearch, setProductSearch] = useState("");
 
+  // System Configuration State
+  const [sysSettings, setSysSettings] = useState({
+      platformName: '',
+      platformTagline: '',
+      supportEmail: '',
+      supportPhone: '',
+      currencySymbol: '$',
+      maintenanceMode: false,
+      primaryColor: '#3b82f6',
+      footerText: '',
+      announcement: ''
+  });
+  const [savingSettings, setSavingSettings] = useState(false);
+
   const fetchData = async () => {
     if (!user || user.role !== 'admin') return;
     setLoadingStats(true);
@@ -119,11 +133,33 @@ export default function AdminDashboard() {
        setStats(statsRes.data);
        setDiagLogs(diagRes.data);
         setAuditLogs(auditRes.data);
-    } catch (err) { 
-      console.error("Admin Fetch Error:", err); 
+    } catch (error) {
+      console.error("Fetch Data Error:", error);
     } finally {
       setLoadingStats(false);
     }
+  };
+
+  const fetchSettings = async () => {
+    try {
+        const res = await axios.get(`${API_BASE_URL}/api/settings`);
+        setSysSettings(res.data);
+    } catch (err) { console.error("Settings Fetch Error:", err); }
+  };
+
+  const handleUpdateSettings = async (e) => {
+    e.preventDefault();
+    setSavingSettings(true);
+    try {
+        await axios.put(`${API_BASE_URL}/api/settings`, sysSettings, {
+            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        });
+        alert("System configurations updated successfully!");
+        // Refresh global settings if provider exists
+        window.location.reload(); 
+    } catch (err) {
+        alert(err.response?.data?.error || "Update failed");
+    } finally { setSavingSettings(false); }
   };
 
   useEffect(() => {
@@ -133,6 +169,7 @@ export default function AdminDashboard() {
         router.push("/");
       } else {
         fetchData();
+        fetchSettings();
       }
     }
   }, [user, loading, router]);
@@ -1207,22 +1244,72 @@ export default function AdminDashboard() {
                         </div>
                    </div>
 
-                   <div className="mt-8 bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-xl">
-                       <h3 className="text-xl font-bold mb-6 text-slate-900 dark:text-white">Upload Store Logo</h3>
-                       <p className="text-slate-500 dark:text-slate-400 text-sm mb-4">Replaces the logo in the Navbar and Footer. Best dimensions: 150x50px.</p>
-                      <form onSubmit={async (e)=>{
-                          e.preventDefault();
-                          const file = e.target.logo.files[0];
-                          if(!file) return alert("Select an image!");
-                          const formData = new FormData(); formData.append('logo', file);
-                          try {
-                              await axios.post(`${API_BASE_URL}/api/settings/logo`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
-                              alert("Logo updated! Refresh the storefront to see changes.");
-                          } catch(err) { alert(err.response?.data?.error || err.message || "Failed to upload."); }
-                      }}>
-                          <input type="file" name="logo" accept="image/png, image/jpeg, image/svg+xml" required className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 outline-none focus:border-slate-400 mb-4 text-slate-900" />
-                          <button type="submit" className="bg-slate-900 hover:bg-black text-white font-bold px-6 py-3 rounded-xl transition-colors">Apply Global Logo</button>
-                      </form>
+                   <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-sm">
+                            <h3 className="text-xl font-black mb-6 text-slate-900 dark:text-white flex items-center gap-2">
+                                <Settings className="text-primary" size={24}/> Identity & Branding
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Platform Name</label>
+                                    <input type="text" value={sysSettings.platformName} onChange={(e)=>setSysSettings({...sysSettings, platformName: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Branding Tagline</label>
+                                    <input type="text" value={sysSettings.platformTagline} onChange={(e)=>setSysSettings({...sysSettings, platformTagline: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Primary Brand Color</label>
+                                    <div className="flex gap-3">
+                                        <input type="color" value={sysSettings.primaryColor} onChange={(e)=>setSysSettings({...sysSettings, primaryColor: e.target.value})} className="h-12 w-12 rounded-xl overflow-hidden cursor-pointer border-none bg-transparent" />
+                                        <input type="text" value={sysSettings.primaryColor} onChange={(e)=>setSysSettings({...sysSettings, primaryColor: e.target.value})} className="flex-grow bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-mono text-slate-900 dark:text-white" />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Maintenance Mode</label>
+                                    <button 
+                                      type="button"
+                                      onClick={() => setSysSettings({...sysSettings, maintenanceMode: !sysSettings.maintenanceMode})}
+                                      className={`w-full py-3 rounded-2xl font-black text-xs uppercase tracking-tighter transition-all ${sysSettings.maintenanceMode ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}
+                                    >
+                                        {sysSettings.maintenanceMode ? "🚨 ACTIVE: PUBLIC ACCESS DISABLED" : "🟢 ONLINE: SITE IS LIVE"}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 space-y-6">
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Support/Contact Email</label>
+                                    <input type="email" value={sysSettings.supportEmail} onChange={(e)=>setSysSettings({...sysSettings, supportEmail: e.target.value})} className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary font-bold text-slate-900 dark:text-white" />
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 block">Footer Attribution Text</label>
+                                    <textarea value={sysSettings.footerText} onChange={(e)=>setSysSettings({...sysSettings, footerText: e.target.value})} rows="3" className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 px-4 outline-none focus:border-primary text-slate-700 dark:text-slate-300 text-sm resize-none"></textarea>
+                                </div>
+                            </div>
+
+                            <button onClick={handleUpdateSettings} disabled={savingSettings} className="mt-8 w-full bg-primary hover:brightness-110 text-white font-black py-4 rounded-2xl shadow-xl transition-all disabled:opacity-50">
+                                {savingSettings ? "Applying Engine Changes..." : "Save Global Configurations"}
+                            </button>
+                        </div>
+
+                        <div className="mt-8 bg-slate-50 dark:bg-slate-950/50 border border-dashed border-slate-200 dark:border-slate-800 p-8 rounded-3xl">
+                            <h3 className="text-xl font-black mb-2 text-slate-900 dark:text-white">Assets - Site Logo</h3>
+                            <p className="text-slate-500 dark:text-slate-400 text-xs mb-6 font-medium">Replaces the logo in the Navbar and Footer. Best dimensions: 150x50px.</p>
+                            <form onSubmit={async (e)=>{
+                                e.preventDefault();
+                                const file = e.target.logo.files[0];
+                                if(!file) return alert("Select an image!");
+                                const formData = new FormData(); formData.append('logo', file);
+                                try {
+                                    await axios.post(`${API_BASE_URL}/api/settings/logo`, formData, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }});
+                                    alert("Logo updated! Refresh the storefront to see changes.");
+                                    window.location.reload();
+                                } catch(err) { alert(err.response?.data?.error || err.message || "Failed to upload."); }
+                            }}>
+                                <input type="file" name="logo" accept="image/png, image/jpeg, image/svg+xml" required className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl py-3 px-4 outline-none focus:border-primary mb-4 text-slate-900 dark:text-white text-sm" />
+                                <button type="submit" className="bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-black px-8 py-3 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-lg">Upload Branding Asset</button>
+                            </form>
+                        </div>
                   </div>
               </div>
           )}

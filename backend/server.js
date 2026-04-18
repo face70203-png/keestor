@@ -135,6 +135,23 @@ mongoose.connect(process.env.MONGODB_URI)
       });
       console.log('Demo Admin account created: demo@keestore.app');
     }
+
+    // 3. Create Default Settings if they don't exist
+    const Setting = require('./models/Setting');
+    const settingsExist = await Setting.findOne();
+    if (!settingsExist) {
+        console.log('Seeding default system settings...');
+        await Setting.create({
+            platformName: 'KeeStore',
+            platformTagline: 'Premium Digital Assets',
+            supportEmail: 'support@keestore.app',
+            currencySymbol: '$',
+            maintenanceMode: false,
+            primaryColor: '#3b82f6',
+            footerText: 'The most secure, lightning-fast platform for premium digital keys and software assets.'
+        });
+        console.log('Default settings seeded.');
+    }
   })
   .catch(err => console.error('MongoDB connection error:', err));
 

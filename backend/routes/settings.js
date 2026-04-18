@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const { auth, adminAuth } = require('../middleware/auth');
-
 const fs = require('fs');
+const { auth, adminAuth } = require('../middleware/auth');
+const Setting = require('../models/Setting');
 
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
@@ -18,9 +18,38 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
+// @route   GET /api/settings
+// @desc    Get global platform settings
+router.get('/', async (req, res) => {
+    try {
+        let settings = await Setting.findOne();
+        if (!settings) {
+            settings = await Setting.create({});
+        }
+        res.json(settings);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// @route   PUT /api/settings
+// @desc    Update global platform settings
+router.put('/', adminAuth, async (req, res) => {
+    try {
+        let settings = await Setting.findOne();
+        if (!settings) {
+            settings = await Setting.create(req.body);
+        } else {
+            settings = await Setting.findOneAndUpdate({}, req.body, { new: true });
+        }
+        res.json(settings);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.post('/logo', adminAuth, upload.single('logo'), async (req, res) => {
     try {
-
         res.json({ success: true, message: 'Logo successfully updated. Refresh the page to see changes.' });
     } catch(err) {
         res.status(500).json({error: err.message});
